@@ -105,6 +105,7 @@ BOOL CCustomEqStatusDemoApp::InitInstance()
 int CCustomEqStatusDemoApp::ExitInstance()
 {
 	TerminateApp();
+	CMFCVisualManager::DestroyInstance();
 
 	return CWinApp::ExitInstance();
 }

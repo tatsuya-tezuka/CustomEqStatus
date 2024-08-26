@@ -103,14 +103,19 @@ BOOL CCustomEqStatusDemoDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 大きいアイコンの設定
 	SetIcon(m_hIcon, FALSE);		// 小さいアイコンの設定
 
-	mManager.EnableWindowsTheming(FALSE);
-	mManager.m_nFlatStyle = CMFCButton::BUTTONSTYLE_FLAT;
-	mManager.SetFaceColor(RGB(0, 162, 232), true);
-	mManager.SetTextColor(RGB(255, 255, 255));
-	mDetail.EnableWindowsTheming(FALSE);
-	mDetail.m_nFlatStyle = CMFCButton::BUTTONSTYLE_FLAT;
-	mDetail.SetFaceColor(RGB(0, 162, 232), true);
-	mDetail.SetTextColor(RGB(255, 255, 255));
+	//mManager.EnableWindowsTheming(FALSE);
+	//mManager.m_nFlatStyle = CMFCButton::BUTTONSTYLE_FLAT;
+	//mManager.SetFaceColor(RGB(0, 162, 232), true);
+	//mManager.SetTextColor(RGB(255, 255, 255));
+	//mDetail.EnableWindowsTheming(FALSE);
+	//mDetail.m_nFlatStyle = CMFCButton::BUTTONSTYLE_FLAT;
+	//mDetail.SetFaceColor(RGB(0, 162, 232), true);
+	//mDetail.SetTextColor(RGB(255, 255, 255));
+
+	if (theApp.GetCustomManager().GetSafeHwnd() == NULL) {
+		theApp.GetCustomManager().Create(IDD_DIALOG_MANAGER, this);
+	}
+	theApp.GetCustomManager().ShowWindow(SW_HIDE);
 
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
@@ -170,6 +175,10 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonManager()
 {
 	UpdateData(TRUE);
 	// カスタム管理
+	if (theApp.GetCustomManager().GetSafeHwnd() == NULL) {
+		theApp.GetCustomManager().Create(IDD_DIALOG_MANAGER, this);
+	}
+	theApp.GetCustomManager().ShowWindow(SW_SHOW);
 }
 
 

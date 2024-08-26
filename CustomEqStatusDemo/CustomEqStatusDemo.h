@@ -43,6 +43,7 @@ protected:
 
 	/// カスタムデータ管理関連 
 	CCustomDataManager		mDataManager;
+	/// カスタマイズ管理
 	CCustomManager			mCustomManager;
 
 	/* ------------------------------------------------------------------------------------ */
@@ -54,6 +55,8 @@ public:
 
 	/// カスタムデータ管理関連
 	CCustomDataManager&	GetDataManager() { return mDataManager; }
+	/// カスタマイズ管理
+	CCustomManager&	GetCustomManager() { return mCustomManager; }
 
 	CCustomDetail*	CreateEquipment(CTreeNode* pnode);
 
