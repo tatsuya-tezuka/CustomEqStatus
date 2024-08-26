@@ -1,3 +1,10 @@
+/******************************************************************************
+* @file    TreeListCtrl.h
+* @brief   【カスタマイズ機能】設備状況詳細ツリークラス
+* @auther  SCC
+* @date    2024/08/26 新規作成
+* @par
+******************************************************************************/
 #pragma once
 
 #include "afxcmn.h"
@@ -11,7 +18,12 @@ class CTreeEdit : public CEdit
 	// Construction
 public:
 	CTreeEdit(HTREEITEM iItem, int iSubItem, CString sInitText);
+	virtual ~CTreeEdit();
 
+	/* ------------------------------------------------------------------------------------ */
+	/* 定義                                                                                 */
+	/* ------------------------------------------------------------------------------------ */
+public:
 	enum eTreeEditType
 	{
 		eTreeEditType_Other,		// 入力文字をチェックしない
@@ -20,30 +32,38 @@ public:
 		eTreeEditType_Int,
 	};
 
-	// Attributes
+protected:
+
+	/* ------------------------------------------------------------------------------------ */
+	/* メンバ変数                                                                           */
+	/* ------------------------------------------------------------------------------------ */
 public:
 	BOOL	m_bKeyReturn;
 	BOOL    m_bKeyShift;
 	UINT	m_nNumberLimit;
+protected:
+	HTREEITEM	m_iItem;
+	int			m_iSubItem;
+	CString		m_sInitText;
+	BOOL		m_bESC;         // To indicate whether ESC key was pressed
+	BOOL		m_bNotify;
 
-	// Operations
+	/* ------------------------------------------------------------------------------------ */
+	/* メンバ関数                                                                           */
+	/* ------------------------------------------------------------------------------------ */
 public:
 	void		SetNumberLimit(UINT len);
 	HTREEITEM	GetItem() { return m_iItem; }
 	int			GetSubItem() { return m_iSubItem; }
 
-	// Overrides
-	// ClassWizard generated virtual function overrides
+protected:
+
+	/* ------------------------------------------------------------------------------------ */
 	//{{AFX_VIRTUAL(CTreeEdit)
 public:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	//}}AFX_VIRTUAL
 
-	// Implementation
-public:
-	virtual ~CTreeEdit();
-
-	// Generated message map functions
 protected:
 	//{{AFX_MSG(CTreeEdit)
 	afx_msg void OnKillFocus(CWnd* pNewWnd);
@@ -51,12 +71,6 @@ protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
-private:
-	HTREEITEM	m_iItem;
-	int			m_iSubItem;
-	CString		m_sInitText;
-	BOOL		m_bESC;         // To indicate whether ESC key was pressed
-	BOOL		m_bNotify;
 };
 
 

@@ -1,5 +1,10 @@
-// CustomDetail.cpp : 実装ファイル
-//
+/******************************************************************************
+* @file    CustomDetail.cpp
+* @brief   【カスタマイズ機能】設備状況詳細画面クラス
+* @auther  SCC
+* @date    2024/08/26 新規作成
+* @par
+******************************************************************************/
 #include "stdafx.h"
 #include "CustomEqStatusDemo.h"
 #include "CustomDetail.h"

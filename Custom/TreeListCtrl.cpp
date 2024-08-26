@@ -1,9 +1,14 @@
+/******************************************************************************
+* @file    TreeListCtrl.cpp
+* @brief   【カスタマイズ機能】設備状況詳細ツリークラス
+* @auther  SCC
+* @date    2024/08/26 新規作成
+* @par
+******************************************************************************/
 #include "stdafx.h"
-#include "EquipmentStatusDemo2013.h"
+#include "CustomEqStatusDemo.h"
 
 #include "TreeListCtrl.h"
-
-#include "CustomDataManager.h"
 
 //=============================================================================
 // CTreeEdit

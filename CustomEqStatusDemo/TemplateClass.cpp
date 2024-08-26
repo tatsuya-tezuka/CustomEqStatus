@@ -1,5 +1,10 @@
-// TemplateClass.cpp : 実装ファイル
-//
+/******************************************************************************
+* @file    TemplateClass.cpp
+* @brief   テンプレートクラス
+* @auther  SCC
+* @date    2024/08/26 新規作成
+* @par
+******************************************************************************/
 
 #include "stdafx.h"
 #include "CustomEqStatusDemoDlg.h"
@@ -15,7 +20,6 @@ CTemplateClass::CTemplateClass()
 CTemplateClass::~CTemplateClass()
 {
 }
-
 /*============================================================================*/
 /*! テンプレートクラス
 
