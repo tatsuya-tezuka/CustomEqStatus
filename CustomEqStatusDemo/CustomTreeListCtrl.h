@@ -10,15 +10,15 @@
 #include "afxcmn.h"
 
 //=============================================================================
-// ◆CTreeEdit
+// ◆CCustomTreeEdit
 //=============================================================================
 //!< リスト内で使用するエディットコントロール
-class CTreeEdit : public CEdit
+class CCustomTreeEdit : public CEdit
 {
 	// Construction
 public:
-	CTreeEdit(HTREEITEM iItem, int iSubItem, CString sInitText);
-	virtual ~CTreeEdit();
+	CCustomTreeEdit(HTREEITEM iItem, int iSubItem, CString sInitText);
+	virtual ~CCustomTreeEdit();
 
 	/* ------------------------------------------------------------------------------------ */
 	/* 定義                                                                                 */
@@ -38,27 +38,28 @@ protected:
 	/* メンバ変数                                                                           */
 	/* ------------------------------------------------------------------------------------ */
 public:
-	BOOL	m_bKeyReturn;
-	BOOL    m_bKeyShift;
-	UINT	m_nNumberLimit;
+	BOOL		mbKeyReturn;
+	BOOL		mbKeyShift;
+	UINT		mnNumberLimit;
 protected:
-	HTREEITEM	m_iItem;
-	int			m_iSubItem;
-	CString		m_sInitText;
-	BOOL		m_bESC;         // To indicate whether ESC key was pressed
-	BOOL		m_bNotify;
+	HTREEITEM	miItem;
+	int			miSubItem;
+	CString		msInitText;
+	BOOL		mbESC;         // To indicate whether ESC key was pressed
+	BOOL		mbNotify;
 
 	/* ------------------------------------------------------------------------------------ */
 	/* メンバ関数                                                                           */
 	/* ------------------------------------------------------------------------------------ */
 public:
 	void		SetNumberLimit(UINT len);
-	HTREEITEM	GetItem() { return m_iItem; }
-	int			GetSubItem() { return m_iSubItem; }
+	HTREEITEM	GetItem() { return miItem; }
+	int			GetSubItem() { return miSubItem; }
 
 protected:
 
 	/* ------------------------------------------------------------------------------------ */
+
 	//{{AFX_VIRTUAL(CTreeEdit)
 public:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
@@ -82,13 +83,13 @@ typedef BOOL(CALLBACK *DRAGCALLBACK)(CWnd* pwnd, UINT status, HTREEITEM hItem, L
 #define abs(x)		((x) < 0 ? (-(x)) : (x))
 
 //=============================================================================
-// ◆CTreeListCtrl
+// ◆CCustomTreeListCtrl
 //=============================================================================
-class CTreeListCtrl : public CTreeCtrl
+class CCustomTreeListCtrl : public CTreeCtrl
 {
 public:
-	CTreeListCtrl();
-	~CTreeListCtrl();
+	CCustomTreeListCtrl();
+	~CCustomTreeListCtrl();
 
 	/* ------------------------------------------------------------------------------------ */
 	/* 定義                                                                                 */
@@ -204,23 +205,23 @@ public:
 	vector<HTREEITEM>& GetSelectedItems() { return mSelectItems; }
 
 protected:
-	int		_GetMaxColumnWidth(HTREEITEM hItem, int nColumn, int nDepth, BOOL bIgnoreCollapsed);
-	HTREEITEM	_HitControl(CPoint point);
+	int			getMaxColumnWidth(HTREEITEM hItem, int nColumn, int nDepth, BOOL bIgnoreCollapsed);
+	HTREEITEM	hitControl(CPoint point);
 
 	/// ラベル編集
-	CEdit*	_EditSubLabel(HTREEITEM hItem, int col);
+	CEdit*		editSubLabel(HTREEITEM hItem, int col);
 
 	/// ドラッグ＆ドロップ
-	CImageList*	_CreateDragImageEx(HTREEITEM hItem);
-	bool	_IsDropExecute(HTREEITEM hItemDrag, HTREEITEM hItemDrop);
-	bool	_IsChildNodeOf(HTREEITEM hItemDrop, HTREEITEM hItemDrag);
+	CImageList*	createDragImageEx(HTREEITEM hItem);
+	bool		isDropExecute(HTREEITEM hItemDrag, HTREEITEM hItemDrop);
+	bool		isChildNodeOf(HTREEITEM hItemDrop, HTREEITEM hItemDrag);
 
-	BOOL	_PtInRectPointCell(CPoint point);
-	bool	_GetColumnsRect(HTREEITEM hItem, UINT col, CRect& rect);
+	BOOL		ptInRectPointCell(CPoint point);
+	bool		getColumnsRect(HTREEITEM hItem, UINT col, CRect& rect);
 
-	void	_SelectMultiItem(HTREEITEM hClickedItem, UINT nFlags);
+	void		selectMultiItem(HTREEITEM hClickedItem, UINT nFlags);
 
-	inline void _ExtractSubString(CString strText, vector<CString>& list)
+	inline void extractSubString(CString strText, vector<CString>& list)
 	{
 		list.clear();
 		CString temp;
@@ -230,7 +231,7 @@ protected:
 		}
 	}
 
-	inline COLORREF _CalcContrastColor(COLORREF color)
+	inline COLORREF calcContrastColor(COLORREF color)
 	{
 		int a = (int)abs((int)color);
 
@@ -242,13 +243,13 @@ protected:
 			return (COLORREF)(color ^ 0xFFFFFF);
 	}
 
-	void	ProcControlKeyPress(HTREEITEM hCurItem);
-	void	ProcShiftKeyPress(HTREEITEM hCurItem);
-	bool	IsSameLevel(HTREEITEM hItem);
-	void	RemoveFromSelectList(HTREEITEM hItem);
-	void	ClearSelection();
+	void	procControlKeyPress(HTREEITEM hCurItem);
+	void	procShiftKeyPress(HTREEITEM hCurItem);
+	bool	isSameLevel(HTREEITEM hItem);
+	void	removeFromSelectList(HTREEITEM hItem);
+	void	clearSelection();
 
-	CString	CreateDragString(HTREEITEM hDragItem);
+	CString	createDragString(HTREEITEM hDragItem);
 
 	/* ------------------------------------------------------------------------------------ */
 

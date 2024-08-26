@@ -8,10 +8,10 @@
 #include "stdafx.h"
 #include "CustomEqStatusDemo.h"
 
-#include "TreeListCtrl.h"
+#include "CustomTreeListCtrl.h"
 
 //=============================================================================
-// CTreeEdit
+// CCustomTreeEdit
 //=============================================================================
 /*============================================================================*/
 /*! ツリー内エディットボックス
@@ -23,16 +23,16 @@
 
 */
 /*============================================================================*/
-CTreeEdit::CTreeEdit(HTREEITEM iItem, int iSubItem, CString sInitText)
-:m_sInitText(sInitText)
+CCustomTreeEdit::CCustomTreeEdit(HTREEITEM iItem, int iSubItem, CString sInitText)
+:msInitText(sInitText)
 {
-	m_iItem = iItem;
-	m_iSubItem = iSubItem;
-	m_bESC = FALSE;
-	m_bKeyReturn = FALSE;
-	m_bKeyShift = FALSE;
-	m_bNotify = FALSE;
-	m_nNumberLimit = 100;
+	miItem = iItem;
+	miSubItem = iSubItem;
+	mbESC = FALSE;
+	mbKeyReturn = FALSE;
+	mbKeyShift = FALSE;
+	mbNotify = FALSE;
+	mnNumberLimit = 100;
 }
 
 /*============================================================================*/
@@ -45,7 +45,7 @@ CTreeEdit::CTreeEdit(HTREEITEM iItem, int iSubItem, CString sInitText)
 
 */
 /*============================================================================*/
-CTreeEdit::~CTreeEdit()
+CCustomTreeEdit::~CCustomTreeEdit()
 {
 }
 
@@ -59,8 +59,8 @@ CTreeEdit::~CTreeEdit()
 
 */
 /*============================================================================*/
-BEGIN_MESSAGE_MAP(CTreeEdit, CEdit)
-	//{{AFX_MSG_MAP(CTreeEdit)
+BEGIN_MESSAGE_MAP(CCustomTreeEdit, CEdit)
+	//{{AFX_MSG_MAP(CCustomTreeEdit)
 	ON_WM_KILLFOCUS()
 	ON_WM_CHAR()
 	ON_WM_CREATE()
@@ -80,7 +80,7 @@ END_MESSAGE_MAP()
 
 */
 /*============================================================================*/
-BOOL CTreeEdit::PreTranslateMessage(MSG* pMsg)
+BOOL CCustomTreeEdit::PreTranslateMessage(MSG* pMsg)
 {
 	if (pMsg->message == WM_KEYDOWN){
 		SHORT sKey = GetKeyState(VK_CONTROL);
@@ -91,11 +91,11 @@ BOOL CTreeEdit::PreTranslateMessage(MSG* pMsg)
 			)
 		{
 			if (pMsg->wParam == VK_RETURN)
-				m_bKeyReturn = TRUE;
+				mbKeyReturn = TRUE;
 			if (GetKeyState(VK_SHIFT) & 0xff00)
-				m_bKeyShift = TRUE;
+				mbKeyShift = TRUE;
 			else
-				m_bKeyShift = FALSE;
+				mbKeyShift = FALSE;
 
 			::TranslateMessage(pMsg);
 			if (!(GetStyle() & ES_MULTILINE) || pMsg->wParam != VK_ESCAPE){
@@ -118,9 +118,9 @@ BOOL CTreeEdit::PreTranslateMessage(MSG* pMsg)
 
 */
 /*============================================================================*/
-void CTreeEdit::SetNumberLimit(UINT len)
+void CCustomTreeEdit::SetNumberLimit(UINT len)
 {
-	m_nNumberLimit = len;
+	mnNumberLimit = len;
 }
 
 /*============================================================================*/
@@ -133,18 +133,18 @@ void CTreeEdit::SetNumberLimit(UINT len)
 
 */
 /*============================================================================*/
-void CTreeEdit::OnKillFocus(CWnd* pNewWnd)
+void CCustomTreeEdit::OnKillFocus(CWnd* pNewWnd)
 {
 	CEdit::OnKillFocus(pNewWnd);
 
 	CString str;
 	GetWindowText(str);
 
-	if (m_bNotify == TRUE)
+	if (mbNotify == TRUE)
 	{
 		return;
 	}
-	m_bNotify = TRUE;
+	mbNotify = TRUE;
 
 	// Send Notification to parent of ListView ctrl
 	TV_DISPINFO dispinfo;
@@ -153,9 +153,9 @@ void CTreeEdit::OnKillFocus(CWnd* pNewWnd)
 	dispinfo.hdr.code = TVN_ENDLABELEDIT;
 
 	dispinfo.item.mask = LVIF_TEXT;
-	dispinfo.item.hItem = m_iItem;
-	dispinfo.item.pszText = m_bESC ? NULL : LPTSTR((LPCTSTR)str);
-	dispinfo.item.cchTextMax = m_bESC ? 0 : str.GetLength();
+	dispinfo.item.hItem = miItem;
+	dispinfo.item.pszText = mbESC ? NULL : LPTSTR((LPCTSTR)str);
+	dispinfo.item.cchTextMax = mbESC ? 0 : str.GetLength();
 
 	GetParent()->SetFocus();
 	GetParent()->GetParent()->SendMessage(WM_NOTIFY, GetParent()->GetDlgCtrlID(), (LPARAM)&dispinfo);
@@ -173,7 +173,7 @@ void CTreeEdit::OnKillFocus(CWnd* pNewWnd)
 
 */
 /*============================================================================*/
-void CTreeEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
+void CCustomTreeEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
 	if (nChar == 0x03 || nChar == 0x16 || nChar == 0x18 || nChar == 0x08)//Ctrl+C; Ctrl+V; Ctrl+X; BackSpace
 	{
@@ -182,7 +182,7 @@ void CTreeEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 	else if (nChar == VK_ESCAPE || nChar == VK_RETURN)
 	{
 		if (nChar == VK_ESCAPE)
-			m_bESC = TRUE;
+			mbESC = TRUE;
 		GetParent()->SetFocus();
 		return;
 	}
@@ -202,7 +202,7 @@ void CTreeEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 */
 /*============================================================================*/
-int CTreeEdit::OnCreate(LPCREATESTRUCT lpCreateStruct)
+int CCustomTreeEdit::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if (CEdit::OnCreate(lpCreateStruct) == -1)
 		return -1;
@@ -211,23 +211,23 @@ int CTreeEdit::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	CFont* font = GetParent()->GetFont();
 	SetFont(font);
 
-	SetWindowText(m_sInitText);
+	SetWindowText(msInitText);
 	SetFocus();
 	//	CalculateSize();
 	SetSel(0, -1);
 
 	CString	str;
 	GetWindowText(str);
-	int length = m_nNumberLimit;
+	int length = mnNumberLimit;
 	SetLimitText(length);
 	return 0;
 }
 
 
 //=============================================================================
-// ◆CTreeListCtrl
+// ◆CCustomTreeListCtrl
 //=============================================================================
-CTreeListCtrl::CTreeListCtrl()
+CCustomTreeListCtrl::CCustomTreeListCtrl()
 {
 	myOffset = 0;
 
@@ -287,7 +287,7 @@ CTreeListCtrl::CTreeListCtrl()
 }
 
 
-CTreeListCtrl::~CTreeListCtrl()
+CCustomTreeListCtrl::~CCustomTreeListCtrl()
 {
 	if (mpEdit != NULL)
 		delete mpEdit;
@@ -302,17 +302,17 @@ CTreeListCtrl::~CTreeListCtrl()
 }
 
 
-BEGIN_MESSAGE_MAP(CTreeListCtrl, CTreeCtrl)
+BEGIN_MESSAGE_MAP(CCustomTreeListCtrl, CTreeCtrl)
 	ON_WM_PAINT()
 	ON_WM_ERASEBKGND()
 	ON_WM_LBUTTONDOWN()
 	ON_WM_VSCROLL()
-	ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, &CTreeListCtrl::OnNMCustomdraw)
-	ON_NOTIFY_REFLECT(TVN_BEGINDRAG, &CTreeListCtrl::OnTvnBegindrag)
+	ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, &CCustomTreeListCtrl::OnNMCustomdraw)
+	ON_NOTIFY_REFLECT(TVN_BEGINDRAG, &CCustomTreeListCtrl::OnTvnBegindrag)
 	ON_WM_MOUSEMOVE()
 	ON_WM_LBUTTONUP()
-	ON_NOTIFY_REFLECT(TVN_BEGINLABELEDIT, &CTreeListCtrl::OnTvnBeginlabeledit)
-	ON_NOTIFY_REFLECT(TVN_ENDLABELEDIT, &CTreeListCtrl::OnTvnEndlabeledit)
+	ON_NOTIFY_REFLECT(TVN_BEGINLABELEDIT, &CCustomTreeListCtrl::OnTvnBeginlabeledit)
+	ON_NOTIFY_REFLECT(TVN_ENDLABELEDIT, &CCustomTreeListCtrl::OnTvnEndlabeledit)
 	ON_WM_LBUTTONDBLCLK()
 END_MESSAGE_MAP()
 
@@ -327,7 +327,7 @@ END_MESSAGE_MAP()
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::Create(CWnd* parent, CFont& font)
+void CCustomTreeListCtrl::Create(CWnd* parent, CFont& font)
 {
 	mTreeParent = parent;
 
@@ -379,7 +379,7 @@ void CTreeListCtrl::Create(CWnd* parent, CFont& font)
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::PreSubclassWindow()
+void CCustomTreeListCtrl::PreSubclassWindow()
 {
 	CTreeCtrl::PreSubclassWindow();
 }
@@ -394,7 +394,7 @@ void CTreeListCtrl::PreSubclassWindow()
 @retval
 */
 /*============================================================================*/
-BOOL CTreeListCtrl::PreTranslateMessage(MSG* pMsg)
+BOOL CCustomTreeListCtrl::PreTranslateMessage(MSG* pMsg)
 {
 	return CTreeCtrl::PreTranslateMessage(pMsg);
 }
@@ -409,7 +409,7 @@ BOOL CTreeListCtrl::PreTranslateMessage(MSG* pMsg)
 @retval
 */
 /*============================================================================*/
-LRESULT CTreeListCtrl::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CCustomTreeListCtrl::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	return CTreeCtrl::WindowProc(message, wParam, lParam);
 }
@@ -424,7 +424,7 @@ LRESULT CTreeListCtrl::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::OnPaint()
+void CCustomTreeListCtrl::OnPaint()
 {
 	CPaintDC dc(this);
 
@@ -463,7 +463,7 @@ void CTreeListCtrl::OnPaint()
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
+void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	//LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
 	NMCUSTOMDRAW* pNMCustomDraw = (NMCUSTOMDRAW*)pNMHDR;
@@ -626,7 +626,7 @@ void CTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 				if (strSub == CString(mCOntrolSignString)){
 					CFont* p = (CFont*)dc.SelectObject(&mControlFont);
 					//dc.SetTextColor(RGB(0, 0, 255));
-					dc.SetTextColor(_CalcContrastColor(backcolor));
+					dc.SetTextColor(calcContrastColor(backcolor));
 					dc.DrawText(mCOntrolSignStringDisplay, &rcText, DT_SINGLELINE | DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
 					dc.SelectObject(p);
 				}
@@ -674,7 +674,7 @@ void CTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 @retval
 */
 /*============================================================================*/
-BOOL CTreeListCtrl::OnEraseBkgnd(CDC* pDC)
+BOOL CCustomTreeListCtrl::OnEraseBkgnd(CDC* pDC)
 {
 	//CRect	rClient;
 	//GetClientRect(&rClient);
@@ -692,7 +692,7 @@ BOOL CTreeListCtrl::OnEraseBkgnd(CDC* pDC)
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
+void CCustomTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 {
 #ifdef _ORG
 	//if (!(GetStyle() & TVS_EDITLABELS)){
@@ -755,7 +755,7 @@ void CTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 			}
 		}
 
-		ClearSelection();
+		clearSelection();
 		SelectItem(hItem);
 		SetFocus();
 	}
@@ -778,7 +778,7 @@ void CTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 			unsigned short shKeyState = GetKeyState(VK_CONTROL);
 			shKeyState >>= 15;
 			if (shKeyState == 1){
-				ProcControlKeyPress(hItem);
+				procControlKeyPress(hItem);
 				HTREEITEM hSelectedItem = GetSelectedItem();
 				if (ItemHasChildren(hSelectedItem)) {
 					SelectItem(hItem);
@@ -795,7 +795,7 @@ void CTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 			mLastSelectItem = hItem;
 			if (mSelectItems.size() == 1)
 			{
-				ClearSelection();
+				clearSelection();
 				SetItemState(mLastSelectItem, TVIS_SELECTED, TVIS_SELECTED);
 				mSelectItems.push_back(mLastSelectItem);
 			}
@@ -814,13 +814,13 @@ void CTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::ProcControlKeyPress(HTREEITEM hCurItem)
+void CCustomTreeListCtrl::procControlKeyPress(HTREEITEM hCurItem)
 {
 	if (mSelectItems.size() > 0)
 	{
-		if (!IsSameLevel(hCurItem)){
+		if (!isSameLevel(hCurItem)){
 			SelectItem(hCurItem);
-			ClearSelection();
+			clearSelection();
 			return;
 		}
 	}
@@ -829,7 +829,7 @@ void CTreeListCtrl::ProcControlKeyPress(HTREEITEM hCurItem)
 	SetItemState(hCurItem, nState, TVIS_SELECTED);
 	if (0 == nState)
 	{
-		RemoveFromSelectList(hCurItem);
+		removeFromSelectList(hCurItem);
 	}
 	else
 	{
@@ -847,11 +847,11 @@ void CTreeListCtrl::ProcControlKeyPress(HTREEITEM hCurItem)
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::ProcShiftKeyPress(HTREEITEM hCurItem)
+void CCustomTreeListCtrl::procShiftKeyPress(HTREEITEM hCurItem)
 {
 	if (mSelectItems.size() > 0)
 	{
-		if (!IsSameLevel(hCurItem)){
+		if (!isSameLevel(hCurItem)){
 			return;
 		}
 	}
@@ -870,7 +870,7 @@ void CTreeListCtrl::ProcShiftKeyPress(HTREEITEM hCurItem)
 @retval
 */
 /*============================================================================*/
-bool CTreeListCtrl::IsSameLevel(HTREEITEM hItem)
+bool CCustomTreeListCtrl::isSameLevel(HTREEITEM hItem)
 {
 	bool bSameLevel = true;
 	vector<HTREEITEM>::iterator itr;
@@ -894,7 +894,7 @@ bool CTreeListCtrl::IsSameLevel(HTREEITEM hItem)
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::RemoveFromSelectList(HTREEITEM hItem)
+void CCustomTreeListCtrl::removeFromSelectList(HTREEITEM hItem)
 {
 	vector<HTREEITEM>::iterator itr;
 	for (itr = mSelectItems.begin(); mSelectItems.end() != itr; ++itr)
@@ -917,7 +917,7 @@ void CTreeListCtrl::RemoveFromSelectList(HTREEITEM hItem)
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::ClearSelection()
+void CCustomTreeListCtrl::clearSelection()
 {
 	int nSelItemCount = (int)mSelectItems.size();
 	for (int nIdx = 0; nIdx < nSelItemCount; ++nIdx)
@@ -937,7 +937,7 @@ void CTreeListCtrl::ClearSelection()
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
+void CCustomTreeListCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
 	CTreeCtrl::OnLButtonDblClk(nFlags, point);
 }
@@ -952,7 +952,7 @@ void CTreeListCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::OnMouseMove(UINT nFlags, CPoint point)
+void CCustomTreeListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 {
 	HTREEITEM	hItem=0;
 	UINT        flags=0;
@@ -1041,7 +1041,7 @@ void CTreeListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
+void CCustomTreeListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 {
 #ifndef _DEMO
 	if (!(MK_CONTROL & nFlags)/* && !(MK_SHIFT & nFlags)*/){
@@ -1132,7 +1132,7 @@ void CTreeListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+void CCustomTreeListCtrl::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 	if (GetFocus() != this)
 		SetFocus();
@@ -1154,7 +1154,7 @@ void CTreeListCtrl::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::OnTvnBeginlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
+void CCustomTreeListCtrl::OnTvnBeginlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMTVDISPINFO pTVDispInfo = reinterpret_cast<LPNMTVDISPINFO>(pNMHDR);
 
@@ -1191,7 +1191,7 @@ void CTreeListCtrl::OnTvnBeginlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::OnTvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
+void CCustomTreeListCtrl::OnTvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMTVDISPINFO pTVDispInfo = reinterpret_cast<LPNMTVDISPINFO>(pNMHDR);
 
@@ -1209,8 +1209,8 @@ void CTreeListCtrl::OnTvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 		{
 			if (pTVDispInfo->item.pszText != NULL){
 				CString str = pTVDispInfo->item.pszText;
-				SetSubItemText(pTVDispInfo->item.hItem, ((CTreeEdit*)mpEdit)->GetSubItem(), str);
-				switch (((CTreeEdit*)mpEdit)->GetSubItem()){
+				SetSubItemText(pTVDispInfo->item.hItem, ((CCustomTreeEdit*)mpEdit)->GetSubItem(), str);
+				switch (((CCustomTreeEdit*)mpEdit)->GetSubItem()){
 				case	eItem:
 					swprintf_s(pnode->GetMonCtrl().display, mNameSize, _T("%s"), GetSubItemText(pTVDispInfo->item.hItem, eItem));
 					break;
@@ -1256,7 +1256,7 @@ void CTreeListCtrl::OnTvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::OnTvnBegindrag(NMHDR *pNMHDR, LRESULT *pResult)
+void CCustomTreeListCtrl::OnTvnBegindrag(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
 	*pResult = 0;
@@ -1315,7 +1315,7 @@ void CTreeListCtrl::OnTvnBegindrag(NMHDR *pNMHDR, LRESULT *pResult)
 @retval BOOL
 */
 /*============================================================================*/
-CString CTreeListCtrl::CreateDragString(HTREEITEM hDragItem)
+CString CCustomTreeListCtrl::createDragString(HTREEITEM hDragItem)
 {
 	CTreeNode* pnode = theApp.GetDataManager().SearchItemNode(mTreeParent, hDragItem);
 	if (pnode == NULL)
@@ -1338,14 +1338,14 @@ CString CTreeListCtrl::CreateDragString(HTREEITEM hDragItem)
 @retval	int	アイテム
 */
 /*============================================================================*/
-CString CTreeListCtrl::GetSubItemText(HTREEITEM hItem, int col)
+CString CCustomTreeListCtrl::GetSubItemText(HTREEITEM hItem, int col)
 {
 	CString str;
 	str = GetItemText(hItem);
 	vector<CString>	list;
 	vector<CString>::iterator itr;
 
-	_ExtractSubString(str, list);
+	extractSubString(str, list);
 
 	str = _T("");
 	if (list.size() > (UINT)col) {
@@ -1364,14 +1364,14 @@ CString CTreeListCtrl::GetSubItemText(HTREEITEM hItem, int col)
 @retval	int	アイテム
 */
 /*============================================================================*/
-void CTreeListCtrl::SetSubItemText(HTREEITEM hItem, int col, CString strText)
+void CCustomTreeListCtrl::SetSubItemText(HTREEITEM hItem, int col, CString strText)
 {
 	CString str;
 	str = GetItemText(hItem);
 	vector<CString>	list;
 	vector<CString>::iterator itr;
 
-	_ExtractSubString(str, list);
+	extractSubString(str, list);
 
 	if (list.size() <= col)
 		return;
@@ -1399,7 +1399,7 @@ void CTreeListCtrl::SetSubItemText(HTREEITEM hItem, int col, CString strText)
 @retval	int	アイテム
 */
 /*============================================================================*/
-HTREEITEM CTreeListCtrl::HitTestEx(CPoint &point, UINT& col)
+HTREEITEM CCustomTreeListCtrl::HitTestEx(CPoint &point, UINT& col)
 {
 	int colnum = 0;
 	HTREEITEM hItem = HitTest(point, NULL);
@@ -1438,11 +1438,11 @@ HTREEITEM CTreeListCtrl::HitTestEx(CPoint &point, UINT& col)
 @retval 正常終了時にツリーアイテムを返す
 */
 /*============================================================================*/
-bool CTreeListCtrl::IsControl(CPoint point)
+bool CCustomTreeListCtrl::IsControl(CPoint point)
 {
-	HTREEITEM hItem = _HitControl(point);
+	HTREEITEM hItem = hitControl(point);
 	if (hItem != NULL){
-		if (_PtInRectPointCell(point) == TRUE){
+		if (ptInRectPointCell(point) == TRUE){
 			return true;
 		}
 	}
@@ -1459,7 +1459,7 @@ bool CTreeListCtrl::IsControl(CPoint point)
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::ResizeControl(int dx, int dy)
+void CCustomTreeListCtrl::ResizeControl(int dx, int dy)
 {
 	CRect rect;
 
@@ -1490,7 +1490,7 @@ void CTreeListCtrl::ResizeControl(int dx, int dy)
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::SetHeaderItem(int item, CString title, int width)
+void CCustomTreeListCtrl::SetHeaderItem(int item, CString title, int width)
 {
 	HDITEM hditem;
 	hditem.mask = HDI_TEXT | HDI_WIDTH | HDI_FORMAT;
@@ -1509,7 +1509,7 @@ void CTreeListCtrl::SetHeaderItem(int item, CString title, int width)
 @retval なし
 */
 /*============================================================================*/
-void CTreeListCtrl::UpdateColumns()
+void CCustomTreeListCtrl::UpdateColumns()
 {
 	mcxTotal = 0;
 
@@ -1543,7 +1543,7 @@ void CTreeListCtrl::UpdateColumns()
 @retval なし
 */
 /*============================================================================*/
-void CTreeListCtrl::RepositionControls()
+void CCustomTreeListCtrl::RepositionControls()
 {
 	// 各子コントロールの再配置を行う
 	if (m_hWnd) {
@@ -1574,9 +1574,9 @@ void CTreeListCtrl::RepositionControls()
 @retval void
 */
 /*============================================================================*/
-void CTreeListCtrl::AdjustColumnWidth(int nColumn, BOOL bIgnoreCollapsed)
+void CCustomTreeListCtrl::AdjustColumnWidth(int nColumn, BOOL bIgnoreCollapsed)
 {
-	int nMaxWidth = _GetMaxColumnWidth(GetRootItem(), nColumn, 0, bIgnoreCollapsed);
+	int nMaxWidth = getMaxColumnWidth(GetRootItem(), nColumn, 0, bIgnoreCollapsed);
 
 	HDITEM hditem;
 	hditem.mask = HDI_WIDTH;
@@ -1594,7 +1594,7 @@ void CTreeListCtrl::AdjustColumnWidth(int nColumn, BOOL bIgnoreCollapsed)
 @retval	int		サイズ
 */
 /*============================================================================*/
-int CTreeListCtrl::GetHeaderWidth(int col/*=-1*/)
+int CCustomTreeListCtrl::GetHeaderWidth(int col/*=-1*/)
 {
 	HDITEM hditem;
 	int size = 0;
@@ -1624,7 +1624,7 @@ int CTreeListCtrl::GetHeaderWidth(int col/*=-1*/)
 @retval	BOOL		TRUE：編集モード可、FALSE：編集モード否
 */
 /*============================================================================*/
-BOOL CTreeListCtrl::SwitchEditMode(HTREEITEM hItem, UINT col, CPoint point)
+BOOL CCustomTreeListCtrl::SwitchEditMode(HTREEITEM hItem, UINT col, CPoint point)
 {
 	if (hItem == NULL)
 		return FALSE;
@@ -1634,7 +1634,7 @@ BOOL CTreeListCtrl::SwitchEditMode(HTREEITEM hItem, UINT col, CPoint point)
 	if (type != eTreeItemType_Item)
 		return FALSE;
 
-	CEdit* pedit = _EditSubLabel(hItem, col);
+	CEdit* pedit = editSubLabel(hItem, col);
 	if (pedit == NULL){
 		SetFocus();
 	}
@@ -1654,7 +1654,7 @@ BOOL CTreeListCtrl::SwitchEditMode(HTREEITEM hItem, UINT col, CPoint point)
 @retval
 */
 /*============================================================================*/
-void CTreeListCtrl::_SelectMultiItem(HTREEITEM hClickedItem, UINT nFlags)
+void CCustomTreeListCtrl::selectMultiItem(HTREEITEM hClickedItem, UINT nFlags)
 {
 	if(nFlags & MK_CONTROL){
 		// 現在の選択アイテムを取得
@@ -1691,7 +1691,7 @@ void CTreeListCtrl::_SelectMultiItem(HTREEITEM hClickedItem, UINT nFlags)
 @retval	CComboBox
 */
 /*============================================================================*/
-CEdit* CTreeListCtrl::_EditSubLabel(HTREEITEM hItem, int col)
+CEdit* CCustomTreeListCtrl::editSubLabel(HTREEITEM hItem, int col)
 {
 	CString text = GetSubItemText(hItem, col);
 
@@ -1734,7 +1734,7 @@ CEdit* CTreeListCtrl::_EditSubLabel(HTREEITEM hItem, int col)
 		mpEdit = NULL;
 	}
 
-	mpEdit = new CTreeEdit(hItem, col, text);
+	mpEdit = new CCustomTreeEdit(hItem, col, text);
 	mpEdit->Create(dwStyle, rect, this, 1);
 
 	return mpEdit;
@@ -1749,7 +1749,7 @@ CEdit* CTreeListCtrl::_EditSubLabel(HTREEITEM hItem, int col)
 @retval
 */
 /*============================================================================*/
-CImageList* CTreeListCtrl::_CreateDragImageEx(HTREEITEM hItem)
+CImageList* CCustomTreeListCtrl::createDragImageEx(HTREEITEM hItem)
 {
 	if (GetImageList(TVSIL_NORMAL) != NULL)
 		return CreateDragImage(hItem);
@@ -1804,7 +1804,7 @@ CImageList* CTreeListCtrl::_CreateDragImageEx(HTREEITEM hItem)
 @retval
 */
 /*============================================================================*/
-bool CTreeListCtrl::_IsDropExecute(HTREEITEM hItemDrag, HTREEITEM hItemDrop)
+bool CCustomTreeListCtrl::isDropExecute(HTREEITEM hItemDrag, HTREEITEM hItemDrop)
 {
 #ifndef _DEMO
 	if (mDragCallback == NULL)
@@ -1831,7 +1831,7 @@ bool CTreeListCtrl::_IsDropExecute(HTREEITEM hItemDrag, HTREEITEM hItemDrop)
 @retval 正常終了時にツリーアイテムを返す
 */
 /*============================================================================*/
-HTREEITEM CTreeListCtrl::_HitControl(CPoint point)
+HTREEITEM CCustomTreeListCtrl::hitControl(CPoint point)
 {
 	int colnum = 0;
 	UINT col = 0;
@@ -1861,7 +1861,7 @@ HTREEITEM CTreeListCtrl::_HitControl(CPoint point)
 @retval bool
 */
 /*============================================================================*/
-BOOL CTreeListCtrl::_PtInRectPointCell(CPoint point)
+BOOL CCustomTreeListCtrl::ptInRectPointCell(CPoint point)
 {
 	int colnum = 0;
 	UINT col = 0;
@@ -1894,7 +1894,7 @@ BOOL CTreeListCtrl::_PtInRectPointCell(CPoint point)
 	ReleaseDC(pDC);
 
 	CRect rect;
-	if (_GetColumnsRect(hItem, col, rect) == false)
+	if (getColumnsRect(hItem, col, rect) == false)
 		return FALSE;
 
 	HDITEM hditem = { 0 };
@@ -1922,7 +1922,7 @@ BOOL CTreeListCtrl::_PtInRectPointCell(CPoint point)
 @retval	bool
 */
 /*============================================================================*/
-bool CTreeListCtrl::_GetColumnsRect(HTREEITEM hItem, UINT col, CRect& rect)
+bool CCustomTreeListCtrl::getColumnsRect(HTREEITEM hItem, UINT col, CRect& rect)
 {
 	if (hItem == NULL){
 		return false;
@@ -1955,7 +1955,7 @@ bool CTreeListCtrl::_GetColumnsRect(HTREEITEM hItem, UINT col, CRect& rect)
 @retval
 */
 /*============================================================================*/
-bool CTreeListCtrl::_IsChildNodeOf(HTREEITEM hItemDrop, HTREEITEM hItemDrag)
+bool CCustomTreeListCtrl::isChildNodeOf(HTREEITEM hItemDrop, HTREEITEM hItemDrag)
 {
 	// ドロップ先アイテムの親を探してドラッグアイテムと同じかを確認する
 	do
@@ -1977,7 +1977,7 @@ bool CTreeListCtrl::_IsChildNodeOf(HTREEITEM hItemDrop, HTREEITEM hItemDrag)
 @retval なし
 */
 /*============================================================================*/
-void CTreeListCtrl::UpdateScroller()
+void CCustomTreeListCtrl::UpdateScroller()
 {
 	CRect rcClient;
 	mTreeParent->GetClientRect(&rcClient);
@@ -2013,7 +2013,7 @@ void CTreeListCtrl::UpdateScroller()
 @retval void
 */
 /*============================================================================*/
-int CTreeListCtrl::_GetMaxColumnWidth(HTREEITEM hItem, int nColumn, int nDepth, BOOL bIgnoreCollapsed)
+int CCustomTreeListCtrl::getMaxColumnWidth(HTREEITEM hItem, int nColumn, int nDepth, BOOL bIgnoreCollapsed)
 {
 	int nMaxWidth = 0;
 
@@ -2047,7 +2047,7 @@ int CTreeListCtrl::_GetMaxColumnWidth(HTREEITEM hItem, int nColumn, int nDepth, 
 		// 子レベル幅を加算
 		HTREEITEM hSubItem = GetChildItem(hItem);
 		while (hSubItem){
-			int nSubWidth = _GetMaxColumnWidth(hSubItem, nColumn, nDepth + 1, bIgnoreCollapsed);
+			int nSubWidth = getMaxColumnWidth(hSubItem, nColumn, nDepth + 1, bIgnoreCollapsed);
 			if (nSubWidth > nMaxWidth)
 				nMaxWidth = nSubWidth;
 			hSubItem = GetNextSiblingItem(hSubItem);
@@ -2068,7 +2068,7 @@ int CTreeListCtrl::_GetMaxColumnWidth(HTREEITEM hItem, int nColumn, int nDepth, 
 
 */
 /*============================================================================*/
-DROPEFFECT CALLBACK CTreeListCtrl::Callback_DragEnter(CWnd* pWnd, COleDataObject* pDataObject, DWORD dwKeyState, CPoint point)
+DROPEFFECT CALLBACK CCustomTreeListCtrl::Callback_DragEnter(CWnd* pWnd, COleDataObject* pDataObject, DWORD dwKeyState, CPoint point)
 {
 	return DROPEFFECT_COPY;
 }
@@ -2082,9 +2082,9 @@ DROPEFFECT CALLBACK CTreeListCtrl::Callback_DragEnter(CWnd* pWnd, COleDataObject
 
 */
 /*============================================================================*/
-DROPEFFECT CALLBACK CTreeListCtrl::Callback_DragOver(CWnd* pWnd, COleDataObject* pDataObject, DWORD dwKeyState, CPoint point)
+DROPEFFECT CALLBACK CCustomTreeListCtrl::Callback_DragOver(CWnd* pWnd, COleDataObject* pDataObject, DWORD dwKeyState, CPoint point)
 {
-	CTreeListCtrl* ptree = (CTreeListCtrl*)pWnd;
+	CCustomTreeListCtrl* ptree = (CCustomTreeListCtrl*)pWnd;
 
 	CPoint pt = CPoint(point);
 	// ドロップ位置情報から対象のアイテムを取得する
@@ -2125,9 +2125,9 @@ DROPEFFECT CALLBACK CTreeListCtrl::Callback_DragOver(CWnd* pWnd, COleDataObject*
 
 */
 /*============================================================================*/
-void CALLBACK CTreeListCtrl::Callback_DragLeave(CWnd* pWnd)
+void CALLBACK CCustomTreeListCtrl::Callback_DragLeave(CWnd* pWnd)
 {
-	CTreeListCtrl* ptree = (CTreeListCtrl*)pWnd;
+	CCustomTreeListCtrl* ptree = (CCustomTreeListCtrl*)pWnd;
 	ptree->SendMessage(TVM_SELECTITEM, TVGN_DROPHILITE, 0);
 }
 /*============================================================================*/
@@ -2140,9 +2140,9 @@ void CALLBACK CTreeListCtrl::Callback_DragLeave(CWnd* pWnd)
 
 */
 /*============================================================================*/
-BOOL CALLBACK CTreeListCtrl::Callback_DragDrop(CWnd* pWnd, COleDataObject* pDataObject, DROPEFFECT dropEffect, CPoint point)
+BOOL CALLBACK CCustomTreeListCtrl::Callback_DragDrop(CWnd* pWnd, COleDataObject* pDataObject, DROPEFFECT dropEffect, CPoint point)
 {
-	CTreeListCtrl* ptree = (CTreeListCtrl*)pWnd;
+	CCustomTreeListCtrl* ptree = (CCustomTreeListCtrl*)pWnd;
 
 	CPoint pt = CPoint(point);
 	HTREEITEM hItem = ptree->HitTest(pt);
@@ -2178,7 +2178,7 @@ BOOL CALLBACK CTreeListCtrl::Callback_DragDrop(CWnd* pWnd, COleDataObject* pData
 @retval BOOL
 */
 /*============================================================================*/
-BOOL CTreeListCtrl::AddLeaf(HTREEITEM hTargetItem, CTreeNode* pnode, CPoint point, COleDataObject* pDataObject)
+BOOL CCustomTreeListCtrl::AddLeaf(HTREEITEM hTargetItem, CTreeNode* pnode, CPoint point, COleDataObject* pDataObject)
 {
 	stDragData data;
 	BOOL ret = CreateDragData(hTargetItem, pnode, point, pDataObject, data);
@@ -2200,7 +2200,7 @@ BOOL CTreeListCtrl::AddLeaf(HTREEITEM hTargetItem, CTreeNode* pnode, CPoint poin
 @retval BOOL
 */
 /*============================================================================*/
-BOOL CTreeListCtrl::UpdateLeaf(HTREEITEM hTargetItem, CTreeNode* pnode, CPoint point, COleDataObject* pDataObject)
+BOOL CCustomTreeListCtrl::UpdateLeaf(HTREEITEM hTargetItem, CTreeNode* pnode, CPoint point, COleDataObject* pDataObject)
 {
 	stDragData data;
 	BOOL ret = CreateDragData(hTargetItem, pnode, point, pDataObject, data);
@@ -2225,7 +2225,7 @@ BOOL CTreeListCtrl::UpdateLeaf(HTREEITEM hTargetItem, CTreeNode* pnode, CPoint p
 @retval BOOL
 */
 /*============================================================================*/
-BOOL CTreeListCtrl::CreateDragData(HTREEITEM hTargetItem, CTreeNode* pnode, CPoint point, COleDataObject* pDataObject, stDragData& data)
+BOOL CCustomTreeListCtrl::CreateDragData(HTREEITEM hTargetItem, CTreeNode* pnode, CPoint point, COleDataObject* pDataObject, stDragData& data)
 {
 	data.point.x = point.x;
 	data.point.y = point.y;

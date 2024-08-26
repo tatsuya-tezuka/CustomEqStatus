@@ -8,6 +8,7 @@
 #pragma once
 
 #include "CustomDialogBase.h"
+#include "afxcmn.h"
 
 // CCustomManager ダイアログ
 
@@ -22,8 +23,39 @@ public:
 // ダイアログ データ
 	enum { IDD = IDD_DIALOG_MANAGER };
 
+	/* ------------------------------------------------------------------------------------ */
+	/* 定義                                                                                 */
+	/* ------------------------------------------------------------------------------------ */
+public:
+	enum { eSelectUser = 1, eSelectMaster };
+
+protected:
+
+	/* ------------------------------------------------------------------------------------ */
+	/* メンバ変数                                                                           */
+	/* ------------------------------------------------------------------------------------ */
+public:
+
+protected:
+
+	/* ------------------------------------------------------------------------------------ */
+	/* メンバ関数                                                                           */
+	/* ------------------------------------------------------------------------------------ */
+public:
+
+protected:
+
+	/* ------------------------------------------------------------------------------------ */
+
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV サポート
 
 	DECLARE_MESSAGE_MAP()
+public:
+	int mSelectType;
+	CListCtrl mManagerList;
+	virtual BOOL OnInitDialog();
+	afx_msg void OnBnClickedRadioUser();
+	afx_msg void OnBnClickedRadioMaster();
+	afx_msg void OnNMRClickListManager(NMHDR *pNMHDR, LRESULT *pResult);
 };

@@ -9,7 +9,7 @@
 
 #include "CustomDialogBase.h"
 #include "afxcmn.h"
-#include "TreeListCtrl.h"
+#include "CustomTreeListCtrl.h"
 
 // CCustomDetail ダイアログ
 
@@ -75,7 +75,7 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	CTreeListCtrl mTreeCtrl;
+	CCustomTreeListCtrl mTreeCtrl;
 	afx_msg void OnNMRClickTreeCtrl(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnTvnGetdispinfoTreeCtrl(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnClose();

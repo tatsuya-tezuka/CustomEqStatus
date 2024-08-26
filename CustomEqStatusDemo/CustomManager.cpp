@@ -19,6 +19,7 @@ IMPLEMENT_DYNAMIC(CCustomManager, CCustomDialogBase)
 
 CCustomManager::CCustomManager(CWnd* pParent /*=NULL*/)
 : CCustomDialogBase(CCustomManager::IDD, pParent)
+, mSelectType(0)
 {
 
 }
@@ -30,11 +31,72 @@ CCustomManager::~CCustomManager()
 void CCustomManager::DoDataExchange(CDataExchange* pDX)
 {
 	CCustomDialogBase::DoDataExchange(pDX);
+	DDX_Radio(pDX, IDC_RADIO_USER, mSelectType);
+	DDX_Control(pDX, IDC_LIST_MANAGER, mManagerList);
 }
 
 
 BEGIN_MESSAGE_MAP(CCustomManager, CCustomDialogBase)
+	ON_BN_CLICKED(IDC_RADIO_USER, &CCustomManager::OnBnClickedRadioUser)
+	ON_BN_CLICKED(IDC_RADIO_MASTER, &CCustomManager::OnBnClickedRadioMaster)
+	ON_NOTIFY(NM_RCLICK, IDC_LIST_MANAGER, &CCustomManager::OnNMRClickListManager)
 END_MESSAGE_MAP()
 
 
 // CCustomManager メッセージ ハンドラー
+
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# 初期化
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+BOOL CCustomManager::OnInitDialog()
+{
+	CCustomDialogBase::OnInitDialog();
+
+	// TODO: ここに初期化を追加してください
+
+	return TRUE;  // return TRUE unless you set the focus to a control
+	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
+}
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# 「ユーザ」ボタン押下イベント
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomManager::OnBnClickedRadioUser()
+{
+	// TODO: ここにコントロール通知ハンドラー コードを追加します。
+}
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# 「マスタ」ボタン押下イベント
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomManager::OnBnClickedRadioMaster()
+{
+	// TODO: ここにコントロール通知ハンドラー コードを追加します。
+}
+
+
+void CCustomManager::OnNMRClickListManager(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	// TODO: ここにコントロール通知ハンドラー コードを追加します。
+	*pResult = 0;
+}

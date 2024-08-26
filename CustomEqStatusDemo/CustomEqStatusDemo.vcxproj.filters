@@ -54,7 +54,7 @@
     <ClInclude Include="Markup.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="TreeListCtrl.h">
+    <ClInclude Include="CustomTreeListCtrl.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
@@ -89,7 +89,7 @@
     <ClCompile Include="Markup.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="TreeListCtrl.cpp">
+    <ClCompile Include="CustomTreeListCtrl.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
