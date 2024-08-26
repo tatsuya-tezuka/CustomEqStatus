@@ -126,6 +126,7 @@ protected:
 	/// ドラッグ＆ドロップ
 
 	/// ノード用フォント
+	CFont				mDefaultFont;
 	CFont				mNodeTitleFont;
 	CFont				mNodeMainFont;
 	CFont				mNodeSubFont;

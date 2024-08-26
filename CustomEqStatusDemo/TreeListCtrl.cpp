@@ -246,34 +246,43 @@ CTreeListCtrl::CTreeListCtrl()
 		mControlFont.CreateFontIndirect(&lf);
 	}
 
+	mDefaultFont.CreateStockObject(DEFAULT_GUI_FONT);
+	if (mDefaultFont.GetLogFont(&lf)){
+		lf.lfHeight = -mTreeFontHeight;
+		lf.lfWeight = FW_NORMAL;
+		mDefaultFont.DeleteObject();
+		mDefaultFont.CreateFontIndirect(&lf);
+	}
+
 	mNodeTitleFont.CreateStockObject(DEFAULT_GUI_FONT);
 	if (mNodeTitleFont.GetLogFont(&lf)) {
-		lf.lfWeight = FW_BOLD;
-		lf.lfHeight = 30;
+		lf.lfHeight = -mTreeFontHeight;
+		lf.lfWeight = FW_NORMAL;
 		mNodeTitleFont.DeleteObject();
 		mNodeTitleFont.CreateFontIndirect(&lf);
 	}
 	mNodeMainFont.CreateStockObject(DEFAULT_GUI_FONT);
 	if (mNodeMainFont.GetLogFont(&lf)) {
-		lf.lfWeight = FW_BOLD;
-		lf.lfHeight = 24;
+		lf.lfHeight = -mTreeFontHeight;
+		lf.lfWeight = FW_NORMAL;
 		mNodeMainFont.DeleteObject();
 		mNodeMainFont.CreateFontIndirect(&lf);
 	}
 	mNodeSubFont.CreateStockObject(DEFAULT_GUI_FONT);
 	if (mNodeSubFont.GetLogFont(&lf)) {
+		lf.lfHeight = -mTreeFontHeight;
 		lf.lfWeight = FW_NORMAL;
-		lf.lfHeight = 16;
 		mNodeSubFont.DeleteObject();
 		mNodeSubFont.CreateFontIndirect(&lf);
 	}
 	mNodeLeafFont.CreateStockObject(DEFAULT_GUI_FONT);
 	if (mNodeLeafFont.GetLogFont(&lf)) {
+		lf.lfHeight = -mTreeFontHeight;
 		lf.lfWeight = FW_NORMAL;
-		lf.lfHeight = 12;
 		mNodeLeafFont.DeleteObject();
 		mNodeLeafFont.CreateFontIndirect(&lf);
 	}
+
 	mLastSelectItem = NULL;
 }
 
@@ -285,6 +294,7 @@ CTreeListCtrl::~CTreeListCtrl()
 
 	mControlFont.DeleteObject();
 
+	mDefaultFont.DeleteObject();
 	mNodeTitleFont.DeleteObject();
 	mNodeMainFont.DeleteObject();
 	mNodeSubFont.DeleteObject();

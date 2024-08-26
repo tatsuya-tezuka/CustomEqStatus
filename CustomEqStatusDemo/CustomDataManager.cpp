@@ -63,14 +63,20 @@ CTreeNode::~CTreeNode()
 /*============================================================================*/
 CTreeNode* CTreeNode::CreateTreeNode(HTREEITEM parent, HTREEITEM child, HTREEITEM hInsertAfter/* = TVI_FIRST*/)
 {
-	if (treeitem != parent)
+	if (treeitem != parent){
 		return NULL;
+	}
 
 	// 子アイテムリストに存在するか確認する
 	vector<CTreeNode *>::iterator itr;
 	for (itr = children.begin(); itr != children.end(); itr++) {
 		if ((*itr)->treeitem == child) {
 			// 既に子アイテムリストに存在する
+			//=====================================================//
+			//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+			CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("CreateTreeNode"), _T("Already Target"), _T(""), nLogEx::warning);
+			//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+			//=====================================================//
 			return (*itr);
 		}
 	}
@@ -122,6 +128,27 @@ bool CTreeNode::DeleteTreeNode(HTREEITEM target)
 	delete pnode;
 
 	return true;
+}
+
+/*============================================================================*/
+/*! ツリーノード
+
+-# ツリーノードの削除
+
+@param  target	削除対象ノード
+
+@retval
+*/
+/*============================================================================*/
+void CTreeNode::deleteNode(CTreeNode* pnode)
+{
+	// 子ノードが存在するので削除する
+	vector<CTreeNode *>::iterator itr;
+	for (itr = pnode->children.begin(); itr != pnode->children.end(); itr++) {
+		deleteNode((*itr));
+		delete (*itr);
+	}
+	pnode->children.clear();
 }
 
 /*============================================================================*/
@@ -182,27 +209,6 @@ CTreeNode* CTreeNode::SearchTreeNodeType(UINT target)
 	return NULL;
 }
 
-/*============================================================================*/
-/*! ツリーノード
-
--# ツリーノードの削除
-
-@param  target	削除対象ノード
-
-@retval
-*/
-/*============================================================================*/
-void CTreeNode::deleteNode(CTreeNode* pnode)
-{
-	// 子ノードが存在するので削除する
-	vector<CTreeNode *>::iterator itr;
-	for (itr = pnode->children.begin(); itr != pnode->children.end(); itr++) {
-		deleteNode((*itr));
-		delete (*itr);
-	}
-	pnode->children.clear();
-}
-
 
 
 //------------------------------------------------------------------------------------ 
@@ -212,7 +218,6 @@ void CTreeNode::deleteNode(CTreeNode* pnode)
 CCustomDataManager::CCustomDataManager()
 {
 }
-
 
 CCustomDataManager::~CCustomDataManager()
 {
@@ -335,9 +340,6 @@ bool CCustomDataManager::setNodeTypeColor(CTreeNode* pnode, UINT type, UINT subt
 	}
 	return true;
 }
-
-
-
 
 /*============================================================================*/
 /*! カスタムデータ管理クラス
@@ -631,6 +633,11 @@ bool CTreeNode::LoadTreeNode(CArchive& ar)
 /*============================================================================*/
 bool CCustomDataManager::SaveTreeDataXml(CString strFile, CWnd* pTargetWnd/* = NULL*/)
 {
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveTreeDataXml"), _T("Start"), _T(""), nLogEx::debug);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
 	CString	decl = _T("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 	CMarkup xml(decl);
 
@@ -669,55 +676,12 @@ bool CCustomDataManager::SaveTreeDataXml(CString strFile, CWnd* pTargetWnd/* = N
 	}
 	xml.OutOfElem();
 	xml.Save(strFile);
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveTreeDataXml"), _T("Stop"), _T(""), nLogEx::debug);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
 	return true;
-}
-/*============================================================================*/
-/*! ツリーノード
-
--# ノードウィンドウのZオーダーの設定
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-void CCustomDataManager::SetTreeZorder()
-{
-	CWnd* pWnd = theApp.GetMainWnd()->GetWindow(GW_ENABLEDPOPUP);
-	UINT pos = 0;
-	while (pWnd){
-		vector<CTreeNode*>::iterator itr;
-		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++){
-			if (pWnd == (*itr)->GetWindowInfo().wnd){
-				(*itr)->GetWindowInfo().zorder = pos++;
-				break;
-			}
-		}
-		pWnd = pWnd->GetWindow(GW_HWNDNEXT);
-	}
-}
-/*============================================================================*/
-/*! ツリーノード
-
--# ノードウィンドウのZオーダー更新
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-void CCustomDataManager::ResetTreeZorder()
-{
-	map<UINT, CWnd*> winmap;
-	vector<CTreeNode*>::iterator itr;
-	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++){
-		winmap.insert(map<UINT, CWnd*>::value_type((*itr)->GetWindowInfo().zorder, (*itr)->GetWindowInfo().wnd));
-	}
-
-	map<UINT, CWnd*>::reverse_iterator ritr;
-	for (ritr = winmap.rbegin(); ritr != winmap.rend(); ++ritr){
-		SetWindowPos((*ritr).second->m_hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
-	}
 }
 
 /*============================================================================*/
@@ -732,6 +696,11 @@ void CCustomDataManager::ResetTreeZorder()
 /*============================================================================*/
 bool CTreeNode::SaveTreeNodeXml(CMarkup& xml)
 {
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveTreeNodeXml"), _T("Start"), _T(""), nLogEx::debug);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
 	// ウィンドウ位置情報取得
 	if (wininfo.wnd != NULL){
 		memset(&wininfo.placement, 0, sizeof(WINDOWPLACEMENT));
@@ -802,6 +771,11 @@ bool CTreeNode::SaveTreeNodeXml(CMarkup& xml)
 		xml.OutOfElem();
 	}
 
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveTreeNodeXml"), _T("Stop"), _T(""), nLogEx::debug);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
 	return true;
 }
 
@@ -955,4 +929,52 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 	}
 
 	return true;
+}
+/*============================================================================*/
+/*! ツリーノード
+
+-# ノードウィンドウのZオーダーの設定
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomDataManager::SetTreeZorder()
+{
+	CWnd* pWnd = theApp.GetMainWnd()->GetWindow(GW_ENABLEDPOPUP);
+	UINT pos = 0;
+	while (pWnd){
+		vector<CTreeNode*>::iterator itr;
+		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++){
+			if (pWnd == (*itr)->GetWindowInfo().wnd){
+				(*itr)->GetWindowInfo().zorder = pos++;
+				break;
+			}
+		}
+		pWnd = pWnd->GetWindow(GW_HWNDNEXT);
+	}
+}
+/*============================================================================*/
+/*! ツリーノード
+
+-# ノードウィンドウのZオーダー更新
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomDataManager::ResetTreeZorder()
+{
+	map<UINT, CWnd*> winmap;
+	vector<CTreeNode*>::iterator itr;
+	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++){
+		winmap.insert(map<UINT, CWnd*>::value_type((*itr)->GetWindowInfo().zorder, (*itr)->GetWindowInfo().wnd));
+	}
+
+	map<UINT, CWnd*>::reverse_iterator ritr;
+	for (ritr = winmap.rbegin(); ritr != winmap.rend(); ++ritr){
+		SetWindowPos((*ritr).second->m_hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+	}
 }

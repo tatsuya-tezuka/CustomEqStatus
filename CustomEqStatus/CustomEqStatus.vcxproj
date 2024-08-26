@@ -188,6 +188,8 @@
     <ClInclude Include="CustomEqStatus.h" />
     <ClInclude Include="CustomEqStatusDoc.h" />
     <ClInclude Include="CustomEqStatusView.h" />
+    <ClInclude Include="DBAccess.h" />
+    <ClInclude Include="LogTraceEx.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
@@ -198,6 +200,8 @@
     <ClCompile Include="CustomEqStatus.cpp" />
     <ClCompile Include="CustomEqStatusDoc.cpp" />
     <ClCompile Include="CustomEqStatusView.cpp" />
+    <ClCompile Include="DBAccess.cpp" />
+    <ClCompile Include="LogTraceEx.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

@@ -23,6 +23,13 @@ CCustomDetail::CCustomDetail(CWnd* pParent /*=NULL*/, bool bRestore/* = false*/)
 	
 	// ツリーコントロールフォントの作成
 	mTreeFont.CreateStockObject(DEFAULT_GUI_FONT);
+	LOGFONT lf;
+	if (mTreeFont.GetLogFont(&lf)){
+		lf.lfHeight = -mTreeFontHeight;
+		lf.lfWeight = FW_BOLD;
+		mTreeFont.DeleteObject();
+		mTreeFont.CreateFontIndirect(&lf);
+	}
 }
 
 CCustomDetail::~CCustomDetail()

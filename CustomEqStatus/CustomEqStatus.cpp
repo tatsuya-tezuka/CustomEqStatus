@@ -17,6 +17,43 @@
 #endif
 
 
+// アプリケーションのバージョン情報に使われる CAboutDlg ダイアログ
+
+class CAboutDlg : public CDialogEx
+{
+public:
+	CAboutDlg();
+
+	// ダイアログ データ
+	enum { IDD = IDD_ABOUTBOX };
+
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV サポート
+
+	// 実装
+protected:
+	DECLARE_MESSAGE_MAP()
+};
+
+CAboutDlg::CAboutDlg() : CDialogEx(CAboutDlg::IDD)
+{
+}
+
+void CAboutDlg::DoDataExchange(CDataExchange* pDX)
+{
+	CDialogEx::DoDataExchange(pDX);
+}
+
+BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
+END_MESSAGE_MAP()
+
+// ダイアログを実行するためのアプリケーション コマンド
+void CCustomEqStatusApp::OnAppAbout()
+{
+	CAboutDlg aboutDlg;
+	aboutDlg.DoModal();
+}
+
 // CCustomEqStatusApp
 
 BEGIN_MESSAGE_MAP(CCustomEqStatusApp, CWinApp)
@@ -96,6 +133,7 @@ BOOL CCustomEqStatusApp::InitInstance()
 	SetRegistryKey(_T("アプリケーション ウィザードで生成されたローカル アプリケーション"));
 	LoadStdProfileSettings(4);  // 標準の INI ファイルのオプションをロードします (MRU を含む)
 
+	InitializeApp();
 
 	// アプリケーション用のドキュメント テンプレートを登録します。ドキュメント テンプレート
 	//  はドキュメント、フレーム ウィンドウとビューを結合するために機能します。
@@ -140,50 +178,78 @@ int CCustomEqStatusApp::ExitInstance()
 	//TODO: 追加したリソースがある場合にはそれらも処理してください
 	AfxOleTerm(FALSE);
 
+	TerminateApp();
+
 	return CWinApp::ExitInstance();
 }
 
 // CCustomEqStatusApp メッセージ ハンドラー
 
 
-// アプリケーションのバージョン情報に使われる CAboutDlg ダイアログ
+/*============================================================================*/
+/*! アプリケーション
 
-class CAboutDlg : public CDialogEx
+-# アプリケーションの初期化
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+void CCustomEqStatusApp::InitializeApp()
 {
-public:
-	CAboutDlg();
+	// モジュール名からEXEが存在するパスを取得する
+	TCHAR path[MAX_PATH] = { 0 };
+	GetModuleFileName(NULL, path, sizeof(path));
+	PathRemoveFileSpec(path);
+	mAppPath = path;
 
-// ダイアログ データ
-	enum { IDD = IDD_ABOUTBOX };
+	// AppDataパスの作成＆取得
+	SHGetSpecialFolderPath(NULL, path, CSIDL_APPDATA, TRUE);
+	CString strPath = path;
+	strPath += _T("\\") + CString(mAppDataSystem);
+	CreateDirectory(strPath, NULL);
+	strPath += _T("\\") + CString(mAppDataDataPath);
+	CreateDirectory(strPath, NULL);
+	mAppDataPath = strPath;
 
-protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV サポート
+	// 監視DB、制御DBの取得
+	mDBAccess.eqmon_db_read();
+	mDBAccess.eqctl_db_read();
 
-// 実装
-protected:
-	DECLARE_MESSAGE_MAP()
-};
-
-CAboutDlg::CAboutDlg() : CDialogEx(CAboutDlg::IDD)
-{
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CString logpath = path;
+	logpath += _T("\\") + CString(mAppDataSystem);
+	CreateDirectory(logpath, NULL);
+	logpath += _T("\\") + CString(mAppDataLogPath);
+	CreateDirectory(logpath, NULL);
+	logpath += _T("\\");
+	CLogTraceEx::Create(logpath, _T("CCustomEquipment"), nLogEx::debug, nLogEx::text);
+	CLogTraceEx::Write(_T("###"), _T("CCustomEquipment"), _T("Start"), _T(""), _T(""), nLogEx::info);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
 }
 
-void CAboutDlg::DoDataExchange(CDataExchange* pDX)
+/*============================================================================*/
+/*! アプリケーション
+
+-# アプリケーションの終了
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+void CCustomEqStatusApp::TerminateApp()
 {
-	CDialogEx::DoDataExchange(pDX);
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("###"), _T("CCustomEquipment"), _T("Finish"), _T(""), _T(""), nLogEx::info);
+	CLogTraceEx::Close();
+	CLogTraceEx::Delete();
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
 }
-
-BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
-END_MESSAGE_MAP()
-
-// ダイアログを実行するためのアプリケーション コマンド
-void CCustomEqStatusApp::OnAppAbout()
-{
-	CAboutDlg aboutDlg;
-	aboutDlg.DoModal();
-}
-
-// CCustomEqStatusApp メッセージ ハンドラー
-
 
 

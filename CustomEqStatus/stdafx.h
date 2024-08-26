@@ -37,6 +37,16 @@
 
 
 
+#include <vector>
+#include <map>
+#include <list>
+#include <algorithm>
+#include <unordered_map>
+#include <ppl.h>
+#include <stdint.h>
+#include <iterator>
+
+using namespace std;
 
 
 
