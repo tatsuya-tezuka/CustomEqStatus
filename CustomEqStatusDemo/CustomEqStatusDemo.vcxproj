@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{700AE08A-297E-4E89-843D-A97EC9D90201}</ProjectGuid>
-    <RootNamespace>CustomEqStatus</RootNamespace>
+    <ProjectGuid>{FC497ACD-4D58-4BBB-831A-8782833BD996}</ProjectGuid>
+    <RootNamespace>CustomEqStatusDemo</RootNamespace>
     <Keyword>MFCProj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -110,8 +110,10 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEMOPROJECT;WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -161,7 +163,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEMOPROJECT;WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
@@ -184,40 +186,53 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ChildFrm.h" />
-    <ClInclude Include="CustomEqStatus.h" />
-    <ClInclude Include="CustomEqStatusDoc.h" />
-    <ClInclude Include="CustomEqStatusView.h" />
-    <ClInclude Include="MainFrm.h" />
+    <ClInclude Include="CustomDataManager.h" />
+    <ClInclude Include="CustomDetail.h" />
+    <ClInclude Include="CustomDialogBase.h" />
+    <ClInclude Include="CustomEqStatusDemo.h" />
+    <ClInclude Include="CustomEqStatusDemoDlg.h" />
+    <ClInclude Include="CustomManager.h" />
+    <ClInclude Include="LogTraceEx.h" />
+    <ClInclude Include="Markup.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TemplateClass.h" />
+    <ClInclude Include="TreeListCtrl.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ChildFrm.cpp" />
-    <ClCompile Include="CustomEqStatus.cpp" />
-    <ClCompile Include="CustomEqStatusDoc.cpp" />
-    <ClCompile Include="CustomEqStatusView.cpp" />
-    <ClCompile Include="MainFrm.cpp" />
+    <ClCompile Include="CustomDataManager.cpp" />
+    <ClCompile Include="CustomDetail.cpp" />
+    <ClCompile Include="CustomDialogBase.cpp" />
+    <ClCompile Include="CustomEqStatusDemo.cpp" />
+    <ClCompile Include="CustomEqStatusDemoDlg.cpp" />
+    <ClCompile Include="CustomManager.cpp" />
+    <ClCompile Include="LogTraceEx.cpp" />
+    <ClCompile Include="Markup.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TemplateClass.cpp" />
+    <ClCompile Include="TreeListCtrl.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="CustomEqStatus.rc" />
+    <ResourceCompile Include="CustomEqStatusDemo.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\CustomEqStatus.rc2" />
+    <None Include="res\CustomEqStatusDemo.rc2" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\CustomEqStatus.ico" />
-    <Image Include="res\CustomEqStatusDoc.ico" />
-    <Image Include="res\Toolbar.bmp" />
+    <Image Include="res\CustomEqStatusDemo.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="CustomEqStatusDemo.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>
