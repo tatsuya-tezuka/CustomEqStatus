@@ -57,7 +57,7 @@ public:
 	CCustomDataManager&	GetDataManager() { return mDataManager; }
 	/// カスタマイズ管理
 	CCustomManager&	GetCustomManager() { return mCustomManager; }
-
+	/// 設備詳細ウィンドウの作成
 	CCustomDetail*	CreateEquipment(CTreeNode* pnode);
 
 protected:
