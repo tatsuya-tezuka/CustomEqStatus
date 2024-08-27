@@ -97,7 +97,6 @@ public:
 public:
 	enum eTreeIDs { eHeaderID = 1, eTreeID = 2 };
 	enum eStatus { eEnable = 1, eSelect = 2, eDrop = 3 };
-	enum { eItem, eValue, eUnit, eControl, eMax };
 protected:
 
 	/* ------------------------------------------------------------------------------------ */

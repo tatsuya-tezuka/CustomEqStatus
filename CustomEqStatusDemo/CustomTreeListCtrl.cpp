@@ -355,12 +355,6 @@ void CCustomTreeListCtrl::Create(CWnd* parent, CFont& font)
 	mSelectItems.clear();
 
 	// ヘッダーアイテムの作成
-	const TCHAR* mTreeItemHeader[eMax] = {
-		_T("項目"),
-		_T("値"),
-		_T("単位"),
-		_T("制御"),
-	};
 	for (int i = 0; i < sizeof(mTreeItemHeader) / sizeof(mTreeItemHeader[0]); i++) {
 		if (i == 0)
 			SetHeaderItem(i, mTreeItemHeader[i], mTreeHeaderItemSize);
@@ -915,7 +909,7 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 
 		CString strText = GetItemText(hItem);
 		CString strSub;
-		AfxExtractSubString(strSub, strText, eItem, '\t');
+		AfxExtractSubString(strSub, strText, eDetailItem, '\t');
 
 		// ラベル項目のサイズ取得
 		CRect rcText(0, 0, 0, 0);
@@ -1076,11 +1070,11 @@ void CCustomTreeListCtrl::OnTvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 				CString str = pTVDispInfo->item.pszText;
 				SetSubItemText(pTVDispInfo->item.hItem, ((CCustomTreeEdit*)mpEdit)->GetSubItem(), str);
 				switch (((CCustomTreeEdit*)mpEdit)->GetSubItem()){
-				case	eItem:
-					swprintf_s(pnode->GetMonCtrl().display, mNameSize, _T("%s"), GetSubItemText(pTVDispInfo->item.hItem, eItem));
+				case	eDetailItem:
+					swprintf_s(pnode->GetMonCtrl().display, mNameSize, _T("%s"), GetSubItemText(pTVDispInfo->item.hItem, eDetailItem));
 					break;
-				case	eUnit:
-					swprintf_s(pnode->GetMonCtrl().unit, mUnitSize, _T("%s"), GetSubItemText(pTVDispInfo->item.hItem, eUnit));
+				case	eDetailUnit:
+					swprintf_s(pnode->GetMonCtrl().unit, mUnitSize, _T("%s"), GetSubItemText(pTVDispInfo->item.hItem, eDetailUnit));
 					break;
 				}
 			}
@@ -1799,7 +1793,7 @@ CImageList* CCustomTreeListCtrl::createDragImageEx(HTREEITEM hItem)
 	//memDC.TextOut(rect.left, rect.top, GetItemText(hItem));
 	memDC.SetTextColor(mDragTextColor);
 	CString strSub;
-	AfxExtractSubString(strSub, GetItemText(hItem), eItem, '\t');
+	AfxExtractSubString(strSub, GetItemText(hItem), eDetailItem, '\t');
 	memDC.DrawText(strSub, rect, DT_LEFT | DT_TOP);
 
 	memDC.SelectObject(pOldFont);

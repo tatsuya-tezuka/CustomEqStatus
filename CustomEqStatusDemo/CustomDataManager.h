@@ -49,6 +49,15 @@ static const TCHAR* mCOntrolSignStringDisplay = { _T("制御") };
 static const int mMonMax = 5000;			// 監視の最大数
 static const int mCtrlMax = 5000;			// 制御の最大数
 
+// 設備詳細画面のヘッダー項目
+enum { eDetailItem, eDetailValue, eDetailUnit, eDetailControl, eDetailMax };
+static const TCHAR* mTreeItemHeader[eDetailMax] = {
+	_T("項目"),
+	_T("値"),
+	_T("単位"),
+	_T("制御"),
+};
+
 /// 各種メッセージID
 enum eUserMessage{
 	eUserMessage_Manger_New = (WM_USER + 1),

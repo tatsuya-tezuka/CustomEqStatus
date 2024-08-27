@@ -60,7 +60,7 @@ BOOL CCustomManager::OnInitDialog()
 {
 	CCustomDialogBase::OnInitDialog();
 
-	// TODO: ここに初期化を追加してください
+	SetControlInfo(IDC_LIST_MANAGER, ANCHORE_LEFTTOP | RESIZE_BOTH);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
