@@ -17,6 +17,8 @@ public:
 // ダイアログ データ
 	enum { IDD = IDD_CUSTOMDEMO_DIALOG };
 
+	void	GetDemoFiles(vector<CString>& list);
+
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV サポート
 

@@ -39,6 +39,8 @@ protected:
 	CString		mAppPath;
 	/// AppDataパス
 	CString		mAppDataPath;
+	/// デモデータ格納パス
+	CString		mAppDemoDataPath;
 
 	/* ------------------------------------------------------------------------------------ */
 	/* メンバ関数                                                                           */
@@ -46,6 +48,7 @@ protected:
 public:
 	void	InitializeApp();
 	void	TerminateApp();
+	CString	GetDemoDataPath() { return mAppDemoDataPath; }
 
 protected:
 

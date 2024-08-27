@@ -184,7 +184,83 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonManager()
 
 void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonDetail()
 {
+	CWaitCursor wait;
+
 	UpdateData(TRUE);
 	// デモ用カスタム画面作成
+#ifdef _DEMO
 	CCustomDetail* pitem = theApp.CreateEquipment(NULL);
+#else
+	vector<CString> demolist;
+	GetDemoFiles(demolist);
+
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomEqStatusDemoDlg"), _T("Restore Custom Window"), _T("Start"), _T(""), nLogEx::debug);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
+	vector<CString>::iterator itrdemo;
+	bool bClear = true;
+	for (itrdemo = demolist.begin(); itrdemo != demolist.end(); itrdemo++){
+		if (mLoop > 1){
+			for (int i = 0; i < mLoop; i++){
+				theApp.GetDataManager().LoadTreeDataXml((*itrdemo), bClear);
+				bClear = false;
+			}
+			break;
+		}
+		theApp.GetDataManager().LoadTreeDataXml((*itrdemo), bClear);
+		bClear = false;
+	}
+
+	vector<CTreeNode*>& treedata = theApp.GetDataManager().GetTreeNode();
+	vector<CTreeNode*>::iterator itr;
+	for (itr = treedata.begin(); itr != treedata.end(); itr++){
+		// 設備詳細画面の作成
+		// ※作成時は非表示とする
+		CCustomDetail* pitem = theApp.CreateEquipment((*itr));
+	}
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomEqStatusDemoDlg"), _T("Restore Custom Window"), _T("Stop"), _T(""), nLogEx::debug);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
+#endif
+}
+
+void CCustomEqStatusDemoDlg::GetDemoFiles(vector<CString>& list)
+{
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomEqStatusDemoDlg"), _T("GetDemoFiles"), _T("Start"), _T(""), nLogEx::debug);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
+	HANDLE hFind;
+	WIN32_FIND_DATA win32fd;
+
+	list.clear();
+
+	//拡張子の設定
+	CString search_name = theApp.GetDemoDataPath() + _T("\\*.xml");
+
+	hFind = FindFirstFile(search_name, &win32fd);
+
+	if (hFind == INVALID_HANDLE_VALUE) {
+		return;
+	}
+
+	do {
+		if (win32fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+		}
+		else {
+			list.push_back(theApp.GetDemoDataPath()+_T("\\")+CString(win32fd.cFileName));
+		}
+	} while (FindNextFile(hFind, &win32fd));
+
+	FindClose(hFind);
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomEqStatusDemoDlg"), _T("GetDemoFiles"), _T("Stop"), _T(""), nLogEx::debug);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
 }

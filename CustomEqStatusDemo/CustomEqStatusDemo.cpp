@@ -137,6 +137,9 @@ void CCustomEqStatusDemoApp::InitializeApp()
 	CreateDirectory(strPath, NULL);
 	mAppDataPath = strPath;
 
+	/// デモ用データ格納パス
+	mAppDemoDataPath = mAppPath + _T("\\DEMO");
+
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
 	CString logpath = path;
