@@ -632,7 +632,8 @@ void CCustomTreeListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 	CPoint		pt = point;
 	ClientToScreen(&pt);
 
-#ifndef _DEMO
+#ifdef _DEMO
+#else
 	if (mbDragging){
 		// ドラッグ中
 		// ドラッグ アンド ドロップ操作中にドラッグされているイメージを移動
@@ -715,7 +716,8 @@ void CCustomTreeListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 /*============================================================================*/
 void CCustomTreeListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 {
-#ifndef _DEMO
+#ifdef _DEMO
+#else
 	if (!(MK_CONTROL & nFlags)/* && !(MK_SHIFT & nFlags)*/){
 		if (mSelectItems.size() > 1){
 			ClearSelection();
@@ -1118,7 +1120,8 @@ void CCustomTreeListCtrl::OnTvnBegindrag(NMHDR *pNMHDR, LRESULT *pResult)
 	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
 	*pResult = 0;
 
-#ifndef _DEMO
+#ifdef _DEMO
+#else
 	if (mDragCallback == NULL)
 		return;
 
@@ -1818,7 +1821,9 @@ CImageList* CCustomTreeListCtrl::createDragImageEx(HTREEITEM hItem)
 /*============================================================================*/
 bool CCustomTreeListCtrl::isDropExecute(HTREEITEM hItemDrag, HTREEITEM hItemDrop)
 {
-#ifndef _DEMO
+#ifdef _DEMO
+	return false;
+#else
 	if (mDragCallback == NULL)
 		return false;
 	if (hItemDrop == NULL)
@@ -1829,8 +1834,6 @@ bool CCustomTreeListCtrl::isDropExecute(HTREEITEM hItemDrag, HTREEITEM hItemDrop
 		return false;
 	}
 	return true;
-#else
-	return false;
 #endif
 }
 /*============================================================================*/

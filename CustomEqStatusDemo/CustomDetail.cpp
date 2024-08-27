@@ -215,7 +215,9 @@ BOOL CCustomDetail::OnProcSize(CWnd* pWnd, int dx, int dy)
 /*============================================================================*/
 BOOL CALLBACK CCustomDetail::messageClick(CWnd* pwnd, HTREEITEM hItem, UINT nSubItem, CPoint point)
 {
-#ifndef _DEMO
+#ifdef _DEMO
+	return FALSE;
+#else
 	//CCustomDetail* p = CCustomDetail::Instance();
 	CCustomDetail* p = (CCustomDetail*)pwnd;
 
@@ -237,9 +239,8 @@ BOOL CALLBACK CCustomDetail::messageClick(CWnd* pwnd, HTREEITEM hItem, UINT nSub
 		CString strCntl = pnode->GetMonCtrl().cname;
 		p->MessageBox(_T("（仮）制御コマンドを送信します\n") + strCntl);
 	}
+	return TRUE;
 #endif
-
-	return FALSE;
 }
 /*============================================================================*/
 /*! 設備詳細
@@ -257,7 +258,9 @@ BOOL CALLBACK CCustomDetail::messageClick(CWnd* pwnd, HTREEITEM hItem, UINT nSub
 /*============================================================================*/
 BOOL CALLBACK CCustomDetail::messageDrag(CWnd* pwnd, UINT status, HTREEITEM hItem, LPARAM lParam1, LPARAM lParam2, LPARAM lParam3)
 {
-#ifndef _DEMO
+#ifdef _DEMO
+	return FALSE;
+#else
 	//CCustomDetail* p = CCustomDetail::Instance();
 	CCustomDetail* p = (CCustomDetail*)pwnd;
 
@@ -299,8 +302,8 @@ BOOL CALLBACK CCustomDetail::messageDrag(CWnd* pwnd, UINT status, HTREEITEM hIte
 		pnode->DeleteTreeNode(hItem);
 		break;
 	}
-#endif
 	return FALSE;
+#endif
 }
 /*============================================================================*/
 /*! 設備詳細

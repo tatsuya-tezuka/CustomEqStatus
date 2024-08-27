@@ -114,7 +114,6 @@ BOOL CCustomManager::OnInitDialog()
 	_CreateDemo((int)eSelectUser);
 #endif
 
-
 	SetControlInfo(IDC_LIST_MANAGER, ANCHORE_LEFTTOP | RESIZE_BOTH);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
