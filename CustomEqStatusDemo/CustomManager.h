@@ -58,4 +58,5 @@ public:
 	afx_msg void OnBnClickedRadioUser();
 	afx_msg void OnBnClickedRadioMaster();
 	afx_msg void OnNMRClickListManager(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult);
 };

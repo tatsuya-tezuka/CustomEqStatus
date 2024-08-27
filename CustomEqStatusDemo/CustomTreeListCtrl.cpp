@@ -1,5 +1,5 @@
 /******************************************************************************
-* @file    TreeListCtrl.cpp
+* @file    CustomTreeListCtrl.cpp
 * @brief   【カスタマイズ機能】設備状況詳細ツリークラス
 * @auther  SCC
 * @date    2024/08/26 新規作成
@@ -368,7 +368,6 @@ void CCustomTreeListCtrl::Create(CWnd* parent, CFont& font)
 			SetHeaderItem(i, mTreeItemHeader[i], mTreeHeaderSize);
 	}
 }
-
 /*============================================================================*/
 /*! ツリーリストコントロール
 
@@ -383,7 +382,6 @@ void CCustomTreeListCtrl::PreSubclassWindow()
 {
 	CTreeCtrl::PreSubclassWindow();
 }
-
 /*============================================================================*/
 /*! ツリーリストコントロール
 
@@ -398,7 +396,6 @@ BOOL CCustomTreeListCtrl::PreTranslateMessage(MSG* pMsg)
 {
 	return CTreeCtrl::PreTranslateMessage(pMsg);
 }
-
 /*============================================================================*/
 /*! ツリーリストコントロール
 
@@ -413,7 +410,6 @@ LRESULT CCustomTreeListCtrl::WindowProc(UINT message, WPARAM wParam, LPARAM lPar
 {
 	return CTreeCtrl::WindowProc(message, wParam, lParam);
 }
-
 /*============================================================================*/
 /*! ツリーリストコントロール
 
@@ -452,7 +448,358 @@ void CCustomTreeListCtrl::OnPaint()
 	// 後始末
 	memDC.DeleteDC();
 }
+/*============================================================================*/
+/*! ツリーリストコントロール
 
+-# 背景描画
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+BOOL CCustomTreeListCtrl::OnEraseBkgnd(CDC* pDC)
+{
+	//CRect	rClient;
+	//GetClientRect(&rClient);
+	//pDC->FillSolidRect(rClient, RGB(255,0,255));
+	return TRUE;
+}
+/*============================================================================*/
+/*! ツリーリストコントロール
+
+-# 垂直スクロールバーイベント
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+{
+	if (GetFocus() != this)
+		SetFocus();
+	if (mbInplace) {
+		Invalidate(FALSE);
+		mbInplace = FALSE;
+	}
+
+	CTreeCtrl::OnVScroll(nSBCode, nPos, pScrollBar);
+}
+
+/*============================================================================*/
+/*! ツリーリストコントロール
+
+-# マウス左ボタンダウンイベント
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
+{
+#ifdef _ORG
+	//if (!(GetStyle() & TVS_EDITLABELS)){
+	//	if (nFlags & VK_CONTROL){
+	//		UINT col = 0;
+	//		HTREEITEM hItem = HitTestEx(point, col);
+	//		_SelectMultiItem(hItem, nFlags);
+	//		return;
+	//	}
+	//}
+
+	CTreeCtrl::OnLButtonDown(nFlags, point);
+
+	HTREEITEM hItem;
+	UINT col = 0;
+
+	hItem = HitTestEx(point, col);
+	if (hItem == NULL) {
+		SetFocus();
+		return;
+	}
+
+	// 先頭カラム以外のラベル編集
+	if (hItem != NULL && col != 0) {
+		//CString text = GetSubItemText(hItem, col);
+		if (mClickCallback != NULL && mClickCallback(mTreeParent, hItem, col, point) == TRUE) {
+			// 編集モードへ切り替え
+			SelectItem(hItem);
+			SwitchEditMode(hItem, col, point);
+			return;
+		}
+	}
+
+	SelectItem(hItem);
+	SetFocus();
+#else
+	// Controlキーを押下している場合は、複数選択
+	// Controlキーを押下していない場合は、単数選択あるいは名称変更
+	if (!(MK_CONTROL & nFlags)/* && !(MK_SHIFT & nFlags)*/) {
+		// Controlキーは押下状態ではない
+
+		CTreeCtrl::OnLButtonDown(nFlags, point);
+
+		HTREEITEM hItem;
+		UINT col = 0;
+		hItem = HitTestEx(point, col);
+		if (hItem == NULL) {
+			SetFocus();
+			return;
+		}
+
+		// 先頭カラム以外のラベル編集
+		if (hItem != NULL && col != 0) {
+			//CString text = GetSubItemText(hItem, col);
+			if (mClickCallback != NULL && mClickCallback(mTreeParent, hItem, col, point) == TRUE) {
+				// 編集モードへ切り替え
+				SelectItem(hItem);
+				SwitchEditMode(hItem, col, point);
+				return;
+			}
+		}
+
+		clearSelection();
+		SelectItem(hItem);
+		SetFocus();
+	}
+	else {
+		SetFocus();
+		do
+		{
+			HTREEITEM hItem;
+			UINT col = 0;
+			hItem = HitTestEx(point, col);
+			if (hItem == NULL){
+				break;
+			}
+			if (ItemHasChildren(hItem)) {
+				break;
+			}
+			if (GetParentItem(hItem) == NULL){
+				break;
+			}
+			unsigned short shKeyState = GetKeyState(VK_CONTROL);
+			shKeyState >>= 15;
+			if (shKeyState == 1){
+				procControlKeyPress(hItem);
+				HTREEITEM hSelectedItem = GetSelectedItem();
+				if (ItemHasChildren(hSelectedItem)) {
+					SelectItem(hItem);
+				}
+				break;
+			}
+			else{
+				if (mSelectItems.size() == 0){
+					SetItemState(hItem, TVIS_SELECTED, TVIS_SELECTED);
+					mSelectItems.push_back(hItem);
+					break;
+				}
+			}
+			mLastSelectItem = hItem;
+			if (mSelectItems.size() == 1)
+			{
+				clearSelection();
+				SetItemState(mLastSelectItem, TVIS_SELECTED, TVIS_SELECTED);
+				mSelectItems.push_back(mLastSelectItem);
+			}
+		} while (false);
+	}
+#endif
+}
+/*============================================================================*/
+/*! ツリーコントロール拡張機能
+
+-# マウス左ボタンダブルクリックイベント
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
+{
+	CTreeCtrl::OnLButtonDblClk(nFlags, point);
+}
+/*============================================================================*/
+/*! ツリーリストコントロール
+
+-# マウス移動イベント
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::OnMouseMove(UINT nFlags, CPoint point)
+{
+	HTREEITEM	hItem = 0;
+	UINT        flags = 0;
+	CPoint		pt = point;
+	ClientToScreen(&pt);
+
+#ifndef _DEMO
+	if (mbDragging){
+		// ドラッグ中
+		// ドラッグ アンド ドロップ操作中にドラッグされているイメージを移動
+		mpImagelist->DragMove(pt);
+
+		// ドロップウィンドウの確認
+		CWnd* pDropWnd = WindowFromPoint(pt);
+		BOOL bTarget = FALSE;
+		if (pDropWnd == this) {
+			// 自分から自分
+			if ((hItem = HitTest(point, &flags)) != NULL) {
+				// ウィンドウのロックを解除し、ウィンドウを更新できるようにドラッグイメージを非表示
+				mpImagelist->DragLeave(NULL);
+				if (_IsDropExecute(mDragNode->getTreeItem(), hItem) == true) {
+					// ドロップ対象アイテムをアクティブ
+					//SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+					SelectDropTarget(hItem);
+					Expand(hItem, TVE_EXPAND);
+					bTarget = TRUE;
+				}
+				else {
+					//SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
+					SelectDropTarget(NULL);
+				}
+				// ドロップ対象アイテムの更新
+				mhItemDrop = hItem;
+				// ドラッグ操作中に更新をロックし、指定した位置にドラッグ イメージを表示
+				mpImagelist->DragEnter(NULL, pt);
+				//mpImagelist->DragEnter(this, point);
+			}
+			else {
+				//SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
+				SelectDropTarget(NULL);
+			}
+		}
+		else {
+			// 自分から他人
+			vector<CTreeNode*>::iterator itr;
+			for (itr = theApp.GetDataManager().GetTreeNode().begin(); itr != theApp.GetDataManager().GetTreeNode().end(); itr++) {
+				if ((*itr)->getWindowInfo().tree == pDropWnd) {
+					TRACE("=== Drop Target Handle : %08x Node : %08x\n", pDropWnd, mDragNode);
+					bTarget = TRUE;
+					((*itr)->getWindowInfo().wnd)->SendMessage(eUserMessage_Drag_Select, eFromType_Custom, (LPARAM)mDragNode);
+					break;
+				}
+			}
+		}
+
+
+		if (bTarget == TRUE) {
+			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+		}
+		else {
+			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
+		}
+
+	}
+	else{
+		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+		UINT col = 0;
+		hItem = _HitControl(point);
+		if (hItem != NULL){
+			if (_PtInRectPointCell(point) == TRUE){
+				SetCursor(AfxGetApp()->LoadStandardCursor(IDC_HAND));
+			}
+		}
+	}
+#endif
+	CTreeCtrl::OnMouseMove(nFlags, point);
+}
+/*============================================================================*/
+/*! ツリーリストコントロール
+
+-# マウス左ボタンアップイベント
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
+{
+#ifndef _DEMO
+	if (!(MK_CONTROL & nFlags)/* && !(MK_SHIFT & nFlags)*/){
+		if (mSelectItems.size() > 1){
+			ClearSelection();
+			if (mLastSelectItem != NULL) {
+				SetItemState(mLastSelectItem, TVIS_SELECTED, TVIS_SELECTED);
+				mSelectItems.push_back(mLastSelectItem);
+			}
+		}
+	}
+
+	if (mbDragging){
+		// ドラッグ中
+		CPoint		pt = point;
+		ClientToScreen(&pt);
+
+		// ドロップウィンドウの確認
+		CWnd* pDropWnd = WindowFromPoint(pt);
+		if (pDropWnd == this) {
+			// 自分から自分
+			// ウィンドウのロックを解除し、ウィンドウを更新できるようにドラッグイメージを非表示
+			mpImagelist->DragLeave(NULL);
+			// ドラッグ操作を終了
+			mpImagelist->EndDrag();
+			// イメージリストの削除
+			delete mpImagelist;
+			mpImagelist = NULL;
+
+			UINT        flags;
+			HTREEITEM hItem = HitTest(point, &flags);
+
+			// ドロップ先のアイテムの確認
+			// ・同一アイテムの場合は何もしない
+			// ・ドラッグアイテムがドロップ先アイテムの親の場合は何もしない
+			// //・ドラッグアイテムの親アイテムがドロップ先アイテムの場合は何もしない
+			if (mDragNode->getTreeItem() != hItem &&
+				_IsChildNodeOf(mDragNode->getTreeItem(), hItem) == false)// &&
+				//GetParentItem(mhItemDrag) != mhItemDrop )
+			{
+				// ドラッグアイテムとドロップアイテムの関係をチェック
+				if (_IsDropExecute(mDragNode->getTreeItem(), hItem) == true) {
+					// ドラッグアイテムをドロップ先に移動
+					if (mDragCallback != NULL) {
+						mDragCallback(mTreeParent, eDrop, mDragNode->getTreeItem(), (LPARAM)hItem, 0, 0);
+					}
+				}
+			}
+
+			ReleaseCapture();
+			mbDragging = false;
+			SelectDropTarget(NULL);
+		}
+		else {
+			// 自分から他人
+			// ウィンドウのロックを解除し、ウィンドウを更新できるようにドラッグイメージを非表示
+			mpImagelist->DragLeave(NULL);
+			// ドラッグ操作を終了
+			mpImagelist->EndDrag();
+			// イメージリストの削除
+			delete mpImagelist;
+			mpImagelist = NULL;
+
+			vector<CTreeNode*>::iterator itr;
+			for (itr = theApp.GetDataManager().GetTreeNode().begin(); itr != theApp.GetDataManager().GetTreeNode().end(); itr++) {
+				if ((*itr)->getWindowInfo().tree == pDropWnd) {
+					((*itr)->getWindowInfo().wnd)->SendMessage(eUserMessage_Drag_DropTarget, eFromType_Custom, (LPARAM)mDragNode);
+					break;
+				}
+			}
+			ReleaseCapture();
+			mbDragging = false;
+			SelectDropTarget(NULL);
+		}
+
+	}
+#endif
+	CTreeCtrl::OnLButtonUp(nFlags, point);
+}
 /*============================================================================*/
 /*! ツリーリストコントロール
 
@@ -663,487 +1010,6 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 	}
 	//*pResult = 0;
 }
-
-/*============================================================================*/
-/*! ツリーリストコントロール
-
--# 背景描画
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-BOOL CCustomTreeListCtrl::OnEraseBkgnd(CDC* pDC)
-{
-	//CRect	rClient;
-	//GetClientRect(&rClient);
-	//pDC->FillSolidRect(rClient, RGB(255,0,255));
-	return TRUE;
-}
-
-/*============================================================================*/
-/*! ツリーリストコントロール
-
--# マウス左ボタンダウンイベント
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-void CCustomTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
-{
-#ifdef _ORG
-	//if (!(GetStyle() & TVS_EDITLABELS)){
-	//	if (nFlags & VK_CONTROL){
-	//		UINT col = 0;
-	//		HTREEITEM hItem = HitTestEx(point, col);
-	//		_SelectMultiItem(hItem, nFlags);
-	//		return;
-	//	}
-	//}
-
-	CTreeCtrl::OnLButtonDown(nFlags, point);
-
-	HTREEITEM hItem;
-	UINT col = 0;
-
-	hItem = HitTestEx(point, col);
-	if (hItem == NULL) {
-		SetFocus();
-		return;
-	}
-
-	// 先頭カラム以外のラベル編集
-	if (hItem != NULL && col != 0) {
-		//CString text = GetSubItemText(hItem, col);
-		if (mClickCallback != NULL && mClickCallback(mTreeParent, hItem, col, point) == TRUE) {
-			// 編集モードへ切り替え
-			SelectItem(hItem);
-			SwitchEditMode(hItem, col, point);
-			return;
-		}
-	}
-
-	SelectItem(hItem);
-	SetFocus();
-#else
-	// Controlキーを押下している場合は、複数選択
-	// Controlキーを押下していない場合は、単数選択あるいは名称変更
-	if (!(MK_CONTROL & nFlags)/* && !(MK_SHIFT & nFlags)*/) {
-		// Controlキーは押下状態ではない
-
-		CTreeCtrl::OnLButtonDown(nFlags, point);
-
-		HTREEITEM hItem;
-		UINT col = 0;
-		hItem = HitTestEx(point, col);
-		if (hItem == NULL) {
-			SetFocus();
-			return;
-		}
-
-		// 先頭カラム以外のラベル編集
-		if (hItem != NULL && col != 0) {
-			//CString text = GetSubItemText(hItem, col);
-			if (mClickCallback != NULL && mClickCallback(mTreeParent, hItem, col, point) == TRUE) {
-				// 編集モードへ切り替え
-				SelectItem(hItem);
-				SwitchEditMode(hItem, col, point);
-				return;
-			}
-		}
-
-		clearSelection();
-		SelectItem(hItem);
-		SetFocus();
-	}
-	else {
-		SetFocus();
-		do
-		{
-			HTREEITEM hItem;
-			UINT col = 0;
-			hItem = HitTestEx(point, col);
-			if (hItem == NULL){
-				break;
-			}
-			if (ItemHasChildren(hItem)) {
-				break;
-			}
-			if (GetParentItem(hItem) == NULL){
-				break;
-			}
-			unsigned short shKeyState = GetKeyState(VK_CONTROL);
-			shKeyState >>= 15;
-			if (shKeyState == 1){
-				procControlKeyPress(hItem);
-				HTREEITEM hSelectedItem = GetSelectedItem();
-				if (ItemHasChildren(hSelectedItem)) {
-					SelectItem(hItem);
-				}
-				break;
-			}
-			else{
-				if (mSelectItems.size() == 0){
-					SetItemState(hItem, TVIS_SELECTED, TVIS_SELECTED);
-					mSelectItems.push_back(hItem);
-					break;
-				}
-			}
-			mLastSelectItem = hItem;
-			if (mSelectItems.size() == 1)
-			{
-				clearSelection();
-				SetItemState(mLastSelectItem, TVIS_SELECTED, TVIS_SELECTED);
-				mSelectItems.push_back(mLastSelectItem);
-			}
-		} while (false);
-	}
-#endif
-}
-
-/*============================================================================*/
-/*! ツリーコントロール拡張機能
-
--# Ctrlキー押下時の選択処理
-
-@param	hItem	ツリー選択アイテム
-
-@retval
-*/
-/*============================================================================*/
-void CCustomTreeListCtrl::procControlKeyPress(HTREEITEM hCurItem)
-{
-	if (mSelectItems.size() > 0)
-	{
-		if (!isSameLevel(hCurItem)){
-			SelectItem(hCurItem);
-			clearSelection();
-			return;
-		}
-	}
-
-	int nState = (TVIS_SELECTED == GetItemState(hCurItem, TVIS_SELECTED)) ? 0 : TVIS_SELECTED;
-	SetItemState(hCurItem, nState, TVIS_SELECTED);
-	if (0 == nState)
-	{
-		removeFromSelectList(hCurItem);
-	}
-	else
-	{
-		mSelectItems.push_back(hCurItem);
-	}
-}
-
-/*============================================================================*/
-/*! ツリーコントロール拡張機能
-
--# Shiftキー押下時の選択処理
-
-@param	hItem	ツリー選択アイテム
-
-@retval
-*/
-/*============================================================================*/
-void CCustomTreeListCtrl::procShiftKeyPress(HTREEITEM hCurItem)
-{
-	if (mSelectItems.size() > 0)
-	{
-		if (!isSameLevel(hCurItem)){
-			return;
-		}
-	}
-	HTREEITEM hItemFrom = mSelectItems[0];
-	SetItemState(hCurItem, TVIS_SELECTED, TVIS_SELECTED);
-	//SelectItems(hItemFrom, hCurItem);
-}
-
-/*============================================================================*/
-/*! ツリーコントロール拡張機能
-
--# Ctrlキー押下時の選択処理
-
-@param	hItem	ツリー選択アイテム
-
-@retval
-*/
-/*============================================================================*/
-bool CCustomTreeListCtrl::isSameLevel(HTREEITEM hItem)
-{
-	bool bSameLevel = true;
-	vector<HTREEITEM>::iterator itr;
-	for (itr = mSelectItems.begin(); itr != mSelectItems.end(); ++itr)
-	{
-		if (GetParentItem(hItem) != GetParentItem(*itr))
-		{
-			bSameLevel = false;
-		}
-	}
-	return bSameLevel;
-}
-
-/*============================================================================*/
-/*! ツリーコントロール拡張機能
-
--# Ctrlキー押下時の選択処理
-
-@param	hItem	ツリー選択アイテム
-
-@retval
-*/
-/*============================================================================*/
-void CCustomTreeListCtrl::removeFromSelectList(HTREEITEM hItem)
-{
-	vector<HTREEITEM>::iterator itr;
-	for (itr = mSelectItems.begin(); mSelectItems.end() != itr; ++itr)
-	{
-		if ((*itr) == hItem){
-			mSelectItems.erase(itr);
-			//mSelectItems.clear();
-			break;
-		}
-	}
-}
-
-/*============================================================================*/
-/*! ツリーコントロール拡張機能
-
--# 選択リストのクリア
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-void CCustomTreeListCtrl::clearSelection()
-{
-	int nSelItemCount = (int)mSelectItems.size();
-	for (int nIdx = 0; nIdx < nSelItemCount; ++nIdx)
-	{
-		SetItemState(mSelectItems[nIdx], 0, TVIS_SELECTED);
-	}
-	mSelectItems.clear();
-}
-
-/*============================================================================*/
-/*! ツリーコントロール拡張機能
-
--# マウス左ボタンダブルクリックイベント
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-void CCustomTreeListCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
-{
-	CTreeCtrl::OnLButtonDblClk(nFlags, point);
-}
-
-/*============================================================================*/
-/*! ツリーリストコントロール
-
--# マウス移動イベント
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-void CCustomTreeListCtrl::OnMouseMove(UINT nFlags, CPoint point)
-{
-	HTREEITEM	hItem=0;
-	UINT        flags=0;
-	CPoint		pt = point;
-	ClientToScreen(&pt);
-
-#ifndef _DEMO
-	if (mbDragging){
-		// ドラッグ中
-		// ドラッグ アンド ドロップ操作中にドラッグされているイメージを移動
-		mpImagelist->DragMove(pt);
-
-		// ドロップウィンドウの確認
-		CWnd* pDropWnd = WindowFromPoint(pt);
-		BOOL bTarget = FALSE;
-		if (pDropWnd == this) {
-			// 自分から自分
-			if ((hItem = HitTest(point, &flags)) != NULL) {
-				// ウィンドウのロックを解除し、ウィンドウを更新できるようにドラッグイメージを非表示
-				mpImagelist->DragLeave(NULL);
-				if (_IsDropExecute(mDragNode->getTreeItem(), hItem) == true) {
-					// ドロップ対象アイテムをアクティブ
-					//SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
-					SelectDropTarget(hItem);
-					Expand(hItem, TVE_EXPAND);
-					bTarget = TRUE;
-				}
-				else {
-					//SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
-					SelectDropTarget(NULL);
-				}
-				// ドロップ対象アイテムの更新
-				mhItemDrop = hItem;
-				// ドラッグ操作中に更新をロックし、指定した位置にドラッグ イメージを表示
-				mpImagelist->DragEnter(NULL, pt);
-				//mpImagelist->DragEnter(this, point);
-			}
-			else {
-				//SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
-				SelectDropTarget(NULL);
-			}
-		}
-		else {
-			// 自分から他人
-			vector<CTreeNode*>::iterator itr;
-			for (itr = theApp.GetDataManager().GetTreeNode().begin(); itr != theApp.GetDataManager().GetTreeNode().end(); itr++) {
-				if ((*itr)->getWindowInfo().tree == pDropWnd) {
-					TRACE("=== Drop Target Handle : %08x Node : %08x\n", pDropWnd, mDragNode);
-					bTarget = TRUE;
-					((*itr)->getWindowInfo().wnd)->SendMessage(eUserMessage_Drag_Select, eFromType_Custom, (LPARAM)mDragNode);
-					break;
-				}
-			}
-		}
-
-
-		if (bTarget == TRUE) {
-			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
-		}
-		else {
-			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
-		}
-
-	}
-	else{
-		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
-		UINT col = 0;
-		hItem = _HitControl(point);
-		if (hItem != NULL){
-			if (_PtInRectPointCell(point) == TRUE){
-				SetCursor(AfxGetApp()->LoadStandardCursor(IDC_HAND));
-			}
-		}
-	}
-#endif
-	CTreeCtrl::OnMouseMove(nFlags, point);
-}
-
-/*============================================================================*/
-/*! ツリーリストコントロール
-
--# マウス左ボタンアップイベント
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-void CCustomTreeListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
-{
-#ifndef _DEMO
-	if (!(MK_CONTROL & nFlags)/* && !(MK_SHIFT & nFlags)*/){
-		if (mSelectItems.size() > 1){
-			ClearSelection();
-			if (mLastSelectItem != NULL) {
-				SetItemState(mLastSelectItem, TVIS_SELECTED, TVIS_SELECTED);
-				mSelectItems.push_back(mLastSelectItem);
-			}
-		}
-	}
-
-	if (mbDragging){
-		// ドラッグ中
-		CPoint		pt = point;
-		ClientToScreen(&pt);
-
-		// ドロップウィンドウの確認
-		CWnd* pDropWnd = WindowFromPoint(pt);
-		if (pDropWnd == this) {
-			// 自分から自分
-			// ウィンドウのロックを解除し、ウィンドウを更新できるようにドラッグイメージを非表示
-			mpImagelist->DragLeave(NULL);
-			// ドラッグ操作を終了
-			mpImagelist->EndDrag();
-			// イメージリストの削除
-			delete mpImagelist;
-			mpImagelist = NULL;
-
-			UINT        flags;
-			HTREEITEM hItem = HitTest(point, &flags);
-
-			// ドロップ先のアイテムの確認
-			// ・同一アイテムの場合は何もしない
-			// ・ドラッグアイテムがドロップ先アイテムの親の場合は何もしない
-			// //・ドラッグアイテムの親アイテムがドロップ先アイテムの場合は何もしない
-			if (mDragNode->getTreeItem() != hItem &&
-				_IsChildNodeOf(mDragNode->getTreeItem(), hItem) == false)// &&
-				//GetParentItem(mhItemDrag) != mhItemDrop )
-			{
-				// ドラッグアイテムとドロップアイテムの関係をチェック
-				if (_IsDropExecute(mDragNode->getTreeItem(), hItem) == true) {
-					// ドラッグアイテムをドロップ先に移動
-					if (mDragCallback != NULL) {
-						mDragCallback(mTreeParent, eDrop, mDragNode->getTreeItem(), (LPARAM)hItem, 0, 0);
-					}
-				}
-			}
-
-			ReleaseCapture();
-			mbDragging = false;
-			SelectDropTarget(NULL);
-		}
-		else {
-			// 自分から他人
-			// ウィンドウのロックを解除し、ウィンドウを更新できるようにドラッグイメージを非表示
-			mpImagelist->DragLeave(NULL);
-			// ドラッグ操作を終了
-			mpImagelist->EndDrag();
-			// イメージリストの削除
-			delete mpImagelist;
-			mpImagelist = NULL;
-
-			vector<CTreeNode*>::iterator itr;
-			for (itr = theApp.GetDataManager().GetTreeNode().begin(); itr != theApp.GetDataManager().GetTreeNode().end(); itr++) {
-				if ((*itr)->getWindowInfo().tree == pDropWnd) {
-					((*itr)->getWindowInfo().wnd)->SendMessage(eUserMessage_Drag_DropTarget, eFromType_Custom, (LPARAM)mDragNode);
-					break;
-				}
-			}
-			ReleaseCapture();
-			mbDragging = false;
-			SelectDropTarget(NULL);
-		}
-
-	}
-#endif
-	CTreeCtrl::OnLButtonUp(nFlags, point);
-}
-
-/*============================================================================*/
-/*! ツリーリストコントロール
-
--# 垂直スクロールバーイベント
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-void CCustomTreeListCtrl::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
-{
-	if (GetFocus() != this)
-		SetFocus();
-	if (mbInplace) {
-		Invalidate(FALSE);
-		mbInplace = FALSE;
-	}
-
-	CTreeCtrl::OnVScroll(nSBCode, nPos, pScrollBar);
-}
-
 /*============================================================================*/
 /*! ツリーリストコントロール
 
@@ -1180,7 +1046,6 @@ void CCustomTreeListCtrl::OnTvnBeginlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 	}
 	*pResult = 0;
 }
-
 /*============================================================================*/
 /*! ツリーリストコントロール
 
@@ -1245,7 +1110,6 @@ void CCustomTreeListCtrl::OnTvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 
 	*pResult = 0;
 }
-
 /*============================================================================*/
 /*! ツリーリストコントロール
 
@@ -1302,29 +1166,6 @@ void CCustomTreeListCtrl::OnTvnBegindrag(NMHDR *pNMHDR, LRESULT *pResult)
 	SetCapture();
 
 #endif
-}
-
-/*============================================================================*/
-/*! ツリーリストコントロール
-
--# リーフの更新
-
-@param	hTargetItem			ドロップアイテム
-@param	pDataObject			ドラッグ情報
-
-@retval BOOL
-*/
-/*============================================================================*/
-CString CCustomTreeListCtrl::createDragString(HTREEITEM hDragItem)
-{
-	CTreeNode* pnode = theApp.GetDataManager().SearchItemNode(mTreeParent, hDragItem);
-	if (pnode == NULL)
-		return _T("");
-
-	CString str;
-	str.Format(_T("%s\t%s\t%s\t%s"), pnode->GetMonCtrl().display, pnode->GetMonCtrl().unit, pnode->GetMonCtrl().mname, pnode->GetMonCtrl().cname);
-
-	return str;
 }
 
 /*============================================================================*/
@@ -1642,6 +1483,184 @@ BOOL CCustomTreeListCtrl::SwitchEditMode(HTREEITEM hItem, UINT col, CPoint point
 	pedit->GetWindowText(text);
 
 	return TRUE;
+}
+/*============================================================================*/
+/*! ツリーリストコントロール
+
+-# スクロールバーの更新
+
+@param  なし
+
+@retval なし
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::UpdateScroller()
+{
+	CRect rcClient;
+	mTreeParent->GetClientRect(&rcClient);
+	int cx = rcClient.Width();
+
+	int lx = mxPos;
+
+	if (mxPos > mcxTotal - cx)
+		mxPos = mcxTotal - cx;
+	if (mxPos < 0)
+		mxPos = 0;
+
+	SCROLLINFO scrinfo;
+	scrinfo.cbSize = sizeof(scrinfo);
+	scrinfo.fMask = SIF_PAGE | SIF_POS | SIF_RANGE;
+	scrinfo.nPage = cx;
+	scrinfo.nMin = 0;
+	scrinfo.nMax = mcxTotal;
+	scrinfo.nPos = mxPos;
+	mTreeParent->SetScrollInfo(SB_HORZ, &scrinfo);
+}
+
+/*============================================================================*/
+/*! ツリーコントロール拡張機能
+
+-# Ctrlキー押下時の選択処理
+
+@param	hItem	ツリー選択アイテム
+
+@retval
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::procControlKeyPress(HTREEITEM hCurItem)
+{
+	if (mSelectItems.size() > 0)
+	{
+		if (!isSameLevel(hCurItem)){
+			SelectItem(hCurItem);
+			clearSelection();
+			return;
+		}
+	}
+
+	int nState = (TVIS_SELECTED == GetItemState(hCurItem, TVIS_SELECTED)) ? 0 : TVIS_SELECTED;
+	SetItemState(hCurItem, nState, TVIS_SELECTED);
+	if (0 == nState)
+	{
+		removeFromSelectList(hCurItem);
+	}
+	else
+	{
+		mSelectItems.push_back(hCurItem);
+	}
+}
+
+/*============================================================================*/
+/*! ツリーコントロール拡張機能
+
+-# Shiftキー押下時の選択処理
+
+@param	hItem	ツリー選択アイテム
+
+@retval
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::procShiftKeyPress(HTREEITEM hCurItem)
+{
+	if (mSelectItems.size() > 0)
+	{
+		if (!isSameLevel(hCurItem)){
+			return;
+		}
+	}
+	HTREEITEM hItemFrom = mSelectItems[0];
+	SetItemState(hCurItem, TVIS_SELECTED, TVIS_SELECTED);
+	//SelectItems(hItemFrom, hCurItem);
+}
+
+/*============================================================================*/
+/*! ツリーコントロール拡張機能
+
+-# Ctrlキー押下時の選択処理
+
+@param	hItem	ツリー選択アイテム
+
+@retval
+*/
+/*============================================================================*/
+bool CCustomTreeListCtrl::isSameLevel(HTREEITEM hItem)
+{
+	bool bSameLevel = true;
+	vector<HTREEITEM>::iterator itr;
+	for (itr = mSelectItems.begin(); itr != mSelectItems.end(); ++itr)
+	{
+		if (GetParentItem(hItem) != GetParentItem(*itr))
+		{
+			bSameLevel = false;
+		}
+	}
+	return bSameLevel;
+}
+
+/*============================================================================*/
+/*! ツリーコントロール拡張機能
+
+-# Ctrlキー押下時の選択処理
+
+@param	hItem	ツリー選択アイテム
+
+@retval
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::removeFromSelectList(HTREEITEM hItem)
+{
+	vector<HTREEITEM>::iterator itr;
+	for (itr = mSelectItems.begin(); mSelectItems.end() != itr; ++itr)
+	{
+		if ((*itr) == hItem){
+			mSelectItems.erase(itr);
+			//mSelectItems.clear();
+			break;
+		}
+	}
+}
+
+/*============================================================================*/
+/*! ツリーコントロール拡張機能
+
+-# 選択リストのクリア
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::clearSelection()
+{
+	int nSelItemCount = (int)mSelectItems.size();
+	for (int nIdx = 0; nIdx < nSelItemCount; ++nIdx)
+	{
+		SetItemState(mSelectItems[nIdx], 0, TVIS_SELECTED);
+	}
+	mSelectItems.clear();
+}
+
+/*============================================================================*/
+/*! ツリーリストコントロール
+
+-# リーフの更新
+
+@param	hTargetItem			ドロップアイテム
+@param	pDataObject			ドラッグ情報
+
+@retval BOOL
+*/
+/*============================================================================*/
+CString CCustomTreeListCtrl::createDragString(HTREEITEM hDragItem)
+{
+	CTreeNode* pnode = theApp.GetDataManager().SearchItemNode(mTreeParent, hDragItem);
+	if (pnode == NULL)
+		return _T("");
+
+	CString str;
+	str.Format(_T("%s\t%s\t%s\t%s"), pnode->GetMonCtrl().display, pnode->GetMonCtrl().unit, pnode->GetMonCtrl().mname, pnode->GetMonCtrl().cname);
+
+	return str;
 }
 
 /*============================================================================*/
@@ -1966,38 +1985,6 @@ bool CCustomTreeListCtrl::isChildNodeOf(HTREEITEM hItemDrop, HTREEITEM hItemDrag
 	} while ((hItemDrop = GetParentItem(hItemDrop)) != NULL);
 
 	return (hItemDrop != NULL) ? true : false;
-}
-/*============================================================================*/
-/*! ツリーリストコントロール
-
--# スクロールバーの更新
-
-@param  なし
-
-@retval なし
-*/
-/*============================================================================*/
-void CCustomTreeListCtrl::UpdateScroller()
-{
-	CRect rcClient;
-	mTreeParent->GetClientRect(&rcClient);
-	int cx = rcClient.Width();
-
-	int lx = mxPos;
-
-	if (mxPos > mcxTotal - cx)
-		mxPos = mcxTotal - cx;
-	if (mxPos < 0)
-		mxPos = 0;
-
-	SCROLLINFO scrinfo;
-	scrinfo.cbSize = sizeof(scrinfo);
-	scrinfo.fMask = SIF_PAGE | SIF_POS | SIF_RANGE;
-	scrinfo.nPage = cx;
-	scrinfo.nMin = 0;
-	scrinfo.nMax = mcxTotal;
-	scrinfo.nPos = mxPos;
-	mTreeParent->SetScrollInfo(SB_HORZ, &scrinfo);
 }
 
 /*============================================================================*/

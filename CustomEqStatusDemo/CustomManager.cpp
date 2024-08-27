@@ -40,6 +40,7 @@ BEGIN_MESSAGE_MAP(CCustomManager, CCustomDialogBase)
 	ON_BN_CLICKED(IDC_RADIO_USER, &CCustomManager::OnBnClickedRadioUser)
 	ON_BN_CLICKED(IDC_RADIO_MASTER, &CCustomManager::OnBnClickedRadioMaster)
 	ON_NOTIFY(NM_RCLICK, IDC_LIST_MANAGER, &CCustomManager::OnNMRClickListManager)
+	ON_NOTIFY(NM_DBLCLK, IDC_LIST_MANAGER, &CCustomManager::OnNMDblclkListManager)
 END_MESSAGE_MAP()
 
 
@@ -92,9 +93,33 @@ void CCustomManager::OnBnClickedRadioMaster()
 {
 	// TODO: ここにコントロール通知ハンドラー コードを追加します。
 }
+/*============================================================================*/
+/*! 設備詳細管理
 
+-# リストコントロールでのマウス右クリックイベント（※メニュー表示）
 
+@param
+
+@retval
+*/
+/*============================================================================*/
 void CCustomManager::OnNMRClickListManager(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	// TODO: ここにコントロール通知ハンドラー コードを追加します。
+	*pResult = 0;
+}
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# リストコントロールでのマウスダブルクリック（※対象ウィンドウのアクティブ化）
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomManager::OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
 	// TODO: ここにコントロール通知ハンドラー コードを追加します。

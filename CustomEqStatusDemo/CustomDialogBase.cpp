@@ -192,6 +192,16 @@ void CCustomDialogBase::OnClose()
 	}
 }
 
+/*============================================================================*/
+/*! CCustomDialogBase
+
+-# ダイアログのモーダル表示をカスタマイズ
+
+@breif
+@param
+@retval
+*/
+/*============================================================================*/
 INT_PTR CCustomDialogBase::DoModal()
 {
 	mModal = true;
