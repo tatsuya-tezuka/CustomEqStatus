@@ -44,6 +44,54 @@ BEGIN_MESSAGE_MAP(CCustomManager, CCustomDialogBase)
 END_MESSAGE_MAP()
 
 
+void CCustomManager::_CreateDemo(int nSelect)
+{
+	mManagerList.SetRedraw(FALSE);
+
+	mManagerList.RemoveAllGroups();
+	mManagerList.DeleteAllItems();
+
+	int item = 0;
+	if (nSelect == eSelectUser){
+		mManagerList.AddItem(item, 0, _T("アンテナ"), 0);
+		mManagerList.AddItem(item, 1, _T("Demo"));
+		mManagerList.AddItem(item, 2, _T("グループなし"));
+		item++;
+		mManagerList.AddItem(item, 0, _T("S帯送信"), 0);
+		mManagerList.AddItem(item, 1, _T("Demo"));
+		mManagerList.AddItem(item, 2, _T("グループ１"));
+		item++;
+		mManagerList.AddItem(item, 0, _T("S帯測距"), 0);
+		mManagerList.AddItem(item, 1, _T("Demo"));
+		mManagerList.AddItem(item, 2, _T("グループ１"));
+		item++;
+		mManagerList.AddItem(item, 0, _T("X-TX"), 0);
+		mManagerList.AddItem(item, 1, _T("Demo"));
+		mManagerList.AddItem(item, 2, _T("グループなし"));
+	}
+	else{
+		mManagerList.AddItem(item, 0, _T("#アンテナ"), 0);
+		mManagerList.AddItem(item, 1, _T("#Demo"));
+		mManagerList.AddItem(item, 2, _T("グループなし"));
+		item++;
+		mManagerList.AddItem(item, 0, _T("#S帯送信"), 0);
+		mManagerList.AddItem(item, 1, _T("#Demo"));
+		mManagerList.AddItem(item, 2, _T("グループ１"));
+		item++;
+		mManagerList.AddItem(item, 0, _T("#S帯測距"), 0);
+		mManagerList.AddItem(item, 1, _T("#Demo"));
+		mManagerList.AddItem(item, 2, _T("グループ１"));
+		item++;
+		mManagerList.AddItem(item, 0, _T("#X-TX"), 0);
+		mManagerList.AddItem(item, 1, _T("#Demo"));
+		mManagerList.AddItem(item, 2, _T("グループなし"));
+	}
+
+	mManagerList.SetRedraw(TRUE);
+
+	mManagerList.GroupByColumn(eManagerGroup, (nSelect == eSelectUser)?TRUE:FALSE);
+}
+
 // CCustomManager メッセージ ハンドラー
 
 /*============================================================================*/
@@ -59,6 +107,13 @@ END_MESSAGE_MAP()
 BOOL CCustomManager::OnInitDialog()
 {
 	CCustomDialogBase::OnInitDialog();
+
+	mManagerList.CreateGroupControl();
+
+#ifdef _DEMO
+	_CreateDemo((int)eSelectUser);
+#endif
+
 
 	SetControlInfo(IDC_LIST_MANAGER, ANCHORE_LEFTTOP | RESIZE_BOTH);
 
@@ -77,7 +132,10 @@ BOOL CCustomManager::OnInitDialog()
 /*============================================================================*/
 void CCustomManager::OnBnClickedRadioUser()
 {
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
+
+#ifdef _DEMO
+	_CreateDemo((int)eSelectUser);
+#endif
 }
 /*============================================================================*/
 /*! 設備詳細管理
@@ -91,7 +149,10 @@ void CCustomManager::OnBnClickedRadioUser()
 /*============================================================================*/
 void CCustomManager::OnBnClickedRadioMaster()
 {
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
+
+#ifdef _DEMO
+	_CreateDemo((int)eSelectMaster);
+#endif
 }
 /*============================================================================*/
 /*! 設備詳細管理

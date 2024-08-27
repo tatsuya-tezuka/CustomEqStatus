@@ -146,7 +146,7 @@ void CCustomTreeEdit::OnKillFocus(CWnd* pNewWnd)
 	}
 	mbNotify = TRUE;
 
-	// Send Notification to parent of ListView ctrl
+	// ラベル編集の終了を通知
 	TV_DISPINFO dispinfo;
 	dispinfo.hdr.hwndFrom = GetParent()->m_hWnd;
 	dispinfo.hdr.idFrom = GetDlgCtrlID();
@@ -207,7 +207,6 @@ int CCustomTreeEdit::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CEdit::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
-	// Set the proper font
 	CFont* font = GetParent()->GetFont();
 	SetFont(font);
 

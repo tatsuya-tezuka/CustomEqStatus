@@ -9,6 +9,7 @@
 
 #include "CustomDialogBase.h"
 #include "afxcmn.h"
+#include "CustomGroupListCtrl.h"
 
 // CCustomManager ダイアログ
 
@@ -27,7 +28,7 @@ public:
 	/* 定義                                                                                 */
 	/* ------------------------------------------------------------------------------------ */
 public:
-	enum { eSelectUser = 1, eSelectMaster };
+	enum { eSelectUser = 0, eSelectMaster };
 
 protected:
 
@@ -44,6 +45,7 @@ protected:
 public:
 
 protected:
+	void	_CreateDemo(int nSelect);
 
 	/* ------------------------------------------------------------------------------------ */
 
@@ -53,7 +55,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	int mSelectType;
-	CListCtrl mManagerList;
+	CCustomGroupListCtrl mManagerList;
 	virtual BOOL OnInitDialog();
 	afx_msg void OnBnClickedRadioUser();
 	afx_msg void OnBnClickedRadioMaster();

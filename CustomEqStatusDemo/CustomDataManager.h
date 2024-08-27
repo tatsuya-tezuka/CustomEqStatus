@@ -58,6 +58,14 @@ static const TCHAR* mTreeItemHeader[eDetailMax] = {
 	_T("制御"),
 };
 
+// 設備管理画面のヘッダー項目
+enum { eManagerTitle, eManagerNote, eManagerGroup, eManagerMax };
+static const TCHAR* mGroupListHeader[] = {
+	_T("タイトル"),
+	_T("備考"),
+	_T("グループ"),
+};
+
 /// 各種メッセージID
 enum eUserMessage{
 	eUserMessage_Manger_New = (WM_USER + 1),
@@ -78,6 +86,11 @@ enum eUserMessage{
 };
 
 /// ツリーデータ
+enum eTreeItemKind{
+	eTreeItemKind_User = 0,
+	eTreeItemKind_Master,
+};
+
 enum eTreeItemType{
 	eTreeItemType_Window = 0x00000000,
 	eTreeItemType_Title = 0x00000001,
@@ -113,6 +126,7 @@ typedef struct{
 	CWnd*			wnd;				// 設備詳細ウィンドウハンドル
 	CWnd*			tree;				// 設備詳細ツリーハンドルドル
 	CWnd*			manager;			// 管理ウィンドウハンドル（CCustomManagerでセット）
+	UINT			kind;				// 表示種別：eTreeItemKind
 	UINT			type;				// 表示名種別：eTreeItemType
 	TCHAR			title[mTitleSize];	// ウィンドウタイトル
 	WINDOWPLACEMENT	placement;			// ウィンドウ位置情報

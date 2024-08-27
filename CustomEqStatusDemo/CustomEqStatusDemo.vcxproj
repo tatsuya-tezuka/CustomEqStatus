@@ -191,6 +191,7 @@
     <ClInclude Include="CustomDialogBase.h" />
     <ClInclude Include="CustomEqStatusDemo.h" />
     <ClInclude Include="CustomEqStatusDemoDlg.h" />
+    <ClInclude Include="CustomGroupListCtrl.h" />
     <ClInclude Include="CustomManager.h" />
     <ClInclude Include="LogTraceEx.h" />
     <ClInclude Include="Markup.h" />
@@ -206,6 +207,7 @@
     <ClCompile Include="CustomDialogBase.cpp" />
     <ClCompile Include="CustomEqStatusDemo.cpp" />
     <ClCompile Include="CustomEqStatusDemoDlg.cpp" />
+    <ClCompile Include="CustomGroupListCtrl.cpp" />
     <ClCompile Include="CustomManager.cpp" />
     <ClCompile Include="LogTraceEx.cpp" />
     <ClCompile Include="Markup.cpp" />
