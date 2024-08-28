@@ -176,10 +176,12 @@ BOOL CCustomDialogBase::PreTranslateMessage(MSG* pMsg)
 /*============================================================================*/
 void CCustomDialogBase::OnClose()
 {
-	//CString title;
-	//GetWindowText(title);
+	CString title;
+	GetWindowText(title);
 
 	//if (IDCANCEL == MessageBoxHooked(this->m_hWnd, _T("終了します。\nよろしいですか？"), title, MB_OKCANCEL | MB_ICONQUESTION | MB_DEFBUTTON2))
+	//	return;
+	//if (IDCANCEL == MessageBox(_T("終了します。\nよろしいですか？"), title, MB_OKCANCEL | MB_ICONQUESTION | MB_DEFBUTTON2))
 	//	return;
 
 	if (mModal)

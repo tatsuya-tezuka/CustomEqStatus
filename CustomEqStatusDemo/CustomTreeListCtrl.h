@@ -149,6 +149,7 @@ public:
 	CWnd*	GetParent() { return mTreeParent; }
 	void	Create(CWnd* parent, CFont& font);
 	void	ResizeControl(int dx, int dy);
+	void	DividerDblClick(int item);
 
 	int		GetPosX() { return mxPos; }
 	void	SetPosX(int val) { mxPos = val; }

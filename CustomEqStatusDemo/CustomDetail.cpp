@@ -49,8 +49,51 @@ BEGIN_MESSAGE_MAP(CCustomDetail, CCustomDialogBase)
 	ON_NOTIFY(TVN_GETDISPINFO, IDC_TREE_CTRL, &CCustomDetail::OnTvnGetdispinfoTreeCtrl)
 	ON_WM_CLOSE()
 	ON_WM_HSCROLL()
+	//ON_NOTIFY(HDN_ITEMCHANGING, CCustomTreeListCtrl::eHeaderID, OnHeaderItemChanged)
+	ON_NOTIFY(HDN_ITEMCHANGED, CCustomTreeListCtrl::eHeaderID, OnHeaderItemChanged)
+	ON_NOTIFY(HDN_DIVIDERDBLCLICK, CCustomTreeListCtrl::eHeaderID, OnHeaderDividerdblclick)
 END_MESSAGE_MAP()
 
+
+// CCustomTreeListCtrl用のイベント処理
+/*============================================================================*/
+/*! 設備詳細
+
+-# ツリーコントロールヘッダーのイベント処理（サイズ変更）
+　※ツリーコントロールではイベントを拾えない
+
+ @param
+
+ @retval
+ */
+/*============================================================================*/
+void CCustomDetail::OnHeaderItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	// カラム領域の再描画
+	mTreeCtrl.UpdateColumns();
+
+	// 再描画
+	mTreeCtrl.Invalidate();
+}
+/*============================================================================*/
+/*! 設備詳細
+
+-# ヘッダーアイテム間のマウスダブルクリック
+　※ツリーコントロールではイベントを拾えない
+
+ @param
+
+ @retval
+ */
+/*============================================================================*/
+void CCustomDetail::OnHeaderDividerdblclick(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMHEADER phdr = reinterpret_cast<LPNMHEADER>(pNMHDR);
+	
+	mTreeCtrl.DividerDblClick(phdr->iItem);
+
+	*pResult = 0;
+}
 
 // CCustomDetail メッセージ ハンドラー
 
@@ -136,9 +179,54 @@ void CCustomDetail::OnClose()
 /*============================================================================*/
 void CCustomDetail::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
-	// TODO: ここにメッセージ ハンドラー コードを追加するか、既定の処理を呼び出します。
+	// クライアント領域の取得
+	CRect rcClient;
+	GetClientRect(&rcClient);
+	// クライアント領域幅の取得
+	int cx = rcClient.Width();
 
-	CCustomDialogBase::OnHScroll(nSBCode, nPos, pScrollBar);
+	int xEndPos = mTreeCtrl.GetPosX();
+
+	// スクロールバーのイベント処理
+	// イベントによりスクロール量を調整する
+	switch (nSBCode)
+	{
+	case SB_LINELEFT:
+		mTreeCtrl.SetPosX(mTreeCtrl.GetPosX() - 15);
+		break;
+	case SB_LINERIGHT:
+		mTreeCtrl.SetPosX(mTreeCtrl.GetPosX() + 15);
+		break;
+	case SB_PAGELEFT:
+		mTreeCtrl.SetPosX(mTreeCtrl.GetPosX() - cx);
+		break;
+	case SB_PAGERIGHT:
+		mTreeCtrl.SetPosX(mTreeCtrl.GetPosX() + cx);
+		break;
+	case SB_LEFT:
+		mTreeCtrl.SetPosX(0);
+		break;
+	case SB_RIGHT:
+		mTreeCtrl.SetPosX(mTreeCtrl.GetTotalCX() - cx);
+		break;
+	case SB_THUMBTRACK:
+		mTreeCtrl.SetPosX(nPos);
+		break;
+	}
+
+	if (mTreeCtrl.GetPosX() < 0)
+		mTreeCtrl.SetPosX(0);
+	else if (mTreeCtrl.GetPosX() > mTreeCtrl.GetTotalCX() - cx)
+		mTreeCtrl.SetPosX(mTreeCtrl.GetTotalCX() - cx);
+
+	if (xEndPos == mTreeCtrl.GetPosX())
+		return;
+
+	SetScrollPos(SB_HORZ, mTreeCtrl.GetPosX());
+	// 各コントロールの再配置
+	mTreeCtrl.RepositionControls();
+
+	//CCustomDialogBase::OnHScroll(nSBCode, nPos, pScrollBar);
 }
 
 //#############################################################################
@@ -192,13 +280,8 @@ BOOL CCustomDetail::OnProcSize(CWnd* pWnd, int dx, int dy)
 	if (mTreeCtrl.m_hWnd != pWnd->m_hWnd)
 		return false;
 
-	CRect rect;
-	mTreeCtrl.GetWindowRect(rect);
-	ScreenToClient(rect);
-	rect.right += dx;
-	rect.bottom += dy;
-	mTreeCtrl.MoveWindow(rect);
-	Invalidate();
+	mTreeCtrl.ResizeControl(dx, dy);
+
 	return TRUE;
 }
 /*============================================================================*/

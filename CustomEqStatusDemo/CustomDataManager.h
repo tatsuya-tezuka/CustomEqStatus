@@ -129,6 +129,7 @@ typedef struct{
 	UINT			kind;				// 表示種別：eTreeItemKind
 	UINT			type;				// 表示名種別：eTreeItemType
 	TCHAR			title[mTitleSize];	// ウィンドウタイトル
+	TCHAR			group[mNameSize];	// グループ
 	WINDOWPLACEMENT	placement;			// ウィンドウ位置情報
 	UINT			treeopen;			// ツリーアイテムの開閉状態
 	UINT			hwidth[mHeaderSize]; // 詳細画面ヘッダー幅
@@ -143,7 +144,6 @@ typedef struct{
 	TCHAR			unit[mUnitSize];	// 単位
 	UINT			formattype;			// フォーマット種別：eControl
 	TCHAR			format[mFormatSize];// フォーマット書式文字列
-	TCHAR			group[mNameSize];	// グループ
 } stMonCtrlData;
 
 typedef struct{

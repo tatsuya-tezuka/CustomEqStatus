@@ -114,6 +114,12 @@ bool CTreeNode::DeleteTreeNode(HTREEITEM target)
 	if (pnode == NULL)
 		return false;
 
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("DeleteTreeNode"), pnode->wininfo.title, _T(""), nLogEx::debug);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
+
 	deleteNode(pnode);
 
 	// 子リストから削除する
@@ -425,6 +431,7 @@ bool CTreeNode::SaveTreeNode(CArchive& ar)
 	ar << wininfo.type;
 	if (wininfo.type == eTreeItemType_Title) {
 		ar << CString(wininfo.title);
+		ar << CString(wininfo.group);
 		ar << wininfo.monitor;
 		ar << wininfo.placement.flags;
 		if (wininfo.wnd == NULL)
@@ -451,7 +458,6 @@ bool CTreeNode::SaveTreeNode(CArchive& ar)
 		ar << CString(monctrl.unit);
 		ar << monctrl.formattype;
 		ar << CString(monctrl.format);
-		ar << CString(monctrl.group);
 	}
 
 	// 色情報
@@ -562,6 +568,8 @@ bool CTreeNode::LoadTreeNode(CArchive& ar)
 	if (wininfo.type == eTreeItemType_Title) {
 		ar >> str;
 		swprintf_s(wininfo.title, mTitleSize, _T("%s"), (LPCTSTR)str);
+		ar >> str;
+		swprintf_s(wininfo.group, mNameSize, _T("%s"), (LPCTSTR)str);
 		ar >> wininfo.monitor;
 		wininfo.placement.length = sizeof(WINDOWPLACEMENT);
 		ar >> wininfo.placement.flags;
@@ -591,8 +599,6 @@ bool CTreeNode::LoadTreeNode(CArchive& ar)
 		ar >> monctrl.formattype;
 		ar >> str;
 		swprintf_s(monctrl.format, mFormatSize, _T("%s"), (LPCTSTR)str);
-		ar >> str;
-		swprintf_s(monctrl.group, mNameSize, _T("%s"), (LPCTSTR)str);
 	}
 
 	// 色情報
@@ -718,6 +724,7 @@ bool CTreeNode::SaveTreeNodeXml(CMarkup& xml)
 	xml.AddElem(_T("TYPE"), wininfo.type);
 	if (wininfo.type == eTreeItemType_Title){
 		xml.AddElem(_T("TITLE"), wininfo.title);
+		xml.AddElem(_T("GROUP"), wininfo.group);
 		xml.AddElem(_T("MONITOR"), wininfo.monitor);
 		xml.AddElem(_T("FLAGS"), wininfo.placement.flags);
 		xml.AddElem(_T("SHOWCMD"), (wininfo.wnd == NULL) ? 0 : wininfo.wnd->IsWindowVisible()/*wininfo.placement.showCmd*/);
@@ -745,7 +752,6 @@ bool CTreeNode::SaveTreeNodeXml(CMarkup& xml)
 		xml.AddElem(_T("UNIT"), monctrl.unit);
 		xml.AddElem(_T("FORMATTYPE"), monctrl.formattype);
 		xml.AddElem(_T("FORMAT"), monctrl.format);
-		xml.AddElem(_T("GROUP"), monctrl.group);
 	}
 	xml.OutOfElem();
 
@@ -852,6 +858,8 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 	if (wininfo.type == eTreeItemType_Title){
 		xml.FindElem(_T("TITLE"));
 		swprintf_s(wininfo.title, mTitleSize, _T("%s"), xml.GetData());
+		xml.FindElem(_T("GROUP"));
+		swprintf_s(wininfo.group, mNameSize, _T("%s"), xml.GetData());
 		xml.FindElem(_T("MONITOR"));
 		wininfo.monitor = _wtoi(xml.GetData());
 		wininfo.placement.length = sizeof(WINDOWPLACEMENT);
@@ -891,8 +899,6 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 		monctrl.formattype = _wtoi(xml.GetData());
 		xml.FindElem(_T("FORMAT"));
 		swprintf_s(monctrl.format, mFormatSize, _T("%s"), xml.GetData());
-		xml.FindElem(_T("GROUP"));
-		swprintf_s(monctrl.group, mNameSize, _T("%s"), xml.GetData());
 	}
 	xml.OutOfElem();
 

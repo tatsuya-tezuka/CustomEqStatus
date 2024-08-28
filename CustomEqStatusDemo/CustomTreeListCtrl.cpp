@@ -360,6 +360,12 @@ void CCustomTreeListCtrl::Create(CWnd* parent, CFont& font)
 		else
 			SetHeaderItem(i, mTreeItemHeader[i], mTreeHeaderSize);
 	}
+
+	// アイテムインデントの設定
+	SetIndent(5);
+
+	// カラム情報の更新
+	UpdateColumns();
 }
 /*============================================================================*/
 /*! ツリーリストコントロール
@@ -1163,7 +1169,6 @@ void CCustomTreeListCtrl::OnTvnBegindrag(NMHDR *pNMHDR, LRESULT *pResult)
 
 #endif
 }
-
 /*============================================================================*/
 /*! ツリーリストコントロール
 
@@ -1315,6 +1320,22 @@ void CCustomTreeListCtrl::ResizeControl(int dx, int dy)
 
 	UpdateScroller();
 	RepositionControls();
+}
+/*============================================================================*/
+/*! ツリーリストコントロール
+
+-# ヘッダーアイテム間のマウスダブルクリック
+
+@param	item	アイテム番号
+
+@retval
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::DividerDblClick(int item)
+{
+	AdjustColumnWidth(item, FALSE);
+	Invalidate();
+	UpdateWindow();
 }
 
 /*============================================================================*/

@@ -81,4 +81,6 @@ public:
 	afx_msg void OnClose();
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	virtual BOOL OnInitDialog();
+	afx_msg void OnHeaderItemChanged(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnHeaderDividerdblclick(NMHDR *pNMHDR, LRESULT *pResult);
 };
