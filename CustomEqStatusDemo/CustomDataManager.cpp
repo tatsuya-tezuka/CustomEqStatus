@@ -427,6 +427,7 @@ bool CTreeNode::SaveTreeNode(CArchive& ar)
 	}
 
 	// ウィンドウ情報
+	ar << wininfo.mode;
 	ar << wininfo.kind;
 	ar << wininfo.type;
 	if (wininfo.type == eTreeItemType_Title) {
@@ -563,6 +564,7 @@ bool CTreeNode::LoadTreeNode(CArchive& ar)
 {
 	CString str;
 	// ウィンドウ情報
+	ar >> wininfo.mode;
 	ar >> wininfo.kind;
 	ar >> wininfo.type;
 	if (wininfo.type == eTreeItemType_Title) {
@@ -720,6 +722,7 @@ bool CTreeNode::SaveTreeNodeXml(CMarkup& xml)
 	// ウィンドウ情報
 	xml.AddElem(_T("WINDOWINFO"));
 	xml.IntoElem();
+	xml.AddElem(_T("MODE"), wininfo.mode);
 	xml.AddElem(_T("KIND"), wininfo.kind);
 	xml.AddElem(_T("TYPE"), wininfo.type);
 	if (wininfo.type == eTreeItemType_Title){
@@ -851,6 +854,8 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 	// ウィンドウ情報
 	xml.FindElem(_T("WINDOWINFO"));
 	xml.IntoElem();
+	xml.FindElem(_T("MODE"));
+	wininfo.mode = _wtoi(xml.GetData());
 	xml.FindElem(_T("KIND"));
 	wininfo.kind = _wtoi(xml.GetData());
 	xml.FindElem(_T("TYPE"));

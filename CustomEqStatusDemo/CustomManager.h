@@ -31,6 +31,7 @@ public:
 	enum { eSelectUser = 0, eSelectMaster };
 
 protected:
+	void	_CreateDemo(int nSelect);
 
 	/* ------------------------------------------------------------------------------------ */
 	/* ÉÅÉìÉoïœêî                                                                           */
@@ -45,7 +46,9 @@ protected:
 public:
 
 protected:
-	void	_CreateDemo(int nSelect);
+	void	createItem(int nSelect);
+	void	createEqDetail(CTreeNode* node = NULL);
+	void	updateMenuItemStatus(CMenu* pMenu);
 
 	/* ------------------------------------------------------------------------------------ */
 
@@ -61,4 +64,14 @@ public:
 	afx_msg void OnBnClickedRadioMaster();
 	afx_msg void OnNMRClickListManager(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnManagerNew();
+	afx_msg void OnManagerDelete();
+	afx_msg void OnManagerMonitor();
+	afx_msg void OnManagerEdit();
+	afx_msg void OnManagerShow();
+	afx_msg void OnManagerHide();
+	afx_msg void OnManagerCreate();
+	afx_msg void OnManagerCancel();
+	afx_msg void OnManagerLoad();
+	afx_msg void OnManagerSave();
 };

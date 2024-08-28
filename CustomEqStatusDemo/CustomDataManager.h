@@ -36,6 +36,7 @@ static const TCHAR* mDefaultCustomRoot = { _T("ルート") };
 static const TCHAR* mDefaultCustomMainText = { _T("メインノード") };
 static const TCHAR* mDefaultCustomSubText = { _T("サブノード") };
 static const TCHAR* mDefaultCustomItemText = { _T("リーフ") };
+static const TCHAR* mDefaultCustomGroupText = { _T("グループなし") };
 static const int mTreeHeaderSize = 100;
 static const int mTreeHeaderItemSize = 200;
 static const int mTreeFontHeight = 16;
@@ -86,6 +87,10 @@ enum eUserMessage{
 };
 
 /// ツリーデータ
+enum eTreeItemMode{
+	eTreeItemMode_Monitor = 0,
+	eTreeItemMode_Edit,
+};
 enum eTreeItemKind{
 	eTreeItemKind_User = 0,
 	eTreeItemKind_Master,
@@ -126,6 +131,7 @@ typedef struct{
 	CWnd*			wnd;				// 設備詳細ウィンドウハンドル
 	CWnd*			tree;				// 設備詳細ツリーハンドルドル
 	CWnd*			manager;			// 管理ウィンドウハンドル（CCustomManagerでセット）
+	UINT			mode;				// モード変更：eTreeItemMode
 	UINT			kind;				// 表示種別：eTreeItemKind
 	UINT			type;				// 表示名種別：eTreeItemType
 	TCHAR			title[mTitleSize];	// ウィンドウタイトル

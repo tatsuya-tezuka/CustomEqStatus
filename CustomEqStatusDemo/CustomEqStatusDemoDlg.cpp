@@ -175,6 +175,9 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonManager()
 {
 	UpdateData(TRUE);
 	// ÉJÉXÉ^ÉÄä«óù
+#ifdef _DEMO
+	//return;
+#endif
 	if (theApp.GetCustomManager().GetSafeHwnd() == NULL) {
 		theApp.GetCustomManager().Create(IDD_DIALOG_MANAGER, this);
 	}

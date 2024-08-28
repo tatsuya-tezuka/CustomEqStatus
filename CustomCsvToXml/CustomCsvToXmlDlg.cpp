@@ -290,6 +290,7 @@ bool CCustomCsvToXmlDlg::SaveNodeXml(CMarkup& xml, CNode* cur)
 	// ウィンドウ情報
 	xml.AddElem(_T("WINDOWINFO"));
 	xml.IntoElem();
+	xml.AddElem(_T("MODE"), 0);
 	xml.AddElem(_T("KIND"), 0);
 	xml.AddElem(_T("TYPE"), cur->getLevel());
 	if (cur->getLevel() == 1) {

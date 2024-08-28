@@ -87,7 +87,7 @@ public:
 		SetRedraw(TRUE);
 	}
 	/// ƒŠƒXƒg€–Ú‚Ì“o˜^
-	int AddItem(int nItem, int nSubItem, CString strItem, DWORD dwParam = 0, int nImage = -1)
+	int AddItem(int nItem, int nSubItem, CString strItem, LPARAM dwParam = 0, int nImage = -1)
 	{
 		LV_ITEM lv;
 		memset(&lv, 0, sizeof(lv));
