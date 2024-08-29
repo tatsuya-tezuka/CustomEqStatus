@@ -52,6 +52,7 @@ BEGIN_MESSAGE_MAP(CCustomDetail, CCustomDialogBase)
 	//ON_NOTIFY(HDN_ITEMCHANGING, CCustomTreeListCtrl::eHeaderID, OnHeaderItemChanged)
 	ON_NOTIFY(HDN_ITEMCHANGED, CCustomTreeListCtrl::eHeaderID, OnHeaderItemChanged)
 	ON_NOTIFY(HDN_DIVIDERDBLCLICK, CCustomTreeListCtrl::eHeaderID, OnHeaderDividerdblclick)
+	ON_WM_SYSCOMMAND()
 END_MESSAGE_MAP()
 
 
@@ -111,6 +112,14 @@ BOOL CCustomDetail::OnInitDialog()
 {
 	CCustomDialogBase::OnInitDialog();
 
+	// システムメニューに「リサイズフィット」を追加
+	HMENU pSysMenu = ::GetSystemMenu(GetSafeHwnd(), FALSE);
+	if (pSysMenu)
+	{
+		int count = ::GetMenuItemCount(pSysMenu);
+		::InsertMenu(pSysMenu, 0, MF_BYPOSITION | MF_STRING, ID_DETAIL_RESIZEFIT, _T("リサイズフィット"));
+		::InsertMenu(pSysMenu, 1, MF_BYPOSITION | MF_SEPARATOR, 0, _T(""));
+	}
 	createTreeControl();
 
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -228,6 +237,47 @@ void CCustomDetail::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 
 	//CCustomDialogBase::OnHScroll(nSBCode, nPos, pScrollBar);
 }
+/*============================================================================*/
+/*! 設備詳細
+
+-# 個別リサイズのオーバーライド関数
+
+@param		pWnd	対象コントロールハンドル
+@param		dx		X増分値
+@param		dy		Y増分値
+@retval
+
+*/
+/*============================================================================*/
+BOOL CCustomDetail::OnProcSize(CWnd* pWnd, int dx, int dy)
+{
+	if (mTreeCtrl.m_hWnd != pWnd->m_hWnd)
+		return false;
+
+	mTreeCtrl.ResizeControl(dx, dy);
+
+	return TRUE;
+}
+/*============================================================================*/
+/*! 設備詳細
+
+-# リサイズフィットイベント
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+void CCustomDetail::OnSysCommand(UINT nID, LPARAM lParam)
+{
+	switch (nID){
+	case	ID_DETAIL_RESIZEFIT:
+		resizeFit();
+		return;
+	}
+
+	CCustomDialogBase::OnSysCommand(nID, lParam);
+}
 
 //#############################################################################
 
@@ -262,27 +312,6 @@ void CCustomDetail::createTreeControl()
 	mTreeCtrl.UpdateColumns();
 
 	SetControlInfo(IDC_TREE_CTRL, ANCHORE_LEFTTOP | RESIZE_BOTH);
-}
-/*============================================================================*/
-/*! 設備詳細
-
--# 個別リサイズのオーバーライド関数
-
-@param		pWnd	対象コントロールハンドル
-@param		dx		X増分値
-@param		dy		Y増分値
-@retval
-
-*/
-/*============================================================================*/
-BOOL CCustomDetail::OnProcSize(CWnd* pWnd, int dx, int dy)
-{
-	if (mTreeCtrl.m_hWnd != pWnd->m_hWnd)
-		return false;
-
-	mTreeCtrl.ResizeControl(dx, dy);
-
-	return TRUE;
 }
 /*============================================================================*/
 /*! 設備詳細
@@ -613,4 +642,62 @@ void CCustomDetail::setTreeTitle(LPARAM lParam)
 		if (pnode->GetWindowInfo().manager->GetSafeHwnd())
 			pnode->GetWindowInfo().manager->SendMessage(eUserMessage_Manager_Update, 0, (LPARAM)this);
 	}
+}
+/*============================================================================*/
+/*! 設備詳細
+
+-# 登録されている項目数でウィンドウを最適化する
+
+@param  なし
+
+@retval なし
+*/
+/*============================================================================*/
+void CCustomDetail::resizeFit()
+{
+	UINT cxTotal, cyTotal;
+
+	int CYCAPTION = GetSystemMetrics(SM_CYCAPTION);
+	int CXSIZEFRAME = GetSystemMetrics(SM_CXSIZEFRAME);
+	int CYSIZEFRAME = GetSystemMetrics(SM_CYSIZEFRAME);
+	int CXEDGE = GetSystemMetrics(SM_CXEDGE);
+	int CYEDGE = GetSystemMetrics(SM_CYEDGE);
+
+	// ◆水平方向のサイズ変更
+	// ヘッダーコントロールのカラム幅の取得
+	cxTotal = (CYSIZEFRAME * 4);
+	cxTotal += mTreeCtrl.GetHeaderWidth();
+	//cxTotal += (nCnt * CYEDGE);
+	cxTotal += (CYEDGE * 2);
+
+	// ◆垂直方向のサイズ変更
+	// アイテム高さの取得
+	int nHeaderHeight = mTreeCtrl.GetHeaderHeight();
+
+	HTREEITEM	hItem = NULL;
+
+	mTreeCtrl.SelectSetFirstVisible(mTreeCtrl.GetRootItem());
+
+	// 展開（表示）されているアイテム数を取得する
+	hItem = mTreeCtrl.GetFirstVisibleItem();
+	UINT itemCount = 0;
+	while (hItem){
+		itemCount++;
+		hItem = mTreeCtrl.GetNextVisibleItem(hItem);
+	}
+
+	cyTotal = CYCAPTION + (CXSIZEFRAME * 4) + nHeaderHeight + (mTreeCtrl.GetItemHeight() * itemCount) + (CXEDGE * 2);
+
+	// ◆ウィンドウサイズ変更
+	WINDOWPLACEMENT	wPlacement;
+	memset(&wPlacement, 0, sizeof(WINDOWPLACEMENT));
+	wPlacement.length = sizeof(WINDOWPLACEMENT);
+	GetWindowPlacement(&wPlacement);
+
+	// ウィンドウの位置情報更新
+	CRect r = CRect(wPlacement.rcNormalPosition);
+	wPlacement.rcNormalPosition.right = wPlacement.rcNormalPosition.left + cxTotal;
+	wPlacement.rcNormalPosition.bottom = wPlacement.rcNormalPosition.top + cyTotal;
+
+	SetWindowPlacement(&wPlacement);
 }

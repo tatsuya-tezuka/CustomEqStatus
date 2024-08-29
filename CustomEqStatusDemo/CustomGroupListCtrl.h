@@ -123,6 +123,7 @@ protected:
 
 public:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
+	afx_msg void OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnHdnBegintrack(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnHdnDividerdblclick(NMHDR *pNMHDR, LRESULT *pResult);
 };

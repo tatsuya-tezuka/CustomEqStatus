@@ -273,5 +273,6 @@ public:
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	virtual void PreSubclassWindow();
+	afx_msg void OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult);
 };
 

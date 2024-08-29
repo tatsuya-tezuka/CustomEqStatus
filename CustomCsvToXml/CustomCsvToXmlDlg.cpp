@@ -295,7 +295,8 @@ bool CCustomCsvToXmlDlg::SaveNodeXml(CMarkup& xml, CNode* cur)
 	xml.AddElem(_T("TYPE"), cur->getLevel());
 	if (cur->getLevel() == 1) {
 		xml.AddElem(_T("TITLE"), cur->getName());
-		xml.AddElem(_T("GROUP"), _T("ÉOÉãÅ[ÉvÇ»Çµ"));
+		xml.AddElem(_T("GROUP"), _T("0"));
+		xml.AddElem(_T("GROUPNO"), 0);
 		xml.AddElem(_T("MONITOR"), 0);
 		xml.AddElem(_T("FLAGS"), 0);
 		xml.AddElem(_T("SHOWCMD"), 1);

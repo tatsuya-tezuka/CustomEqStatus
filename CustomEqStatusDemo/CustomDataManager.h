@@ -28,6 +28,8 @@ static const int mHeaderSize = 5;
 static const TCHAR* mAppDataSystem = { _T("NEC") };
 static const TCHAR* mAppDataDataPath = { _T("DATA") };
 static const TCHAR* mAppDataLogPath = { _T("LOG") };
+static const TCHAR* mAppDataMasterPath = { _T("MASTER") };
+static const TCHAR* mAppDataDemoPath = { _T("DEMO") };
 static const TCHAR* mAppSaveEquipmentFile = { _T("AppEquipment.xml") };
 
 /// カスタム画面関連
@@ -36,7 +38,6 @@ static const TCHAR* mDefaultCustomRoot = { _T("ルート") };
 static const TCHAR* mDefaultCustomMainText = { _T("メインノード") };
 static const TCHAR* mDefaultCustomSubText = { _T("サブノード") };
 static const TCHAR* mDefaultCustomItemText = { _T("リーフ") };
-static const TCHAR* mDefaultCustomGroupText = { _T("グループなし") };
 static const int mTreeHeaderSize = 100;
 static const int mTreeHeaderItemSize = 200;
 static const int mTreeFontHeight = 16;
@@ -44,6 +45,7 @@ static const int mListFontHeight = 16;
 static const COLORREF mRootNodeBackColor = RGB(180, 180, 180);
 static const COLORREF mDragBackColor = RGB(250, 250, 250);
 static const COLORREF mDragTextColor = RGB(0, 0, 0);
+static const COLORREF mManagerHideColor = RGB(200, 200, 200);
 static const TCHAR* mCOntrolSignString = { _T("#CNTL#") };
 static const TCHAR* mCOntrolSignStringDisplay = { _T("制御") };
 
@@ -135,7 +137,9 @@ typedef struct{
 	UINT			kind;				// 表示種別：eTreeItemKind
 	UINT			type;				// 表示名種別：eTreeItemType
 	TCHAR			title[mTitleSize];	// ウィンドウタイトル
+	TCHAR			memo[mTitleSize];	// ウィンドメモ
 	TCHAR			group[mNameSize];	// グループ
+	UINT			groupno;			// グループ番号
 	WINDOWPLACEMENT	placement;			// ウィンドウ位置情報
 	UINT			treeopen;			// ツリーアイテムの開閉状態
 	UINT			hwidth[mHeaderSize]; // 詳細画面ヘッダー幅

@@ -432,7 +432,9 @@ bool CTreeNode::SaveTreeNode(CArchive& ar)
 	ar << wininfo.type;
 	if (wininfo.type == eTreeItemType_Title) {
 		ar << CString(wininfo.title);
+		ar << CString(wininfo.memo);
 		ar << CString(wininfo.group);
+		ar << wininfo.groupno;
 		ar << wininfo.monitor;
 		ar << wininfo.placement.flags;
 		if (wininfo.wnd == NULL)
@@ -571,7 +573,10 @@ bool CTreeNode::LoadTreeNode(CArchive& ar)
 		ar >> str;
 		swprintf_s(wininfo.title, mTitleSize, _T("%s"), (LPCTSTR)str);
 		ar >> str;
+		swprintf_s(wininfo.memo, mTitleSize, _T("%s"), (LPCTSTR)str);
+		ar >> str;
 		swprintf_s(wininfo.group, mNameSize, _T("%s"), (LPCTSTR)str);
+		ar >> wininfo.groupno;
 		ar >> wininfo.monitor;
 		wininfo.placement.length = sizeof(WINDOWPLACEMENT);
 		ar >> wininfo.placement.flags;
@@ -727,7 +732,9 @@ bool CTreeNode::SaveTreeNodeXml(CMarkup& xml)
 	xml.AddElem(_T("TYPE"), wininfo.type);
 	if (wininfo.type == eTreeItemType_Title){
 		xml.AddElem(_T("TITLE"), wininfo.title);
+		xml.AddElem(_T("MEMO"), wininfo.memo);
 		xml.AddElem(_T("GROUP"), wininfo.group);
+		xml.AddElem(_T("GROUPNO"), wininfo.groupno);
 		xml.AddElem(_T("MONITOR"), wininfo.monitor);
 		xml.AddElem(_T("FLAGS"), wininfo.placement.flags);
 		xml.AddElem(_T("SHOWCMD"), (wininfo.wnd == NULL) ? 0 : wininfo.wnd->IsWindowVisible()/*wininfo.placement.showCmd*/);
@@ -863,8 +870,12 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 	if (wininfo.type == eTreeItemType_Title){
 		xml.FindElem(_T("TITLE"));
 		swprintf_s(wininfo.title, mTitleSize, _T("%s"), xml.GetData());
+		xml.FindElem(_T("MEMO"));
+		swprintf_s(wininfo.memo, mTitleSize, _T("%s"), xml.GetData());
 		xml.FindElem(_T("GROUP"));
 		swprintf_s(wininfo.group, mNameSize, _T("%s"), xml.GetData());
+		xml.FindElem(_T("GROUPNO"));
+		wininfo.groupno = _wtoi(xml.GetData());
 		xml.FindElem(_T("MONITOR"));
 		wininfo.monitor = _wtoi(xml.GetData());
 		wininfo.placement.length = sizeof(WINDOWPLACEMENT);

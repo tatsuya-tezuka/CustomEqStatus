@@ -66,6 +66,7 @@ protected:
 		str.Format(_T("%s\t\t%s\t%s"), item, unit, control.IsEmpty() == false ? mCOntrolSignString : _T(""));
 		return str;
 	}
+	void	resizeFit();
 
 	/* ------------------------------------------------------------------------------------ */
 
@@ -83,4 +84,5 @@ public:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnHeaderItemChanged(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnHeaderDividerdblclick(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 };

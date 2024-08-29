@@ -51,6 +51,8 @@ BEGIN_MESSAGE_MAP(CCustomManager, CCustomDialogBase)
 	ON_COMMAND(ID_MANAGER_CANCEL, &CCustomManager::OnManagerCancel)
 	ON_COMMAND(ID_MANAGER_LOAD, &CCustomManager::OnManagerLoad)
 	ON_COMMAND(ID_MANAGER_SAVE, &CCustomManager::OnManagerSave)
+	ON_WM_CONTEXTMENU()
+	ON_WM_SHOWWINDOW()
 END_MESSAGE_MAP()
 
 
@@ -65,36 +67,36 @@ void CCustomManager::_CreateDemo(int nSelect)
 	if (nSelect == eSelectUser){
 		mManagerList.AddItem(item, 0, _T("アンテナ"), 0);
 		mManagerList.AddItem(item, 1, _T("Demo"));
-		mManagerList.AddItem(item, 2, mDefaultCustomGroupText);
+		mManagerList.AddItem(item, 2, _T("0"));
 		item++;
 		mManagerList.AddItem(item, 0, _T("S帯送信"), 0);
 		mManagerList.AddItem(item, 1, _T("Demo"));
-		mManagerList.AddItem(item, 2, _T("グループ１"));
+		mManagerList.AddItem(item, 2, _T("1"));
 		item++;
 		mManagerList.AddItem(item, 0, _T("S帯測距"), 0);
 		mManagerList.AddItem(item, 1, _T("Demo"));
-		mManagerList.AddItem(item, 2, _T("グループ１"));
+		mManagerList.AddItem(item, 2, _T("1"));
 		item++;
 		mManagerList.AddItem(item, 0, _T("X-TX"), 0);
 		mManagerList.AddItem(item, 1, _T("Demo"));
-		mManagerList.AddItem(item, 2, mDefaultCustomGroupText);
+		mManagerList.AddItem(item, 2, _T("0"));
 	}
 	else{
 		mManagerList.AddItem(item, 0, _T("#アンテナ"), 0);
 		mManagerList.AddItem(item, 1, _T("#Demo"));
-		mManagerList.AddItem(item, 2, mDefaultCustomGroupText);
+		mManagerList.AddItem(item, 2, _T("0"));
 		item++;
 		mManagerList.AddItem(item, 0, _T("#S帯送信"), 0);
 		mManagerList.AddItem(item, 1, _T("#Demo"));
-		mManagerList.AddItem(item, 2, _T("グループ１"));
+		mManagerList.AddItem(item, 2, _T("1"));
 		item++;
 		mManagerList.AddItem(item, 0, _T("#S帯測距"), 0);
 		mManagerList.AddItem(item, 1, _T("#Demo"));
-		mManagerList.AddItem(item, 2, _T("グループ１"));
+		mManagerList.AddItem(item, 2, _T("1"));
 		item++;
 		mManagerList.AddItem(item, 0, _T("#X-TX"), 0);
 		mManagerList.AddItem(item, 1, _T("#Demo"));
-		mManagerList.AddItem(item, 2, mDefaultCustomGroupText);
+		mManagerList.AddItem(item, 2, _T("0"));
 	}
 
 	mManagerList.SetRedraw(TRUE);
@@ -119,6 +121,7 @@ BOOL CCustomManager::OnInitDialog()
 	CCustomDialogBase::OnInitDialog();
 
 	mManagerList.CreateGroupControl();
+	SetControlInfo(IDC_LIST_MANAGER, ANCHORE_LEFTTOP | RESIZE_BOTH);
 
 #ifdef _DEMO
 	//_CreateDemo((int)eSelectUser);
@@ -127,10 +130,44 @@ BOOL CCustomManager::OnInitDialog()
 		createItem((int)eSelectUser);
 	}
 
-	SetControlInfo(IDC_LIST_MANAGER, ANCHORE_LEFTTOP | RESIZE_BOTH);
-
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
+}
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# ポップアップメニュー表示イベント
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomManager::OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/)
+{
+	// TODO: ここにメッセージ ハンドラー コードを追加します。
+}
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# ウィンドウの表示/非表示イベント
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomManager::OnShowWindow(BOOL bShow, UINT nStatus)
+{
+	CCustomDialogBase::OnShowWindow(bShow, nStatus);
+
+	if (bShow == TRUE){
+		// 表示
+		UpdateData(TRUE);
+		if (theApp.GetDataManager().GetTreeNode().size() != 0){
+			createItem((int)mSelectType);
+		}
+	}
 }
 /*============================================================================*/
 /*! 設備詳細管理
@@ -227,7 +264,19 @@ void CCustomManager::OnNMRClickListManager(NMHDR *pNMHDR, LRESULT *pResult)
 void CCustomManager::OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
+
+	int nItem = pNMItemActivate->iItem;
+	if (nItem < 0)
+		return;
+	CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
+	if (pnode->GetWindowInfo().wnd == NULL){
+		CCustomDetail* pitem = theApp.CreateEquipment(pnode);
+		if (pitem == NULL)
+			return;
+	}
+	pnode->GetWindowInfo().wnd->ShowWindow(SW_SHOWNA);
+	pnode->GetWindowInfo().wnd->SetActiveWindow();
+
 	*pResult = 0;
 }
 /*============================================================================*/
@@ -399,7 +448,7 @@ void CCustomManager::createItem(int nSelect)
 		int count = mManagerList.GetItemCount();
 		if ((*itr)->GetWindowInfo().kind == nSelect){
 			mManagerList.AddItem(count, 0, (*itr)->GetWindowInfo().title, (LPARAM)(*itr));
-			mManagerList.AddItem(count, 1, (*itr)->GetWindowInfo().title);
+			mManagerList.AddItem(count, 1, (*itr)->GetWindowInfo().memo);
 			mManagerList.AddItem(count, 2, (*itr)->GetWindowInfo().group);
 			mManagerList.SetItemData(count, (LPARAM)(*itr));
 			(*itr)->GetWindowInfo().manager = this;
@@ -431,7 +480,7 @@ void CCustomManager::createEqDetail(CTreeNode* node/*=NULL*/)
 	//int count = mManagerList.GetItemCount();
 	//mManagerList.AddItem(count, 0, mDefaultCustomTitle, (LPARAM)node);
 	//mManagerList.AddItem(count, 1, _T(""));
-	//mManagerList.AddItem(count, 2, mDefaultCustomGroupText);
+	//mManagerList.AddItem(count, 2, _T("0"));
 	//mManagerList.SetItemData(count, (LPARAM)pnode);
 }
 /*============================================================================*/

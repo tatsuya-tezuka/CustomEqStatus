@@ -71,6 +71,8 @@ protected:
 public:
 
 protected:
+	/// マスタデータ格納パス
+	CString		mAppMasterDataPath;
 	/// カスタムデータ管理関連 
 	CCustomDataManager		mDataManager;
 	/// カスタマイズ管理
@@ -80,6 +82,8 @@ protected:
 	/* メンバ関数                                                                           */
 	/* ------------------------------------------------------------------------------------ */
 public:
+	/// マスタ設備詳細データ格納パス
+	CString	GetMasterDataPath() { return mAppMasterDataPath; }
 	/// カスタムデータ管理関連
 	CCustomDataManager&	GetDataManager() { return mDataManager; }
 	/// カスタマイズ管理
@@ -88,6 +92,8 @@ public:
 	CCustomDetail*	CreateEquipment(CTreeNode* pnode);
 
 protected:
+	void	createMasterEquipment();
+	void	getMasterEquipmentFiles(vector<CString>& list);
 
 	//////////////////////////////////////////////////////////////////////////////////////////
 

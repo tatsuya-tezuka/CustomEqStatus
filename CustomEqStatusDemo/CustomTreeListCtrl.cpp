@@ -313,6 +313,7 @@ BEGIN_MESSAGE_MAP(CCustomTreeListCtrl, CTreeCtrl)
 	ON_NOTIFY_REFLECT(TVN_BEGINLABELEDIT, &CCustomTreeListCtrl::OnTvnBeginlabeledit)
 	ON_NOTIFY_REFLECT(TVN_ENDLABELEDIT, &CCustomTreeListCtrl::OnTvnEndlabeledit)
 	ON_WM_LBUTTONDBLCLK()
+	ON_NOTIFY_REFLECT(NM_DBLCLK, &CCustomTreeListCtrl::OnNMDblclk)
 END_MESSAGE_MAP()
 
 
@@ -1169,6 +1170,22 @@ void CCustomTreeListCtrl::OnTvnBegindrag(NMHDR *pNMHDR, LRESULT *pResult)
 
 #endif
 }
+/*============================================================================*/
+/*! ツリーリストコントロール
+
+-# ツリー項目の開閉時のイベント
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	// イベントを無効にする
+	*pResult = 1;
+}
+
 /*============================================================================*/
 /*! ツリーリストコントロール
 

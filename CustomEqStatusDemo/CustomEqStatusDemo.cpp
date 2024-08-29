@@ -72,6 +72,9 @@ BOOL CCustomEqStatusDemoApp::InitInstance()
 
 	InitializeApp();
 
+	/// マスタ設備詳細データを読み込む
+	createMasterEquipment();
+
 	CCustomEqStatusDemoDlg dlg;
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
@@ -137,8 +140,11 @@ void CCustomEqStatusDemoApp::InitializeApp()
 	CreateDirectory(strPath, NULL);
 	mAppDataPath = strPath;
 
+	/// マスタ用データ格納パス
+	mAppMasterDataPath = mAppPath + _T("\\") + mAppDataMasterPath;
+
 	/// デモ用データ格納パス
-	mAppDemoDataPath = mAppPath + _T("\\DEMO");
+	mAppDemoDataPath = mAppPath + _T("\\") + mAppDataDemoPath;
 
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
@@ -202,9 +208,79 @@ CCustomDetail* CCustomEqStatusDemoApp::CreateEquipment(CTreeNode* pnode)
 		CTreeNode* pnodeitem = theApp.GetDataManager().SearchWndNode(pitem);
 		pnodeitem->GetWindowInfo().wnd = pitem;
 		pnodeitem->GetWindowInfo().manager = &mCustomManager;
-		swprintf_s(pnodeitem->GetWindowInfo().group, mNameSize, _T("%s"), (LPCTSTR)mDefaultCustomGroupText);
+		swprintf_s(pnodeitem->GetWindowInfo().group, mNameSize, _T("%s"), (LPCTSTR)_T("0"));
+		pnodeitem->GetWindowInfo().groupno = 0;
 		pnodeitem->GetWindowInfo().mode = eTreeItemMode_Monitor;
 		pnodeitem->GetWindowInfo().kind = eTreeItemKind_User;
 	}
 	return pitem;
+}
+/*============================================================================*/
+/*! アプリケーション
+
+-# マスタ設備詳細データの作成
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+void CCustomEqStatusDemoApp::createMasterEquipment()
+{
+	CWaitCursor wait;
+
+	vector<CString> filelist;
+	getMasterEquipmentFiles(filelist);
+	vector<CString>::iterator itrmaster;
+	bool bClear = true;
+	for (itrmaster = filelist.begin(); itrmaster != filelist.end(); itrmaster++){
+		theApp.GetDataManager().LoadTreeDataXml((*itrmaster), bClear);
+		bClear = false;
+	}
+}
+/*============================================================================*/
+/*! アプリケーション
+
+-# マスタ設備詳細ファイルの取得
+
+@param	
+@retval
+
+*/
+/*============================================================================*/
+void CCustomEqStatusDemoApp::getMasterEquipmentFiles(vector<CString>& list)
+{
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomEqStatusDemoApp"), _T("getMasterEquipmentFiles"), _T("Start"), _T(""), nLogEx::debug);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
+	HANDLE hFind;
+	WIN32_FIND_DATA win32fd;
+
+	list.clear();
+
+	//拡張子の設定
+	CString search_name = mAppMasterDataPath + _T("\\*.xml");
+
+	hFind = FindFirstFile(search_name, &win32fd);
+
+	if (hFind == INVALID_HANDLE_VALUE) {
+		return;
+	}
+
+	do {
+		if (win32fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+		}
+		else {
+			list.push_back(mAppMasterDataPath + _T("\\") + CString(win32fd.cFileName));
+		}
+	} while (FindNextFile(hFind, &win32fd));
+
+	FindClose(hFind);
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomEqStatusDemoApp"), _T("getMasterEquipmentFiles"), _T("Stop"), _T(""), nLogEx::debug);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
 }

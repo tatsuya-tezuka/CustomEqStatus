@@ -74,4 +74,6 @@ public:
 	afx_msg void OnManagerCancel();
 	afx_msg void OnManagerLoad();
 	afx_msg void OnManagerSave();
+	afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
+	afx_msg void OnShowWindow(BOOL bShow, UINT nStatus);
 };

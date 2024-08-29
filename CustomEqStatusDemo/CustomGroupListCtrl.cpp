@@ -77,12 +77,23 @@ CCustomGroupListCtrl::~CCustomGroupListCtrl()
 }
 
 BEGIN_MESSAGE_MAP(CCustomGroupListCtrl, CListCtrl)
+	ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, &CCustomGroupListCtrl::OnNMCustomdraw)
 	ON_NOTIFY(HDN_BEGINTRACKA, 0, &CCustomGroupListCtrl::OnHdnBegintrack)
 	ON_NOTIFY(HDN_BEGINTRACKW, 0, &CCustomGroupListCtrl::OnHdnBegintrack)
 	ON_NOTIFY(HDN_DIVIDERDBLCLICKA, 0, &CCustomGroupListCtrl::OnHdnDividerdblclick)
 	ON_NOTIFY(HDN_DIVIDERDBLCLICKW, 0, &CCustomGroupListCtrl::OnHdnDividerdblclick)
 END_MESSAGE_MAP()
 
+/*============================================================================*/
+/*! グループリスト
+
+-# ウィンドウメッセージ処理
+
+@param
+
+@retval
+*/
+/*============================================================================*/
 BOOL CCustomGroupListCtrl::PreTranslateMessage(MSG* pMsg)
 {
 	if (pMsg->wParam == VK_ESCAPE){
@@ -90,6 +101,90 @@ BOOL CCustomGroupListCtrl::PreTranslateMessage(MSG* pMsg)
 	}
 
 	return CListCtrl::PreTranslateMessage(pMsg);
+}
+/*============================================================================*/
+/*! グループリスト
+
+-# カスタム描画
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomGroupListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMLVCUSTOMDRAW lplvcd = (LPNMLVCUSTOMDRAW)pNMHDR;
+
+	int iRow = (int)lplvcd->nmcd.dwItemSpec;
+	CDC* pDC = CDC::FromHandle(lplvcd->nmcd.hdc);
+	CHeaderCtrl* pHeader = NULL;
+	pHeader = GetHeaderCtrl();
+
+	CTreeNode* pnode = NULL;
+	if (GetItemCount() != 0){
+		pnode = (CTreeNode*)GetItemData(iRow);
+	}
+
+	switch (lplvcd->nmcd.dwDrawStage) {
+	case CDDS_PREPAINT:
+		*pResult = CDRF_NOTIFYSUBITEMDRAW;
+		break;
+	case CDDS_ITEMPREPAINT:
+		lplvcd->clrText = pnode->GetColor().text;
+		if (pnode->GetWindowInfo().wnd == NULL || pnode->GetWindowInfo().wnd->IsWindowVisible() == FALSE)
+			lplvcd->clrText = mManagerHideColor;// GetSysColor(COLOR_GRAYTEXT);
+		*pResult = CDRF_NOTIFYSUBITEMDRAW;
+		*pResult = CDRF_NOTIFYPOSTPAINT + CDRF_NOTIFYSUBITEMDRAW;
+		break;
+	case CDDS_SUBITEM | CDDS_PREPAINT | CDDS_ITEM:
+		lplvcd->clrTextBk = pnode->GetColor().textback;
+		*pResult = CDRF_DODEFAULT;
+		return;
+	case CDDS_ITEMPOSTPAINT:
+		//if (GetItemState(iRow, LVIS_SELECTED) == LVIS_SELECTED)
+		//{
+		//	CRect rect;
+		//	GetItemRect(iRow, rect, LVIR_BOUNDS);
+		//	pDC->FillSolidRect(&rect, pnode->getColor().back);
+		//	CString strTemp;
+		//	int nColumns = pHeader->GetItemCount();
+		//	HDITEM hditem;
+		//	UINT nFormat;
+		//	int nFmt;
+		//	for (int i = 0; i < nColumns; i++)
+		//	{
+		//		strTemp = GetItemText(iRow, i);
+		//		GetSubItemRect(iRow, i, LVIR_BOUNDS, rect);
+		//		hditem.mask = HDI_FORMAT;
+		//		pHeader->GetItem(i, &hditem);
+		//		nFmt = hditem.fmt & HDF_JUSTIFYMASK;
+		//		nFormat = DT_VCENTER | DT_SINGLELINE;
+		//		if (nFmt == HDF_CENTER) {
+		//			nFormat |= DT_CENTER;
+		//		}
+		//		else if (nFmt == HDF_LEFT) {
+		//			nFormat |= DT_LEFT;
+		//		}
+		//		else {
+		//			nFormat |= DT_RIGHT;
+		//		}
+		//		pDC->SelectStockObject(NULL_BRUSH);
+		//		pDC->SetBkMode(TRANSPARENT);
+		//		pDC->SetTextColor(RGB(0,0,255));
+		//		GetSubItemRect(iRow, i, LVIR_LABEL, rect);
+		//		int offset = pDC->GetTextExtent(_T("W"), 1).cx;
+		//		rect.left += 6;
+		//		pDC->DrawText(strTemp, &rect, nFormat);
+		//	}
+		//}
+		*pResult = CDRF_DODEFAULT;
+		break;
+
+	default:
+		*pResult = CDRF_DODEFAULT;
+		break;
+	}
 }
 /*============================================================================*/
 /*! グループリスト
@@ -153,6 +248,16 @@ BOOL CCustomGroupListCtrl::GroupByColumn(int nCol, BOOL bEnableGroup/* = TRUE*/)
 
 		// 各アイテムのグループ設定
 		for (int nRow = 0; nRow < GetItemCount(); ++nRow){
+			// データのグループ番号から対象カラムのテキストを設定する
+			CTreeNode* pnode = (CTreeNode*)GetItemData(nRow);
+			if (pnode->GetWindowInfo().groupno == 0){
+				SetItemText(nRow, nCol, _T("No Group"));
+			}
+			else{
+				CString str;
+				str.Format(_T("Group_%d"), pnode->GetWindowInfo().groupno);
+				SetItemText(nRow, nCol, str);
+			}
 			// アイテム文字列からグループを作成する
 			CString cellText = GetItemText(nRow, nCol);
 

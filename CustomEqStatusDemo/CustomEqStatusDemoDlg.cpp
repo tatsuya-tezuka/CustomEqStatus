@@ -192,8 +192,6 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonDetail()
 	UpdateData(TRUE);
 	// デモ用カスタム画面作成
 #ifdef _DEMO
-	CCustomDetail* pitem = theApp.CreateEquipment(NULL);
-#else
 	vector<CString> demolist;
 	GetDemoFiles(demolist);
 
@@ -203,10 +201,10 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonDetail()
 	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 	//=====================================================//
 	vector<CString>::iterator itrdemo;
-	bool bClear = true;
+	bool bClear = false;
 	for (itrdemo = demolist.begin(); itrdemo != demolist.end(); itrdemo++){
 		if (mLoop > 1){
-			for (int i = 0; i < mLoop; i++){
+			for (UINT i = 0; i < mLoop; i++){
 				theApp.GetDataManager().LoadTreeDataXml((*itrdemo), bClear);
 				bClear = false;
 			}
@@ -221,13 +219,17 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonDetail()
 	for (itr = treedata.begin(); itr != treedata.end(); itr++){
 		// 設備詳細画面の作成
 		// ※作成時は非表示とする
-		CCustomDetail* pitem = theApp.CreateEquipment((*itr));
+		if ((*itr)->GetWindowInfo().kind == eTreeItemKind_User){
+			CCustomDetail* pitem = theApp.CreateEquipment((*itr));
+		}
 	}
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
 	CLogTraceEx::Write(_T("***"), _T("CCustomEqStatusDemoDlg"), _T("Restore Custom Window"), _T("Stop"), _T(""), nLogEx::debug);
 	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 	//=====================================================//
+#else
+	CCustomDetail* pitem = theApp.CreateEquipment(NULL);
 #endif
 }
 
