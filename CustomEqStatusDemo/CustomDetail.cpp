@@ -10,6 +10,9 @@
 #include "CustomDetail.h"
 #include "afxdialogex.h"
 
+#include <dwmapi.h>
+#pragma comment(lib, "Dwmapi.lib")
+
 
 // CCustomDetail ダイアログ
 
@@ -120,7 +123,18 @@ BOOL CCustomDetail::OnInitDialog()
 		::InsertMenu(pSysMenu, 0, MF_BYPOSITION | MF_STRING, ID_DETAIL_RESIZEFIT, _T("リサイズフィット"));
 		::InsertMenu(pSysMenu, 1, MF_BYPOSITION | MF_SEPARATOR, 0, _T(""));
 	}
+
 	createTreeControl();
+
+#ifdef _WIN11
+	int windowColor = RGB(128,0,128);
+	//HWND window = GetActiveWindow();
+	LONG exStyle = GetWindowLong(m_hWnd, GWL_EXSTYLE);
+	exStyle &= ~(WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE);
+	SetWindowLong(m_hWnd, GWL_EXSTYLE, exStyle);
+	DwmSetWindowAttribute(m_hWnd, 35, &windowColor, sizeof(windowColor));
+	SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+#endif
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
