@@ -51,6 +51,7 @@ using namespace std;
 
 
 #define _DEMO		1
+//#define _TRIAL		1
 
 
 

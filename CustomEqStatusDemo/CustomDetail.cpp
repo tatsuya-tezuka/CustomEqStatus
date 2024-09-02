@@ -120,21 +120,11 @@ BOOL CCustomDetail::OnInitDialog()
 	if (pSysMenu)
 	{
 		int count = ::GetMenuItemCount(pSysMenu);
-		::InsertMenu(pSysMenu, 0, MF_BYPOSITION | MF_STRING, ID_DETAIL_RESIZEFIT, _T("リサイズフィット"));
+		::InsertMenu(pSysMenu, 0, MF_BYPOSITION | MF_STRING, ID_DETAIL_RESIZEFIT, _T("ウィンドウサイズ最適化"));
 		::InsertMenu(pSysMenu, 1, MF_BYPOSITION | MF_SEPARATOR, 0, _T(""));
 	}
 
 	createTreeControl();
-
-#ifdef _WIN11
-	int windowColor = RGB(128,0,128);
-	//HWND window = GetActiveWindow();
-	LONG exStyle = GetWindowLong(m_hWnd, GWL_EXSTYLE);
-	exStyle &= ~(WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE);
-	SetWindowLong(m_hWnd, GWL_EXSTYLE, exStyle);
-	DwmSetWindowAttribute(m_hWnd, 35, &windowColor, sizeof(windowColor));
-	SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
-#endif
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
@@ -544,6 +534,51 @@ void CCustomDetail::createLeaf(HTREEITEM parentitem, CTreeNode* parentnode)
 void CCustomDetail::restoreRoot()
 {
 	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
+
+#if (_WIN32_WINNT >= _WIN32_WINNT_WINBLUE)
+	/*
+	// Window attributes
+	enum DWMWINDOWATTRIBUTE
+	{
+	DWMWA_NCRENDERING_ENABLED = 1,              // [get] Is non-client rendering enabled/disabled
+	DWMWA_NCRENDERING_POLICY,                   // [set] DWMNCRENDERINGPOLICY - Non-client rendering policy
+	DWMWA_TRANSITIONS_FORCEDISABLED,            // [set] Potentially enable/forcibly disable transitions
+	DWMWA_ALLOW_NCPAINT,                        // [set] Allow contents rendered in the non-client area to be visible on the DWM-drawn frame.
+	DWMWA_CAPTION_BUTTON_BOUNDS,                // [get] Bounds of the caption button area in window-relative space.
+	DWMWA_NONCLIENT_RTL_LAYOUT,                 // [set] Is non-client content RTL mirrored
+	DWMWA_FORCE_ICONIC_REPRESENTATION,          // [set] Force this window to display iconic thumbnails.
+	DWMWA_FLIP3D_POLICY,                        // [set] Designates how Flip3D will treat the window.
+	DWMWA_EXTENDED_FRAME_BOUNDS,                // [get] Gets the extended frame bounds rectangle in screen space
+	DWMWA_HAS_ICONIC_BITMAP,                    // [set] Indicates an available bitmap when there is no better thumbnail representation.
+	DWMWA_DISALLOW_PEEK,                        // [set] Don't invoke Peek on the window.
+	DWMWA_EXCLUDED_FROM_PEEK,                   // [set] LivePreview exclusion information
+	DWMWA_CLOAK,                                // [set] Cloak or uncloak the window
+	DWMWA_CLOAKED,                              // [get] Gets the cloaked state of the window
+	DWMWA_FREEZE_REPRESENTATION,                // [set] BOOL, Force this window to freeze the thumbnail without live update
+	DWMWA_PASSIVE_UPDATE_MODE,                  // [set] BOOL, Updates the window only when desktop composition runs for other reasons
+	DWMWA_USE_HOSTBACKDROPBRUSH,                // [set] BOOL, Allows the use of host backdrop brushes for the window.
+	DWMWA_USE_IMMERSIVE_DARK_MODE = 20,         // [set] BOOL, Allows a window to either use the accent color, or dark, according to the user Color Mode preferences.
+	DWMWA_WINDOW_CORNER_PREFERENCE = 33,        // [set] WINDOW_CORNER_PREFERENCE, Controls the policy that rounds top-level window corners
+	DWMWA_BORDER_COLOR,                         // [set] COLORREF, The color of the thin border around a top-level window
+	DWMWA_CAPTION_COLOR,                        // [set] COLORREF, The color of the caption
+	DWMWA_TEXT_COLOR,                           // [set] COLORREF, The color of the caption text
+	DWMWA_VISIBLE_FRAME_BORDER_THICKNESS,       // [get] UINT, width of the visible border around a thick frame window
+	DWMWA_LAST
+	};
+	*/
+	if (pnode->GetWindowInfo().kind == eTreeItemKind_Master){
+		int windowColor = RGB(0, 0, 0);
+		int textColor = RGB(255, 255, 255);
+		//HWND window = GetActiveWindow();
+		LONG exStyle = GetWindowLong(m_hWnd, GWL_EXSTYLE);
+		exStyle &= ~(WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE);
+		SetWindowLong(m_hWnd, GWL_EXSTYLE, exStyle);
+		DwmSetWindowAttribute(m_hWnd, 34/*DWMWA_BORDER_COLOR*/, &windowColor, sizeof(windowColor));
+		DwmSetWindowAttribute(m_hWnd, 35/*DWMWA_CAPTION_COLOR*/, &windowColor, sizeof(windowColor));
+		DwmSetWindowAttribute(m_hWnd, 36/*DWMWA_TEXT_COLOR*/, &textColor, sizeof(windowColor));
+		SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+	}
+#endif
 
 	// ルート復元
 	HTREEITEM rootItem = mTreeCtrl.InsertItem(pnode->GetWindowInfo().title, NULL, NULL, TVI_ROOT);

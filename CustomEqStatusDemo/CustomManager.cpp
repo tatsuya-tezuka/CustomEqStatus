@@ -53,6 +53,7 @@ BEGIN_MESSAGE_MAP(CCustomManager, CCustomDialogBase)
 	ON_COMMAND(ID_MANAGER_SAVE, &CCustomManager::OnManagerSave)
 	ON_WM_CONTEXTMENU()
 	ON_WM_SHOWWINDOW()
+	ON_WM_LBUTTONDOWN()
 END_MESSAGE_MAP()
 
 
@@ -100,6 +101,9 @@ void CCustomManager::_CreateDemo(int nSelect)
 	}
 
 	mManagerList.SetRedraw(TRUE);
+#ifdef _TRIAL
+	return;
+#endif
 
 	mManagerList.GroupByColumn(eManagerGroup, (nSelect == eSelectUser)?TRUE:FALSE);
 }
@@ -123,8 +127,9 @@ BOOL CCustomManager::OnInitDialog()
 	mManagerList.CreateGroupControl();
 	SetControlInfo(IDC_LIST_MANAGER, ANCHORE_LEFTTOP | RESIZE_BOTH);
 
-#ifdef _DEMO
-	//_CreateDemo((int)eSelectUser);
+#ifdef _TRIAL
+	_CreateDemo((int)eSelectUser);
+	return TRUE;
 #endif
 	if (theApp.GetDataManager().GetTreeNode().size() != 0){
 		createItem((int)eSelectUser);
@@ -164,6 +169,10 @@ void CCustomManager::OnShowWindow(BOOL bShow, UINT nStatus)
 	if (bShow == TRUE){
 		// 表示
 		UpdateData(TRUE);
+#ifdef _TRIAL
+		_CreateDemo((int)mSelectType);
+		return;
+#endif
 		if (theApp.GetDataManager().GetTreeNode().size() != 0){
 			createItem((int)mSelectType);
 		}
@@ -182,8 +191,9 @@ void CCustomManager::OnShowWindow(BOOL bShow, UINT nStatus)
 void CCustomManager::OnBnClickedRadioUser()
 {
 	UpdateData(TRUE);
-#ifdef _DEMO
-	//_CreateDemo((int)eSelectUser);
+#ifdef _TRIAL
+	_CreateDemo((int)eSelectUser);
+	return;
 #endif
 	if (theApp.GetDataManager().GetTreeNode().size() != 0){
 		createItem((int)mSelectType);
@@ -203,8 +213,9 @@ void CCustomManager::OnBnClickedRadioUser()
 void CCustomManager::OnBnClickedRadioMaster()
 {
 	UpdateData(TRUE);
-#ifdef _DEMO
-	//_CreateDemo((int)eSelectMaster);
+#ifdef _TRIAL
+	_CreateDemo((int)eSelectMaster);
+	return;
 #endif
 	if (theApp.GetDataManager().GetTreeNode().size() != 0){
 		createItem((int)mSelectType);
@@ -269,13 +280,15 @@ void CCustomManager::OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult)
 	if (nItem < 0)
 		return;
 	CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
-	if (pnode->GetWindowInfo().wnd == NULL){
-		CCustomDetail* pitem = theApp.CreateEquipment(pnode);
-		if (pitem == NULL)
-			return;
+	if (pnode != NULL){
+		if (pnode->GetWindowInfo().wnd == NULL){
+			CCustomDetail* pitem = theApp.CreateEquipment(pnode);
+			if (pitem == NULL)
+				return;
+		}
+		pnode->GetWindowInfo().wnd->ShowWindow(SW_SHOWNA);
+		pnode->GetWindowInfo().wnd->SetActiveWindow();
 	}
-	pnode->GetWindowInfo().wnd->ShowWindow(SW_SHOWNA);
-	pnode->GetWindowInfo().wnd->SetActiveWindow();
 
 	*pResult = 0;
 }
@@ -292,8 +305,8 @@ void CCustomManager::OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult)
 void CCustomManager::OnManagerNew()
 {
 	UpdateData(TRUE);
-#ifdef _DEMO
-	//return;
+#ifdef _TRIAL
+	return;
 #endif
 	createEqDetail(NULL);
 	mManagerList.GroupByColumn(eManagerGroup, (mSelectType == eSelectUser) ? TRUE : FALSE);
@@ -516,4 +529,34 @@ void CCustomManager::updateMenuItemStatus(CMenu* pMenu)
 			pMenu->EnableMenuItem(ID_MANAGER_CANCEL, MF_BYCOMMAND | (bSelect) ? MF_ENABLED : MF_GRAYED);
 		}
 	}
+}
+
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# マウス左ボタン押下
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+void CCustomManager::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	int pos = 0, index;
+	int colnum, strpos = 0;
+
+	if ((index = mManagerList.HitTestEx(point, &colnum)) != -1 && colnum != 0){
+		UINT flag = LVIS_SELECTED;
+		if ((mManagerList.GetItemState(index, flag) & flag) == flag){
+			if (mManagerList.EditExecute(index, colnum) == false){
+				mManagerList.SetItemState(index, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+			}
+		}
+		else{
+			mManagerList.SetItemState(index, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+		}
+	}
+
+	CCustomDialogBase::OnLButtonDown(nFlags, point);
 }

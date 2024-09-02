@@ -1232,7 +1232,7 @@ void CCustomTreeListCtrl::SetSubItemText(HTREEITEM hItem, int col, CString strTe
 
 	extractSubString(str, list);
 
-	if (list.size() <= col)
+	if (list.size() <= (UINT)col)
 		return;
 
 	list[col] = strText;

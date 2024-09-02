@@ -175,7 +175,7 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonManager()
 {
 	UpdateData(TRUE);
 	// カスタム管理
-#ifdef _DEMO
+#ifdef _TRIAL
 	//return;
 #endif
 	if (theApp.GetCustomManager().GetSafeHwnd() == NULL) {
@@ -191,7 +191,9 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonDetail()
 
 	UpdateData(TRUE);
 	// デモ用カスタム画面作成
-#ifdef _DEMO
+#ifdef _TRIAL
+	CCustomDetail* pitem = theApp.CreateEquipment(NULL);
+#else
 	vector<CString> demolist;
 	GetDemoFiles(demolist);
 
@@ -228,8 +230,6 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonDetail()
 	CLogTraceEx::Write(_T("***"), _T("CCustomEqStatusDemoDlg"), _T("Restore Custom Window"), _T("Stop"), _T(""), nLogEx::debug);
 	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 	//=====================================================//
-#else
-	CCustomDetail* pitem = theApp.CreateEquipment(NULL);
 #endif
 }
 

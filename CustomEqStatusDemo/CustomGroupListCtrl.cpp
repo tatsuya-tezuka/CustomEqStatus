@@ -3,6 +3,229 @@
 #include "CustomGroupListCtrl.h"
 
 
+//=============================================================================
+// CCustomGroupEdit
+//=============================================================================
+/*============================================================================*/
+/*! ツリー内エディットボックス
+
+-# コンストラクター
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+CCustomGroupEdit::CCustomGroupEdit(int iItem, int iSubItem, CString sInitText)
+:m_sInitText(sInitText)
+{
+	m_iItem = iItem;
+	m_iSubItem = iSubItem;
+	m_bESC = FALSE;
+	m_bKeyReturn = FALSE;
+	m_bKeyShift = FALSE;
+	m_bNotify = FALSE;
+	m_nNumberLimit = 100;
+}
+
+/*============================================================================*/
+/*! ツリー内エディットボックス
+
+-# デストラクター
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+CCustomGroupEdit::~CCustomGroupEdit()
+{
+}
+
+/*============================================================================*/
+/*! ツリー内エディットボックス
+
+-# メッセージ マップの定義
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+BEGIN_MESSAGE_MAP(CCustomGroupEdit, CEdit)
+	//{{AFX_MSG_MAP(CTreeEdit)
+	ON_WM_KILLFOCUS()
+	ON_WM_CHAR()
+	ON_WM_CREATE()
+	//}}AFX_MSG_MAP
+END_MESSAGE_MAP()
+
+/////////////////////////////////////////////////////////////////////////////
+// CListEdit message handlers
+
+/*============================================================================*/
+/*! ツリー内エディットボックス
+
+-# Windowメッセージをディスパッチ前に処理する
+
+@param	pMsg	Windowメッセージ
+@retval	BOOL
+
+*/
+/*============================================================================*/
+BOOL CCustomGroupEdit::PreTranslateMessage(MSG* pMsg)
+{
+	if (pMsg->message == WM_KEYDOWN){
+		SHORT sKey = GetKeyState(VK_CONTROL);
+		if (pMsg->wParam == VK_RETURN
+			|| pMsg->wParam == VK_DELETE
+			|| pMsg->wParam == VK_ESCAPE
+			|| sKey
+			)
+		{
+			if (pMsg->wParam == VK_RETURN)
+				m_bKeyReturn = TRUE;
+			if (GetKeyState(VK_SHIFT) & 0xff00)
+				m_bKeyShift = TRUE;
+			else
+				m_bKeyShift = FALSE;
+
+			::TranslateMessage(pMsg);
+			if (!(GetStyle() & ES_MULTILINE) || pMsg->wParam != VK_ESCAPE){
+				::DispatchMessage(pMsg);
+			}
+			if (pMsg->wParam == VK_ESCAPE){
+				m_bESC = TRUE;
+				GetParent()->SetFocus();
+			}
+
+			return TRUE;
+		}
+	}
+
+	return CEdit::PreTranslateMessage(pMsg);
+}
+
+/*============================================================================*/
+/*! リストコントロール内エディットボックス
+
+-# 数値の最大桁数を設定する
+
+@param	len		桁数
+@retval
+
+*/
+/*============================================================================*/
+void CCustomGroupEdit::SetNumberLimit(UINT len)
+{
+	m_nNumberLimit = len;
+}
+
+/*============================================================================*/
+/*! ツリー内エディットボックス
+
+-# 入力フォーカスを失う直前に呼び出される
+
+@param pNewWnd	入力フォーカスを受け取るウィンドウへのポインター
+@retval
+
+*/
+/*============================================================================*/
+void CCustomGroupEdit::OnKillFocus(CWnd* pNewWnd)
+{
+	CEdit::OnKillFocus(pNewWnd);
+
+	CString str;
+	GetWindowText(str);
+
+	if (m_bNotify == TRUE)
+	{
+		return;
+	}
+	m_bNotify = TRUE;
+
+	// Send Notification to parent of ListView ctrl
+	LV_DISPINFO dispinfo;
+	dispinfo.hdr.hwndFrom = GetParent()->m_hWnd;
+	dispinfo.hdr.idFrom = GetDlgCtrlID();
+	dispinfo.hdr.code = LVN_ENDLABELEDIT;
+
+	dispinfo.item.mask = LVIF_TEXT;
+	dispinfo.item.iItem = m_iItem;
+	dispinfo.item.iSubItem = m_iSubItem;
+	dispinfo.item.pszText = m_bESC ? NULL : LPTSTR((LPCTSTR)str);
+	dispinfo.item.cchTextMax = m_bESC ? 0 : str.GetLength();
+
+	GetParent()->SetFocus();
+	GetParent()->GetParent()->SendMessage(WM_NOTIFY, GetParent()->GetDlgCtrlID(), (LPARAM)&dispinfo);
+}
+
+/*============================================================================*/
+/*! ツリー内エディットボックス
+
+-# キーストロークが文字に変換されるとき呼び出される
+
+@param nChar	キーの文字コード
+@param nRepCnt	繰り返し回数
+@param nFlags
+@retval
+
+*/
+/*============================================================================*/
+void CCustomGroupEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	if (nChar == 0x03 || nChar == 0x16 || nChar == 0x18 || nChar == 0x08)//Ctrl+C; Ctrl+V; Ctrl+X; BackSpace
+	{
+		CEdit::OnChar(nChar, nRepCnt, nFlags);
+	}
+	else if (nChar == VK_ESCAPE || nChar == VK_RETURN)
+	{
+		if (nChar == VK_ESCAPE)
+			m_bESC = TRUE;
+		GetParent()->SetFocus();
+		return;
+	}
+	else
+	{
+		CEdit::OnChar(nChar, nRepCnt, nFlags);
+	}
+}
+
+/*============================================================================*/
+/*! ツリー内エディットボックス
+
+-# ウィンドウが作成されるとき呼び出される
+
+@param lpCreateStruct	ウィンドウを作成するための情報
+@retval	int
+
+*/
+/*============================================================================*/
+int CCustomGroupEdit::OnCreate(LPCREATESTRUCT lpCreateStruct)
+{
+	if (CEdit::OnCreate(lpCreateStruct) == -1)
+		return -1;
+
+	// Set the proper font
+	CFont* font = GetParent()->GetFont();
+	SetFont(font);
+
+	SetWindowText(m_sInitText);
+	SetFocus();
+	//	CalculateSize();
+	SetSel(0, -1);
+
+	CString	str;
+	GetWindowText(str);
+	int length = m_nNumberLimit;
+	SetLimitText(length);
+	return 0;
+}
+
+//=============================================================================
+// CCustomGroupHeaderCtrl
+//=============================================================================
+
 CCustomGroupHeaderCtrl::CCustomGroupHeaderCtrl()
 {
 }
@@ -68,6 +291,8 @@ CCustomGroupListCtrl::CCustomGroupListCtrl()
 		mListFont.DeleteObject();
 		mListFont.CreateFontIndirect(&lf);
 	}
+
+	mpEdit = NULL;
 }
 
 
@@ -82,6 +307,8 @@ BEGIN_MESSAGE_MAP(CCustomGroupListCtrl, CListCtrl)
 	ON_NOTIFY(HDN_BEGINTRACKW, 0, &CCustomGroupListCtrl::OnHdnBegintrack)
 	ON_NOTIFY(HDN_DIVIDERDBLCLICKA, 0, &CCustomGroupListCtrl::OnHdnDividerdblclick)
 	ON_NOTIFY(HDN_DIVIDERDBLCLICKW, 0, &CCustomGroupListCtrl::OnHdnDividerdblclick)
+	ON_WM_LBUTTONDOWN()
+	ON_NOTIFY_REFLECT(LVN_ENDLABELEDIT, &CCustomGroupListCtrl::OnLvnEndlabeledit)
 END_MESSAGE_MAP()
 
 /*============================================================================*/
@@ -131,14 +358,18 @@ void CCustomGroupListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		*pResult = CDRF_NOTIFYSUBITEMDRAW;
 		break;
 	case CDDS_ITEMPREPAINT:
-		lplvcd->clrText = pnode->GetColor().text;
-		if (pnode->GetWindowInfo().wnd == NULL || pnode->GetWindowInfo().wnd->IsWindowVisible() == FALSE)
-			lplvcd->clrText = mManagerHideColor;// GetSysColor(COLOR_GRAYTEXT);
+		if (pnode != NULL){
+			lplvcd->clrText = pnode->GetColor().text;
+			if (pnode->GetWindowInfo().wnd == NULL || pnode->GetWindowInfo().wnd->IsWindowVisible() == FALSE)
+				lplvcd->clrText = mManagerHideColor;// GetSysColor(COLOR_GRAYTEXT);
+		}
 		*pResult = CDRF_NOTIFYSUBITEMDRAW;
 		*pResult = CDRF_NOTIFYPOSTPAINT + CDRF_NOTIFYSUBITEMDRAW;
 		break;
 	case CDDS_SUBITEM | CDDS_PREPAINT | CDDS_ITEM:
-		lplvcd->clrTextBk = pnode->GetColor().textback;
+		if (pnode != NULL){
+			lplvcd->clrTextBk = pnode->GetColor().textback;
+		}
 		*pResult = CDRF_DODEFAULT;
 		return;
 	case CDDS_ITEMPOSTPAINT:
@@ -236,7 +467,7 @@ BOOL CCustomGroupListCtrl::GroupByColumn(int nCol, BOOL bEnableGroup/* = TRUE*/)
 
 	RemoveAllGroups();
 
-	//EnableGroupView(GetItemCount() > 0);
+	//EnableGroupView(bEnableGroup && GetItemCount() > 0);
 	EnableGroupView(bEnableGroup);
 
 	if (IsGroupViewEnabled()){
@@ -271,7 +502,7 @@ BOOL CCustomGroupListCtrl::GroupByColumn(int nCol, BOOL bEnableGroup/* = TRUE*/)
 			groups.GetValueAt(nGroupId).Add(nRow);
 
 			CString strFooter = cellText;
-			if (footers.size() < (nGroupId + 1)){
+			if (footers.size() < (UINT)(nGroupId + 1)){
 				// グループが存在しないのでグループとして設定する
 				footers.push_back(strFooter);
 			}
@@ -307,6 +538,59 @@ BOOL CCustomGroupListCtrl::GroupByColumn(int nCol, BOOL bEnableGroup/* = TRUE*/)
 	SetRedraw(TRUE);
 	Invalidate(FALSE);
 	return FALSE;
+}
+
+/*============================================================================*/
+/*! グループリスト
+
+-# マウス位置情報からアイテム、サブアイテム番号を取得する
+
+@param	point	マウス位置
+@param	col		サブアイテム番号格納
+@retval
+
+*/
+/*============================================================================*/
+int CCustomGroupListCtrl::HitTestEx(CPoint &point, int *col)
+{
+	int colnum = 0;
+	int row = HitTest(point, NULL);
+	if (col) *col = 0;
+
+	if ((GetWindowLong(m_hWnd, GWL_STYLE) & LVS_TYPEMASK) != LVS_REPORT)
+		return row;
+
+	// 現在表示されている最初のアイテムインデックスを取得する
+	row = GetTopIndex();
+
+	// 可視のアイテム数を取得する
+	int bottom = row + GetCountPerPage();
+
+	if (bottom > GetItemCount())
+		bottom = GetItemCount();
+
+	// Get the number of columns
+	CHeaderCtrl* pHeader = (CHeaderCtrl*)GetDlgItem(0);
+	int nColumnCount = pHeader->GetItemCount();
+
+	for (; row <= bottom; row++){
+		// アイテム領域の取得
+		CRect rect;
+		GetItemRect(row, &rect, LVIR_BOUNDS);
+
+		if (rect.PtInRect(point)){
+			// Now find the column
+			for (colnum = 0; colnum < nColumnCount; colnum++){
+				int colwidth = GetColumnWidth(colnum);
+				if (point.x >= rect.left && point.x <= (rect.left + colwidth)){
+					if (col) *col = colnum;
+					return row;
+				}
+				rect.left += colwidth;
+			}
+		}
+	}
+	return -1;
 }
 
 /*============================================================================*/
@@ -445,6 +729,7 @@ void CCustomGroupListCtrl::OnHdnBegintrack(NMHDR *pNMHDR, LRESULT *pResult)
 		*pResult = 1;
 	}
 	else{
+		SetFocus();
 		*pResult = 0;
 	}
 }
@@ -467,9 +752,154 @@ void CCustomGroupListCtrl::OnHdnDividerdblclick(NMHDR *pNMHDR, LRESULT *pResult)
 		*pResult = 1;
 	}
 	else{
+		SetFocus();
 		AutoSizeColumns(nCol);
 		*pResult = 0;
 	}
 
+	*pResult = 0;
+}
+
+/*============================================================================*/
+/*! グループリスト
+
+-# マウス左ボタン押下
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+void CCustomGroupListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	CListCtrl::OnLButtonDown(nFlags, point);
+
+#ifdef _DEMO
+	return;
+#else
+	int pos = 0, index;
+	int colnum, strpos = 0;
+	CString str;
+	if ((index = HitTestEx(point, &colnum)) != -1 && colnum != 0){
+		UINT flag = LVIS_SELECTED;
+		if ((GetItemState(index, flag) & flag) == flag){
+			if (EditExecute(index, colnum) == false){
+				SetItemState(index, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+			}
+		}
+		else{
+			SetItemState(index, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+		}
+	}
+#endif
+}
+/*============================================================================*/
+/*! グループリスト
+
+-# カラム状態によって編集を行う
+
+@param	item			選択アイテム
+@param	colnum			選択カラム
+
+@retval bool	編集を行う場合はtrueを返す。それ以外はfalseを返す
+*/
+/*============================================================================*/
+bool CCustomGroupListCtrl::EditExecute(int item, int colnum)
+{
+	// 選択文字列の取得
+	CString text = GetItemText(item, colnum);
+	//DWORD data = GetItemData(item);
+
+	// 選択カラムの編集方法を調べる
+	// 指定カラムはコンボボックス編集か？
+	// エディット編集です
+	ModifyStyle(0, LVS_EDITLABELS);
+	editSubLabel(item, colnum);
+	return true;
+}
+/*============================================================================*/
+/*! グループリスト
+
+-# リストコントロール上のサブラベルの編集
+
+@param	item			選択アイテム
+@param	colnum			選択カラム
+
+@retval bool	編集を行う場合はtrueを返す。それ以外はfalseを返す
+*/
+/*============================================================================*/
+CEdit* CCustomGroupListCtrl::editSubLabel(int item, int colnum)
+{
+	CHeaderCtrl* pHeader = (CHeaderCtrl*)GetDlgItem(0);
+	int nColumnCount = pHeader->GetItemCount();
+	if (colnum >= nColumnCount)
+		return NULL;
+
+	int offset = 0;
+	for (int i = 0; i < colnum; i++)
+		offset += GetColumnWidth(i);
+
+	CRect rect;
+	GetItemRect(item, &rect, LVIR_BOUNDS);
+
+	CRect rcClient;
+	GetClientRect(&rcClient);
+	if (offset + rect.left < 0 || offset + rect.left > rcClient.right){
+		CSize size;
+		size.cx = offset + rect.left;
+		size.cy = 0;
+		Scroll(size);
+		rect.left -= size.cx;
+	}
+
+	LV_COLUMN lvcol;
+	lvcol.mask = LVCF_FMT;
+	GetColumn(colnum, &lvcol);
+	DWORD dwStyle;
+	if ((lvcol.fmt&LVCFMT_JUSTIFYMASK) == LVCFMT_LEFT)
+		dwStyle = ES_LEFT;
+	else if ((lvcol.fmt&LVCFMT_JUSTIFYMASK) == LVCFMT_RIGHT)
+		dwStyle = ES_RIGHT;
+	else dwStyle = ES_CENTER;
+
+	rect.left += offset + 4;
+	rect.right = rect.left + GetColumnWidth(colnum) - 3;
+	if (rect.right > rcClient.right) rect.right = rcClient.right;
+
+	dwStyle |= WS_BORDER | WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL/*|ES_RIGHT*/;
+	if (mpEdit != NULL)
+		delete mpEdit;
+
+	mpEdit = new CCustomGroupEdit(item, colnum, GetItemText(item, colnum));
+	mpEdit->Create(dwStyle, rect, this, 1);
+	((CCustomGroupEdit*)mpEdit)->SetNumberLimit(6);
+	((CCustomGroupEdit*)mpEdit)->SetLimitText(mEditLimitTextSize);
+	return mpEdit;
+}
+/*============================================================================*/
+/*! グループリスト
+
+-# ラベル編集の終了
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomGroupListCtrl::OnLvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	NMLVDISPINFO *pDispInfo = reinterpret_cast<NMLVDISPINFO*>(pNMHDR);
+
+	LV_ITEM *plvItem = &pDispInfo->item;
+
+	if (plvItem->pszText != NULL){
+		CString str = plvItem->pszText;
+		SetItemText(plvItem->iItem, plvItem->iSubItem, str);
+	}
+	ModifyStyle(LVS_EDITLABELS, 0);
+	if (mpEdit != NULL){
+		delete mpEdit;
+		mpEdit = NULL;
+	}
 	*pResult = 0;
 }

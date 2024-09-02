@@ -24,6 +24,8 @@ static const int mNameSize = 64;
 static const int mUnitSize = 10;
 static const int mFormatSize = 10;
 static const int mHeaderSize = 5;
+static const int mEditLimitTextSize = 80;
+
 /// ファイル関連
 static const TCHAR* mAppDataSystem = { _T("NEC") };
 static const TCHAR* mAppDataDataPath = { _T("DATA") };

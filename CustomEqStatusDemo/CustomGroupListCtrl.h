@@ -8,6 +8,55 @@
 #pragma once
 #include "afxcmn.h"
 
+//=============================================================================
+// ◆CCustomGroupEdit
+//=============================================================================
+//!< リスト内で使用するエディットコントロール
+class CCustomGroupEdit : public CEdit
+{
+	// Construction
+public:
+	CCustomGroupEdit(int iItem, int iSubItem, CString sInitText);
+
+	// Attributes
+public:
+	BOOL	m_bKeyReturn;
+	BOOL    m_bKeyShift;
+	UINT	m_nNumberLimit;
+
+	// Operations
+public:
+	void		SetNumberLimit(UINT len);
+	int			GetItem() { return m_iItem; }
+	int			GetSubItem() { return m_iSubItem; }
+
+	// Overrides
+	// ClassWizard generated virtual function overrides
+	//{{AFX_VIRTUAL(CTreeEdit)
+public:
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
+	//}}AFX_VIRTUAL
+
+	// Implementation
+public:
+	virtual ~CCustomGroupEdit();
+
+	// Generated message map functions
+protected:
+	//{{AFX_MSG(CTreeEdit)
+	afx_msg void OnKillFocus(CWnd* pNewWnd);
+	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
+	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+	//}}AFX_MSG
+	DECLARE_MESSAGE_MAP()
+private:
+	int			m_iItem;
+	int			m_iSubItem;
+	CString		m_sInitText;
+	BOOL		m_bESC;         // To indicate whether ESC key was pressed
+	BOOL		m_bNotify;
+};
+
 class CCustomGroupHeaderCtrl : public CHeaderCtrl
 {
 public:
@@ -59,6 +108,7 @@ protected:
 public:
 protected:
 	CFont	mListFont;
+	CEdit	*mpEdit;
 
 	/// ドラッグ＆ドロップ関連
 
@@ -110,12 +160,17 @@ public:
 		return SetItem(&lv);
 	}
 
+	int		HitTestEx(CPoint &point, int *col);
+	bool	EditExecute(int item, int colnum);
+
 protected:
 	LRESULT	insertGroupHeader(int nIndex, int nGroupId, const CString& strHeader, DWORD dwState = LVGS_NORMAL, DWORD dwAlign = LVGA_HEADER_LEFT);
 	BOOL	setGroupTask(int nGroupID, const CString& task);
 	BOOL	setGroupSubtitle(int nGroupID, const CString& subtitle);
 	BOOL	setGroupFooter(int nGroupID, const CString& footer, DWORD dwAlign = LVGA_FOOTER_CENTER);
 	BOOL	setRowGroupId(int nRow, int nGroupId);
+
+	CEdit*	editSubLabel(int item, int colnum);
 
 	/* ------------------------------------------------------------------------------------ */
 
@@ -126,5 +181,7 @@ public:
 	afx_msg void OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnHdnBegintrack(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnHdnDividerdblclick(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnLvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult);
 };
 
