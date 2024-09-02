@@ -17,6 +17,7 @@ IMPLEMENT_DYNAMIC(CMainFrame, CMDIFrameWnd)
 
 BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 	ON_WM_CREATE()
+	ON_WM_GETMINMAXINFO()
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -93,3 +94,14 @@ void CMainFrame::Dump(CDumpContext& dc) const
 
 // CMainFrame メッセージ ハンドラー
 
+
+
+void CMainFrame::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
+{
+	lpMMI->ptMaxSize.x = 1920;
+	lpMMI->ptMaxSize.y = 1080;
+	lpMMI->ptMaxTrackSize.x = 1920;
+	lpMMI->ptMaxTrackSize.y = 1080;
+
+	CMDIFrameWnd::OnGetMinMaxInfo(lpMMI);
+}
