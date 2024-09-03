@@ -774,7 +774,7 @@ void CCustomGroupListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	CListCtrl::OnLButtonDown(nFlags, point);
 
-#ifdef _DEMO
+#ifdef _TRIAL
 	return;
 #else
 	int pos = 0, index;
