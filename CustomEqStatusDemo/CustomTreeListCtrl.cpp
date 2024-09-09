@@ -327,21 +327,20 @@ END_MESSAGE_MAP()
 @retval
 */
 /*============================================================================*/
-void CCustomTreeListCtrl::Create(CWnd* parent, CFont& font)
+void CCustomTreeListCtrl::Create(CWnd* parent)
 {
 	mTreeParent = parent;
 
 	mHeaderCtrl.Create(WS_CHILD | WS_VISIBLE | HDS_FULLDRAG, CRect(), mTreeParent, eHeaderID);
 
-	CFont* pFont = GetFont();
-	mHeaderCtrl.SetFont(pFont);
-
-	// ツリーへ新しいフォントを設定
-	SetFont(&font);
+	CFont temp;
+	temp.CreateStockObject(DEFAULT_GUI_FONT);
+	mHeaderCtrl.SetFont(&temp);
+	temp.DeleteObject();
 
 	// ヘッダーコントロールの高さを求める
 	CDC* pDC = GetDC();
-	pDC->SelectObject(pFont);
+	pDC->SelectObject(&mDefaultFont);
 	CSize szExt = pDC->GetTextExtent(_T("W"));
 	mcyHeader = szExt.cy + 7;// +(IsVersion6 ? 10 : 7);
 
@@ -1079,10 +1078,10 @@ void CCustomTreeListCtrl::OnTvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 				SetSubItemText(pTVDispInfo->item.hItem, ((CCustomTreeEdit*)mpEdit)->GetSubItem(), str);
 				switch (((CCustomTreeEdit*)mpEdit)->GetSubItem()){
 				case	eDetailItem:
-					swprintf_s(pnode->GetMonCtrl().display, mNameSize, _T("%s"), GetSubItemText(pTVDispInfo->item.hItem, eDetailItem));
+					swprintf_s(pnode->GetMonCtrl().display, mNameSize, _T("%s"), (LPCTSTR)GetSubItemText(pTVDispInfo->item.hItem, eDetailItem));
 					break;
 				case	eDetailUnit:
-					swprintf_s(pnode->GetMonCtrl().unit, mUnitSize, _T("%s"), GetSubItemText(pTVDispInfo->item.hItem, eDetailUnit));
+					swprintf_s(pnode->GetMonCtrl().unit, mUnitSize, _T("%s"), (LPCTSTR)GetSubItemText(pTVDispInfo->item.hItem, eDetailUnit));
 					break;
 				}
 			}
@@ -2279,3 +2278,69 @@ BOOL CCustomTreeListCtrl::CreateDragData(HTREEITEM hTargetItem, CTreeNode* pnode
 	return TRUE;
 }
 #endif
+
+/*============================================================================*/
+/*! ツリーリストコントロール
+
+-# フォントの取得
+
+@param	type	ノード種別
+
+@retval CFont
+*/
+/*============================================================================*/
+CFont& CCustomTreeListCtrl::GetFontEx(UINT type)
+{
+	switch (type) {
+	case	eTreeItemType_Title:
+		return mNodeTitleFont;
+		break;
+	case	eTreeItemType_Main:
+		return mNodeMainFont;
+		break;
+	case	eTreeItemType_Sub:
+		return mNodeSubFont;
+		break;
+	case	eTreeItemType_Item:
+		return mNodeLeafFont;
+		break;
+	}
+	return mDefaultFont;
+}
+/*============================================================================*/
+/*! ツリーリストコントロール
+
+-# フォントの設定
+
+@param	type	ノード種別
+@param	lf		論理フォント
+
+@retval
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::SetFontEx(UINT type, LOGFONT& lf)
+{
+	switch (type) {
+	case	eTreeItemType_Window:
+		mDefaultFont.DeleteObject();
+		mDefaultFont.CreateFontIndirect(&lf);
+		SetFont(&mDefaultFont);
+		break;
+	case	eTreeItemType_Title:
+		mNodeTitleFont.DeleteObject();
+		mNodeTitleFont.CreateFontIndirect(&lf);
+		break;
+	case	eTreeItemType_Main:
+		mNodeMainFont.DeleteObject();
+		mNodeMainFont.CreateFontIndirect(&lf);
+		break;
+	case	eTreeItemType_Sub:
+		mNodeSubFont.DeleteObject();
+		mNodeSubFont.CreateFontIndirect(&lf);
+		break;
+	case	eTreeItemType_Item:
+		mNodeLeafFont.DeleteObject();
+		mNodeLeafFont.CreateFontIndirect(&lf);
+		break;
+	}
+}

@@ -78,6 +78,7 @@ CCustomCsvToXmlDlg::CCustomCsvToXmlDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CCustomCsvToXmlDlg::IDD, pParent)
 	, mCsvFileName(_T(""))
 	, mSavePath(_T(""))
+	, mFileType(0)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -88,6 +89,8 @@ void CCustomCsvToXmlDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_MFCEDITBROWSE_CSV, mCSV);
 	DDX_Text(pDX, IDC_MFCEDITBROWSE_CSV, mCsvFileName);
 	DDX_Text(pDX, IDC_MFCEDITBROWSE_PATH, mSavePath);
+	DDX_Radio(pDX, IDC_RADIO_SCL, mFileType);
+	DDX_Control(pDX, IDC_BUTTON_CONV, mConvCtrl);
 }
 
 BEGIN_MESSAGE_MAP(CCustomCsvToXmlDlg, CDialogEx)
@@ -95,6 +98,8 @@ BEGIN_MESSAGE_MAP(CCustomCsvToXmlDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_BUTTON_CONV, &CCustomCsvToXmlDlg::OnBnClickedButtonConv)
+	ON_BN_CLICKED(IDC_RADIO_SCL, &CCustomCsvToXmlDlg::OnBnClickedRadioScl)
+	ON_BN_CLICKED(IDC_RADIO_XML, &CCustomCsvToXmlDlg::OnBnClickedRadioXml)
 END_MESSAGE_MAP()
 
 
@@ -132,6 +137,8 @@ BOOL CCustomCsvToXmlDlg::OnInitDialog()
 	static LPCTSTR fileFilter = _T("タブ区切りテキスト (*.txt)|*.txt||");
 	DWORD flag = 6UL | OFN_OVERWRITEPROMPT;
 	mCSV.EnableFileBrowseButton(NULL, fileFilter);
+
+	OnBnClickedRadioScl();
 
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
@@ -246,7 +253,102 @@ void CCustomCsvToXmlDlg::OnBnClickedButtonConv()
 	}
 	file.Close();
 
-	CreateXML(mSavePath, root);
+	if (mFileType == 0){
+		CreateSCL(mSavePath, root);
+	}
+	else{
+		CreateXML(mSavePath, root);
+	}
+
+	delete root;
+}
+
+void CCustomCsvToXmlDlg::CreateSCL(CString sclpath, CNode* root)
+{
+	vector<CNode*>::iterator itr;
+	CString strTitle = _T("");
+	for (itr = root->getChildren().begin(); itr != root->getChildren().end(); itr++) {
+		if (strTitle.IsEmpty()) {
+			strTitle = (*itr)->getName();
+			break;
+		}
+	}
+	CString sclFile = sclpath + _T("\\") + strTitle + _T(".scl");
+
+	CFile file;
+	if (file.Open(sclFile, CFile::modeCreate | CFile::modeWrite | CFile::typeBinary) == NULL) {
+		return;
+	}
+
+	CArchive mArc(&file, CArchive::store);
+
+	// バージョン保存
+	mArc << (UINT)100;
+	mArc << (UINT)1;
+
+	for (itr = root->getChildren().begin(); itr != root->getChildren().end(); itr++) {
+		SaveNodeScl(mArc, (*itr));
+	}
+
+	mArc.Flush();
+	mArc.Close();
+	file.Close();
+}
+
+bool CCustomCsvToXmlDlg::SaveNodeScl(CArchive& ar, CNode* cur)
+{
+	// ウィンドウ情報
+	ar << (UINT)0;
+	ar << (UINT)0;
+	ar << (UINT)cur->getLevel();
+	if (cur->getLevel() == 1) {
+		ar << CString(cur->getName());
+		ar << CString(_T(""));
+		ar << (UINT)0;
+		ar << (UINT)0;
+		ar << (UINT)0;
+		ar << (UINT)1;
+		_SavePointScl(ar, CPoint(-1,-1));
+		_SavePointScl(ar, CPoint(-1, -1));
+		_SaveRectScl(ar, CRect(321, 374, 873, 1000));
+		ar << (UINT)5;
+		for (int i = 0; i < 5; i++) {
+			ar << (UINT)100;
+		}
+		ar << (UINT)1;
+	}
+	ar << (UINT)32;
+
+	// 監視制御情報
+	ar << CString(cur->getName());
+	if (cur->getLevel() == 4) {
+		ar << CString(cur->mMon);
+		ar << CString(cur->mCntl);
+		ar << CString(cur->mUnit);
+		ar << (UINT)0;
+		ar << CString(_T(""));
+	}
+
+	// 色情報
+	ar << (COLORREF)16777215;
+	ar << (COLORREF)16777215;
+	ar << (COLORREF)0;
+	ar << (COLORREF)0;
+	ar << (COLORREF)0;
+	// フォント
+	ar << (LONG)-16;
+	ar << (LONG)0;
+	ar << (LONG)700;
+	ar << CString(_T("MS UI Gothic"));
+
+	// 子ノードの保存
+	ar << (UINT)cur->getChildren().size();
+	vector<CNode*>::iterator itr;
+	for (itr = cur->getChildren().begin(); itr != cur->getChildren().end(); itr++) {
+		SaveNodeScl(ar, (*itr));
+	}
+
+	return true;
 }
 
 void CCustomCsvToXmlDlg::CreateXML(CString xmlpath, CNode* root)
@@ -352,4 +454,16 @@ bool CCustomCsvToXmlDlg::SaveNodeXml(CMarkup& xml, CNode* cur)
 	}
 
 	return true;
+}
+
+
+void CCustomCsvToXmlDlg::OnBnClickedRadioScl()
+{
+	mConvCtrl.SetWindowText(_T("CSV → SCL 変換"));
+}
+
+
+void CCustomCsvToXmlDlg::OnBnClickedRadioXml()
+{
+	mConvCtrl.SetWindowText(_T("CSV → XML 変換"));
 }

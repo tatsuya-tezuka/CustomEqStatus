@@ -5,6 +5,7 @@
 #pragma once
 #include "afxeditbrowsectrl.h"
 #include "Markup.h"
+#include "afxwin.h"
 
 class CNode {
 public:
@@ -33,6 +34,22 @@ public:
 
 // ダイアログ データ
 	enum { IDD = IDD_CUSTOMCSVTOXML_DIALOG };
+
+	void	CreateSCL(CString sclpath, CNode* root);
+	bool	SaveNodeScl(CArchive& ar, CNode* cur);
+
+	void _SavePointScl(CArchive& ar, POINT& point) const
+	{
+		ar << point.x;
+		ar << point.y;
+	}
+	void _SaveRectScl(CArchive& ar, RECT& rect) const
+	{
+		ar << rect.left;
+		ar << rect.top;
+		ar << rect.right;
+		ar << rect.bottom;
+	}
 
 	void	CreateXML(CString xmlpath, CNode* root);
 	bool	SaveNodeXml(CMarkup& xml, CNode* cur);
@@ -69,4 +86,8 @@ public:
 	CString mCsvFileName;
 	CString mSavePath;
 	afx_msg void OnBnClickedButtonConv();
+	int mFileType;
+	afx_msg void OnBnClickedRadioScl();
+	afx_msg void OnBnClickedRadioXml();
+	CButton mConvCtrl;
 };

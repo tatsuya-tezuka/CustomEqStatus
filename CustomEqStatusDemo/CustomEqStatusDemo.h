@@ -14,6 +14,14 @@
 #include "CustomManager.h"
 #include "CustomDetail.h"
 
+// timeGetTime使用
+#include <mmsystem.h>
+#pragma comment( lib, "winmm.lib" )
+
+// メモリ管理
+#include <windows.h>
+#include <psapi.h>
+
 // CCustomEqStatusDemoApp:
 // このクラスの実装については、CustomEqStatusDemo.cpp を参照してください。
 //
@@ -82,6 +90,47 @@ protected:
 	/* メンバ関数                                                                           */
 	/* ------------------------------------------------------------------------------------ */
 public:
+	void PrintMemoryInfo()
+	{
+		HANDLE hProcess;
+		PROCESS_MEMORY_COUNTERS_EX pmc;
+
+		// Print the process identifier.
+		hProcess = GetCurrentProcess();
+
+		// Print information about the memory usage of the process.
+		if (GetProcessMemoryInfo(hProcess, (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
+		{
+			//=====================================================//
+			//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+			CString msg;
+			msg.Format(_T("PageFaultCount: 0x%08X"), pmc.PageFaultCount);
+			CLogTraceEx::Write(_T("***"), _T("CCustomEquipmentApp"), _T("Process Memory Info."), msg, _T(""), nLogEx::debug);
+			msg.Format(_T("PeakWorkingSetSize: 0x % 08X"), pmc.PeakWorkingSetSize);
+			CLogTraceEx::Write(_T("***"), _T("CCustomEquipmentApp"), _T("Process Memory Info."), msg, _T(""), nLogEx::debug);
+			msg.Format(_T("WorkingSetSize: 0x%08X"), pmc.WorkingSetSize);
+			CLogTraceEx::Write(_T("***"), _T("CCustomEquipmentApp"), _T("Process Memory Info."), msg, _T(""), nLogEx::debug);
+			msg.Format(_T("QuotaPeakPagedPoolUsage: 0x%08X"), pmc.QuotaPeakPagedPoolUsage);
+			CLogTraceEx::Write(_T("***"), _T("CCustomEquipmentApp"), _T("Process Memory Info."), msg, _T(""), nLogEx::debug);
+			msg.Format(_T("QuotaPagedPoolUsage: 0x%08X"), pmc.QuotaPagedPoolUsage);
+			CLogTraceEx::Write(_T("***"), _T("CCustomEquipmentApp"), _T("Process Memory Info."), msg, _T(""), nLogEx::debug);
+			msg.Format(_T("QuotaPeakNonPagedPoolUsage: 0x%08X"), pmc.QuotaPeakNonPagedPoolUsage);
+			CLogTraceEx::Write(_T("***"), _T("CCustomEquipmentApp"), _T("Process Memory Info."), msg, _T(""), nLogEx::debug);
+			msg.Format(_T("QuotaNonPagedPoolUsage: 0x%08X"), pmc.QuotaNonPagedPoolUsage);
+			CLogTraceEx::Write(_T("***"), _T("CCustomEquipmentApp"), _T("Process Memory Info."), msg, _T(""), nLogEx::debug);
+			msg.Format(_T("PagefileUsage: 0x%08X"), pmc.PagefileUsage);
+			CLogTraceEx::Write(_T("***"), _T("CCustomEquipmentApp"), _T("Process Memory Info."), msg, _T(""), nLogEx::debug);
+			msg.Format(_T("PeakPagefileUsage: 0x%08X"), pmc.PeakPagefileUsage);
+			CLogTraceEx::Write(_T("***"), _T("CCustomEquipmentApp"), _T("Process Memory Info."), msg, _T(""), nLogEx::debug);
+			msg.Format(_T("PrivateUsage: 0x%08X(%dMB)"), pmc.PrivateUsage, pmc.PrivateUsage / 1000 / 1000);
+			CLogTraceEx::Write(_T("***"), _T("CCustomEquipmentApp"), _T("Process Memory Info."), msg, _T(""), nLogEx::debug);
+			//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+			//=====================================================//
+		}
+
+		CloseHandle(hProcess);
+	}
+
 	/// マスタ設備詳細データ格納パス
 	CString	GetMasterDataPath() { return mAppMasterDataPath; }
 	/// カスタムデータ管理関連

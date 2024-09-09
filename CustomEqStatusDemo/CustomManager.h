@@ -31,7 +31,6 @@ public:
 	enum { eSelectUser = 0, eSelectMaster };
 
 protected:
-	void	_CreateDemo(int nSelect);
 
 	/* ------------------------------------------------------------------------------------ */
 	/* ƒƒ“ƒo•Ï”                                                                           */

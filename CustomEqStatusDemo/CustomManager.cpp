@@ -57,57 +57,6 @@ BEGIN_MESSAGE_MAP(CCustomManager, CCustomDialogBase)
 END_MESSAGE_MAP()
 
 
-void CCustomManager::_CreateDemo(int nSelect)
-{
-	mManagerList.SetRedraw(FALSE);
-
-	mManagerList.RemoveAllGroups();
-	mManagerList.DeleteAllItems();
-
-	int item = 0;
-	if (nSelect == eSelectUser){
-		mManagerList.AddItem(item, 0, _T("アンテナ"), 0);
-		mManagerList.AddItem(item, 1, _T("Demo"));
-		mManagerList.AddItem(item, 2, _T("0"));
-		item++;
-		mManagerList.AddItem(item, 0, _T("S帯送信"), 0);
-		mManagerList.AddItem(item, 1, _T("Demo"));
-		mManagerList.AddItem(item, 2, _T("1"));
-		item++;
-		mManagerList.AddItem(item, 0, _T("S帯測距"), 0);
-		mManagerList.AddItem(item, 1, _T("Demo"));
-		mManagerList.AddItem(item, 2, _T("1"));
-		item++;
-		mManagerList.AddItem(item, 0, _T("X-TX"), 0);
-		mManagerList.AddItem(item, 1, _T("Demo"));
-		mManagerList.AddItem(item, 2, _T("0"));
-	}
-	else{
-		mManagerList.AddItem(item, 0, _T("#アンテナ"), 0);
-		mManagerList.AddItem(item, 1, _T("#Demo"));
-		mManagerList.AddItem(item, 2, _T("0"));
-		item++;
-		mManagerList.AddItem(item, 0, _T("#S帯送信"), 0);
-		mManagerList.AddItem(item, 1, _T("#Demo"));
-		mManagerList.AddItem(item, 2, _T("1"));
-		item++;
-		mManagerList.AddItem(item, 0, _T("#S帯測距"), 0);
-		mManagerList.AddItem(item, 1, _T("#Demo"));
-		mManagerList.AddItem(item, 2, _T("1"));
-		item++;
-		mManagerList.AddItem(item, 0, _T("#X-TX"), 0);
-		mManagerList.AddItem(item, 1, _T("#Demo"));
-		mManagerList.AddItem(item, 2, _T("0"));
-	}
-
-	mManagerList.SetRedraw(TRUE);
-#ifdef _TRIAL
-	return;
-#endif
-
-	mManagerList.GroupByColumn(eManagerGroup, (nSelect == eSelectUser)?TRUE:FALSE);
-}
-
 // CCustomManager メッセージ ハンドラー
 
 /*============================================================================*/
@@ -127,10 +76,6 @@ BOOL CCustomManager::OnInitDialog()
 	mManagerList.CreateGroupControl();
 	SetControlInfo(IDC_LIST_MANAGER, ANCHORE_LEFTTOP | RESIZE_BOTH);
 
-#ifdef _TRIAL
-	_CreateDemo((int)eSelectUser);
-	return TRUE;
-#endif
 	if (theApp.GetDataManager().GetTreeNode().size() != 0){
 		createItem((int)eSelectUser);
 	}

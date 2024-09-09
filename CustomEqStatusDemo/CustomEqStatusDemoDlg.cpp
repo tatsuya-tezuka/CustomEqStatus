@@ -28,6 +28,7 @@ public:
 // 実装
 protected:
 	DECLARE_MESSAGE_MAP()
+public:
 };
 
 CAboutDlg::CAboutDlg() : CDialogEx(CAboutDlg::IDD)
@@ -49,7 +50,6 @@ END_MESSAGE_MAP()
 
 CCustomEqStatusDemoDlg::CCustomEqStatusDemoDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CCustomEqStatusDemoDlg::IDD, pParent)
-	, mLoop(1)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -57,18 +57,14 @@ CCustomEqStatusDemoDlg::CCustomEqStatusDemoDlg(CWnd* pParent /*=NULL*/)
 void CCustomEqStatusDemoDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_MFCBUTTON_MANAGER, mManager);
-	DDX_Control(pDX, IDC_MFCBUTTON_DETAIL, mDetail);
-	DDX_Text(pDX, IDC_EDIT_LOOP, mLoop);
-	DDV_MinMaxUInt(pDX, mLoop, 1, 255);
 }
 
 BEGIN_MESSAGE_MAP(CCustomEqStatusDemoDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-	ON_BN_CLICKED(IDC_MFCBUTTON_MANAGER, &CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonManager)
-	ON_BN_CLICKED(IDC_MFCBUTTON_DETAIL, &CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonDetail)
+	ON_BN_CLICKED(IDC_MFCBUTTON_LOAD, &CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad)
+	ON_BN_CLICKED(IDC_MFCBUTTON__SAVE, &CCustomEqStatusDemoDlg::OnBnClickedMfcbutton)
 END_MESSAGE_MAP()
 
 
@@ -103,19 +99,8 @@ BOOL CCustomEqStatusDemoDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 大きいアイコンの設定
 	SetIcon(m_hIcon, FALSE);		// 小さいアイコンの設定
 
-	//mManager.EnableWindowsTheming(FALSE);
-	//mManager.m_nFlatStyle = CMFCButton::BUTTONSTYLE_FLAT;
-	//mManager.SetFaceColor(RGB(0, 162, 232), true);
-	//mManager.SetTextColor(RGB(255, 255, 255));
-	//mDetail.EnableWindowsTheming(FALSE);
-	//mDetail.m_nFlatStyle = CMFCButton::BUTTONSTYLE_FLAT;
-	//mDetail.SetFaceColor(RGB(0, 162, 232), true);
-	//mDetail.SetTextColor(RGB(255, 255, 255));
-
-	if (theApp.GetCustomManager().GetSafeHwnd() == NULL) {
-		theApp.GetCustomManager().Create(IDD_DIALOG_MANAGER, this);
-	}
-	theApp.GetCustomManager().ShowWindow(SW_HIDE);
+	// カスタマイズ機能画面の作成
+	createCustomControl();
 
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
@@ -170,32 +155,24 @@ HCURSOR CCustomEqStatusDemoDlg::OnQueryDragIcon()
 }
 
 
+/*============================================================================*/
+/*! メイン画面
 
-void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonManager()
-{
-	UpdateData(TRUE);
-	// カスタム管理
-#ifdef _TRIAL
-	//return;
-#endif
-	if (theApp.GetCustomManager().GetSafeHwnd() == NULL) {
-		theApp.GetCustomManager().Create(IDD_DIALOG_MANAGER, this);
-	}
-	theApp.GetCustomManager().ShowWindow(SW_SHOW);
-}
+-# カスタマイズ機能画面の作成
 
+@param
 
-void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonDetail()
+@retval
+*/
+/*============================================================================*/
+void CCustomEqStatusDemoDlg::createCustomControl()
 {
 	CWaitCursor wait;
 
-	UpdateData(TRUE);
-	// デモ用カスタム画面作成
-#ifdef _TRIAL
-	CCustomDetail* pitem = theApp.CreateEquipment(NULL);
-#else
+#ifdef _DEMO
+	// デモ用のカスタム
 	vector<CString> demolist;
-	GetDemoFiles(demolist);
+	getDemoFiles(demolist);
 
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
@@ -204,24 +181,26 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonDetail()
 	//=====================================================//
 	vector<CString>::iterator itrdemo;
 	bool bClear = false;
-	for (itrdemo = demolist.begin(); itrdemo != demolist.end(); itrdemo++){
-		if (mLoop > 1){
-			for (UINT i = 0; i < mLoop; i++){
-				theApp.GetDataManager().LoadTreeDataXml((*itrdemo), bClear);
-				bClear = false;
-			}
-			break;
-		}
+	for (itrdemo = demolist.begin(); itrdemo != demolist.end(); itrdemo++) {
 		theApp.GetDataManager().LoadTreeDataXml((*itrdemo), bClear);
 		bClear = false;
 	}
+#endif
 
+	// カスタム管理画面の作成
+	if (theApp.GetCustomManager().GetSafeHwnd() == NULL) {
+		theApp.GetCustomManager().Create(IDD_DIALOG_MANAGER, this);
+	}
+	theApp.GetCustomManager().ShowWindow(SW_SHOW);
+
+#ifdef _DEMO
+	// デモ用のカスタム
 	vector<CTreeNode*>& treedata = theApp.GetDataManager().GetTreeNode();
 	vector<CTreeNode*>::iterator itr;
-	for (itr = treedata.begin(); itr != treedata.end(); itr++){
+	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
 		// 設備詳細画面の作成
 		// ※作成時は非表示とする
-		if ((*itr)->GetWindowInfo().kind == eTreeItemKind_User){
+		if ((*itr)->GetWindowInfo().kind == eTreeItemKind_User) {
 			CCustomDetail* pitem = theApp.CreateEquipment((*itr));
 		}
 	}
@@ -233,11 +212,21 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonDetail()
 #endif
 }
 
-void CCustomEqStatusDemoDlg::GetDemoFiles(vector<CString>& list)
+/*============================================================================*/
+/*! メイン画面
+
+-# デモデータファイルの取得
+
+@param	list	デモファイルリスト
+
+@retval
+*/
+/*============================================================================*/
+void CCustomEqStatusDemoDlg::getDemoFiles(vector<CString>& list)
 {
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
-	CLogTraceEx::Write(_T("***"), _T("CCustomEqStatusDemoDlg"), _T("GetDemoFiles"), _T("Start"), _T(""), nLogEx::debug);
+	CLogTraceEx::Write(_T("***"), _T("CCustomEqStatusDemoDlg"), _T("getDemoFiles"), _T("Start"), _T(""), nLogEx::debug);
 	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 	//=====================================================//
 	HANDLE hFind;
@@ -258,14 +247,75 @@ void CCustomEqStatusDemoDlg::GetDemoFiles(vector<CString>& list)
 		if (win32fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 		}
 		else {
-			list.push_back(theApp.GetDemoDataPath()+_T("\\")+CString(win32fd.cFileName));
+			list.push_back(theApp.GetDemoDataPath() + _T("\\") + CString(win32fd.cFileName));
 		}
 	} while (FindNextFile(hFind, &win32fd));
 
 	FindClose(hFind);
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
-	CLogTraceEx::Write(_T("***"), _T("CCustomEqStatusDemoDlg"), _T("GetDemoFiles"), _T("Stop"), _T(""), nLogEx::debug);
+	CLogTraceEx::Write(_T("***"), _T("CCustomEqStatusDemoDlg"), _T("getDemoFiles"), _T("Stop"), _T(""), nLogEx::debug);
 	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 	//=====================================================//
+}
+
+/*============================================================================*/
+/*! メイン画面
+
+-# レイアウト呼出
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad()
+{
+	const TCHAR BASED_CODE szFilter[] = _T("Station Control Layout(*.scl)|*.scl|Layout File(*.xml)|*.xml|");
+	CFileDialog dlg(TRUE, _T("xml"), NULL, OFN_OVERWRITEPROMPT | OFN_LONGNAMES | OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY, szFilter);
+	if (dlg.DoModal() != IDOK)
+		return;
+
+	bool bClear = false;
+	if (MessageBox(_T("設備詳細画面を全て削除しますか？"), _T(""), MB_YESNO) == IDYES)
+		bClear = true;
+
+	// ツリーデータの読込
+	if (dlg.GetFileExt().MakeLower() == _T("scl")) {
+		theApp.GetDataManager().LoadEquipmentData((UINT)eLayoutFileType_SCL, dlg.GetPathName(), bClear);
+	}
+	else {
+		theApp.GetDataManager().LoadEquipmentData((UINT)eLayoutFileType_XML, dlg.GetPathName(), bClear);
+	}
+
+	// 復元処理を行う
+	if (theApp.GetCustomManager().GetSafeHwnd() != NULL) {
+		theApp.GetCustomManager().PostMessage(eUserMessage_Manager_Reset, 0, 0);
+	}
+}
+
+/*============================================================================*/
+/*! メイン画面
+
+-# レイアウト保存
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomEqStatusDemoDlg::OnBnClickedMfcbutton()
+{
+	const TCHAR BASED_CODE szFilter[] = _T("Station Control Layout(*.scl)|*.scl|Layout File(*.xml)|*.xml|");
+	CFileDialog dlg(FALSE, _T("xml"), NULL, OFN_OVERWRITEPROMPT | OFN_LONGNAMES | OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY, szFilter);
+	if (dlg.DoModal() != IDOK)
+		return;
+
+	// ツリーデータの保存
+	if (dlg.GetFileExt().MakeLower() == _T("scl")) {
+		theApp.GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_SCL, dlg.GetPathName());
+	}
+	else {
+		theApp.GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, dlg.GetPathName());
+	}
 }

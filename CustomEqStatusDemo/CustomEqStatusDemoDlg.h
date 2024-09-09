@@ -17,7 +17,31 @@ public:
 // ダイアログ データ
 	enum { IDD = IDD_CUSTOMDEMO_DIALOG };
 
-	void	GetDemoFiles(vector<CString>& list);
+	/* ------------------------------------------------------------------------------------ */
+	/* 定義                                                                                 */
+	/* ------------------------------------------------------------------------------------ */
+public:
+
+protected:
+
+	/* ------------------------------------------------------------------------------------ */
+	/* メンバ変数                                                                           */
+	/* ------------------------------------------------------------------------------------ */
+public:
+
+protected:
+
+	/* ------------------------------------------------------------------------------------ */
+	/* メンバ関数                                                                           */
+	/* ------------------------------------------------------------------------------------ */
+public:
+
+protected:
+	void	createCustomControl();
+	void	getDemoFiles(vector<CString>& list);
+
+	/* ------------------------------------------------------------------------------------ */
+
 
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV サポート
@@ -34,9 +58,7 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnBnClickedMfcbuttonManager();
 	afx_msg void OnBnClickedMfcbuttonDetail();
-	CMFCButton mManager;
-	CMFCButton mDetail;
-	UINT mLoop;
+	afx_msg void OnBnClickedMfcbuttonLoad();
+	afx_msg void OnBnClickedMfcbutton();
 };

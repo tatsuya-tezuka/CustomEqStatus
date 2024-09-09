@@ -147,7 +147,7 @@ protected:
 	/* ------------------------------------------------------------------------------------ */
 public:
 	CWnd*	GetParent() { return mTreeParent; }
-	void	Create(CWnd* parent, CFont& font);
+	void	Create(CWnd* parent);
 	void	ResizeControl(int dx, int dy);
 	void	DividerDblClick(int item);
 
@@ -155,6 +155,9 @@ public:
 	void	SetPosX(int val) { mxPos = val; }
 	int		GetTotalCX() { return mcxTotal; }
 
+	/// フォント
+	CFont& GetFontEx(UINT type);
+	void SetFontEx(UINT type, LOGFONT& lf);
 
 	/// ヘッダー情報
 	int		GetHeaderHeight() { return mcyHeader; }
@@ -162,7 +165,7 @@ public:
 	void	AdjustColumnWidth(int nColumn, BOOL bIgnoreCollapsed);
 	int		GetHeaderWidth(int col = -1);
 
-	///ラベル編集
+	/// ラベル編集
 	void SetClickCallback(CLICKCALLBACK callback)
 	{
 		mClickCallback = callback;

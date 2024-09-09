@@ -10,6 +10,12 @@
 #define new DEBUG_NEW
 #endif
 
+//#define _CRTDBG_MAP_ALLOC
+//#ifdef _DEBUG
+//#define new DEBUG_NEW
+//#undef THIS_FILE
+//static char THIS_FILE[] = __FILE__;
+//#endif
 
 // CCustomEqStatusDemoApp
 
@@ -77,6 +83,7 @@ BOOL CCustomEqStatusDemoApp::InitInstance()
 
 	CCustomEqStatusDemoDlg dlg;
 	m_pMainWnd = &dlg;
+
 	INT_PTR nResponse = dlg.DoModal();
 	if (nResponse == IDOK)
 	{
@@ -108,7 +115,12 @@ BOOL CCustomEqStatusDemoApp::InitInstance()
 int CCustomEqStatusDemoApp::ExitInstance()
 {
 	TerminateApp();
+
+	if (CMFCVisualManager::GetInstance() != NULL)
+		delete CMFCVisualManager::GetInstance();
 	CMFCVisualManager::DestroyInstance();
+
+	//_CrtDumpMemoryLeaks();
 
 	return CWinApp::ExitInstance();
 }

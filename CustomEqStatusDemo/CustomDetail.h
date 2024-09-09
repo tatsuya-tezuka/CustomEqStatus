@@ -38,7 +38,8 @@ public:
 
 protected:
 	bool		mRestore;
-	CFont		mTreeFont;
+	LOGFONT		mTreeLogFont;
+	HTREEITEM	mMenuItem;
 
 	/* ------------------------------------------------------------------------------------ */
 	/* ÉÅÉìÉoä÷êî                                                                           */
@@ -68,6 +69,7 @@ protected:
 	}
 	void	resizeFit();
 
+
 	/* ------------------------------------------------------------------------------------ */
 
 protected:
@@ -85,4 +87,9 @@ public:
 	afx_msg void OnHeaderItemChanged(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnHeaderDividerdblclick(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
+	afx_msg void OnDetailAdd();
+	afx_msg void OnDetailDelete();
+	afx_msg void OnDetailRename();
+	afx_msg void OnDetailMonctrl();
+	afx_msg void OnDetailConfig();
 };

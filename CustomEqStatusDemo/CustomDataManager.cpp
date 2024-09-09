@@ -242,7 +242,7 @@ CCustomDataManager::~CCustomDataManager()
 @retval
 */
 /*============================================================================*/
-bool CCustomDataManager::GetNodeColor(CWnd* pwnd, UINT type, UINT subtype, stColorData& color)
+bool CCustomDataManager::GetNodeColor(CWnd* pwnd, UINT type, stColorData& color)
 {
 	CTreeNode* pnode = SearchWndNode(pwnd);
 	if (pnode == NULL)
@@ -256,7 +256,7 @@ bool CCustomDataManager::GetNodeColor(CWnd* pwnd, UINT type, UINT subtype, stCol
 		break;
 	}
 
-	bool ret = getNodeTypeColor(pnode, type, subtype, color);
+	bool ret = getNodeTypeColor(pnode, type, color);
 
 	return ret;
 }
@@ -271,7 +271,7 @@ bool CCustomDataManager::GetNodeColor(CWnd* pwnd, UINT type, UINT subtype, stCol
 @retval
 */
 /*============================================================================*/
-bool CCustomDataManager::SetNodeColor(CWnd* pwnd, UINT type, UINT subtype, stColorData& color)
+bool CCustomDataManager::SetNodeColor(CWnd* pwnd, UINT type, stColorData& color)
 {
 	CTreeNode* pnode = SearchWndNode(pwnd);
 	if (pnode == NULL)
@@ -285,7 +285,7 @@ bool CCustomDataManager::SetNodeColor(CWnd* pwnd, UINT type, UINT subtype, stCol
 		break;
 	}
 
-	bool ret = setNodeTypeColor(pnode, type, subtype, color);
+	bool ret = setNodeTypeColor(pnode, type, color);
 
 	return ret;
 }
@@ -303,7 +303,7 @@ bool CCustomDataManager::SetNodeColor(CWnd* pwnd, UINT type, UINT subtype, stCol
 @retval
 */
 /*============================================================================*/
-bool CCustomDataManager::getNodeTypeColor(CTreeNode* pnode, UINT type, UINT subtype, stColorData& color)
+bool CCustomDataManager::getNodeTypeColor(CTreeNode* pnode, UINT type, stColorData& color)
 {
 	if (pnode->GetWindowInfo().type == type){
 		color = pnode->GetColor();
@@ -313,7 +313,7 @@ bool CCustomDataManager::getNodeTypeColor(CTreeNode* pnode, UINT type, UINT subt
 	bool ret;
 	vector<CTreeNode*>::iterator itr;
 	for (itr = pnode->GetChildren().begin(); itr != pnode->GetChildren().end(); itr++) {
-		ret = getNodeTypeColor((*itr), type, subtype, color);
+		ret = getNodeTypeColor((*itr), type, color);
 		if (ret == true)
 			return true;
 	}
@@ -332,7 +332,7 @@ bool CCustomDataManager::getNodeTypeColor(CTreeNode* pnode, UINT type, UINT subt
 @retval
 */
 /*============================================================================*/
-bool CCustomDataManager::setNodeTypeColor(CTreeNode* pnode, UINT type, UINT subtype, stColorData& color)
+bool CCustomDataManager::setNodeTypeColor(CTreeNode* pnode, UINT type, stColorData& color)
 {
 	if (pnode->GetWindowInfo().type == type){
 		pnode->GetColor() = color;
@@ -342,7 +342,7 @@ bool CCustomDataManager::setNodeTypeColor(CTreeNode* pnode, UINT type, UINT subt
 	bool ret;
 	vector<CTreeNode*>::iterator itr;
 	for (itr = pnode->GetChildren().begin(); itr != pnode->GetChildren().end(); itr++) {
-		ret = setNodeTypeColor((*itr), type, subtype, color);
+		ret = setNodeTypeColor((*itr), type, color);
 	}
 	return true;
 }
@@ -536,7 +536,8 @@ bool CCustomDataManager::LoadTreeData(CString strFile, bool bClear)
 	mArc >> size;
 	mTreeNode.reserve(size);
 	for (UINT i = 0; i < size; i++) {
-		CTreeNode* pnode = new CTreeNode((HTREEITEM)i, NULL, NULL);
+		//CTreeNode* pnode = new CTreeNode((HTREEITEM)i, NULL, NULL);
+		CTreeNode* pnode = new CTreeNode((HTREEITEM)NULL, NULL, NULL);
 		if (pnode->LoadTreeNode(mArc) == false) {
 			delete pnode;
 			break;
@@ -626,7 +627,8 @@ bool CTreeNode::LoadTreeNode(CArchive& ar)
 	ar >> size;
 	children.reserve(size);
 	for (UINT i = 0; i < size; i++) {
-		CTreeNode* child = new CTreeNode((HTREEITEM)i, NULL, NULL);
+		//CTreeNode* child = new CTreeNode((HTREEITEM)i, NULL, NULL);
+		CTreeNode* child = new CTreeNode((HTREEITEM)NULL, NULL, NULL);
 		child->LoadTreeNode(ar);
 		children.push_back(child);
 	}
@@ -835,7 +837,8 @@ bool CCustomDataManager::LoadTreeDataXml(CString strFile, bool bClear)
 	for (UINT i = 0; i < size; i++){
 		xml.FindElem(_T("EQUIPMENT"));
 		xml.IntoElem();
-		CTreeNode* pnode = new CTreeNode((HTREEITEM)i, NULL, NULL);
+		//CTreeNode* pnode = new CTreeNode((HTREEITEM)i, NULL, NULL);
+		CTreeNode* pnode = new CTreeNode((HTREEITEM)NULL, NULL, NULL);
 		if (pnode->LoadTreeNodeXml(xml) == false){
 			delete pnode;
 			xml.OutOfElem();
@@ -869,11 +872,11 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 	wininfo.type = _wtoi(xml.GetData());
 	if (wininfo.type == eTreeItemType_Title){
 		xml.FindElem(_T("TITLE"));
-		swprintf_s(wininfo.title, mTitleSize, _T("%s"), xml.GetData());
+		swprintf_s(wininfo.title, mTitleSize, _T("%s"), (LPCTSTR)xml.GetData());
 		xml.FindElem(_T("MEMO"));
-		swprintf_s(wininfo.memo, mTitleSize, _T("%s"), xml.GetData());
+		swprintf_s(wininfo.memo, mTitleSize, _T("%s"), (LPCTSTR)xml.GetData());
 		xml.FindElem(_T("GROUP"));
-		swprintf_s(wininfo.group, mNameSize, _T("%s"), xml.GetData());
+		swprintf_s(wininfo.group, mNameSize, _T("%s"), (LPCTSTR)xml.GetData());
 		xml.FindElem(_T("GROUPNO"));
 		wininfo.groupno = _wtoi(xml.GetData());
 		xml.FindElem(_T("MONITOR"));
@@ -903,18 +906,18 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 	xml.FindElem(_T("MONCTRLINFO"));
 	xml.IntoElem();
 	xml.FindElem(_T("DISPLAY"));
-	swprintf_s(monctrl.display, mNameSize, _T("%s"), xml.GetData());
+	swprintf_s(monctrl.display, mNameSize, _T("%s"), (LPCTSTR)xml.GetData());
 	if (wininfo.type == eTreeItemType_Item){
 		xml.FindElem(_T("MONNAME"));
-		swprintf_s(monctrl.mname, mNameSize, _T("%s"), xml.GetData());
+		swprintf_s(monctrl.mname, mNameSize, _T("%s"), (LPCTSTR)xml.GetData());
 		xml.FindElem(_T("CTRLNAME"));
-		swprintf_s(monctrl.cname, mNameSize, _T("%s"), xml.GetData());
+		swprintf_s(monctrl.cname, mNameSize, _T("%s"), (LPCTSTR)xml.GetData());
 		xml.FindElem(_T("UNIT"));
-		swprintf_s(monctrl.unit, mUnitSize, _T("%s"), xml.GetData());
+		swprintf_s(monctrl.unit, mUnitSize, _T("%s"), (LPCTSTR)xml.GetData());
 		xml.FindElem(_T("FORMATTYPE"));
 		monctrl.formattype = _wtoi(xml.GetData());
 		xml.FindElem(_T("FORMAT"));
-		swprintf_s(monctrl.format, mFormatSize, _T("%s"), xml.GetData());
+		swprintf_s(monctrl.format, mFormatSize, _T("%s"), (LPCTSTR)xml.GetData());
 	}
 	xml.OutOfElem();
 
@@ -939,7 +942,7 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 	xml.FindElem(_T("LFWEIGHT"));
 	color.font.lfWeight = _wtoi(xml.GetData());
 	xml.FindElem(_T("LFFACENAME"));
-	swprintf_s(color.font.lfFaceName, LF_FACESIZE, _T("%s"), xml.GetData());
+	swprintf_s(color.font.lfFaceName, LF_FACESIZE, _T("%s"), (LPCTSTR)xml.GetData());
 	xml.OutOfElem();
 
 	// 子ノードの取得
@@ -949,7 +952,8 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 	for (UINT i = 0; i < size; i++) {
 		xml.FindElem(_T("NODE"));
 		xml.IntoElem();
-		CTreeNode* child = new CTreeNode((HTREEITEM)i, NULL, NULL);
+		//CTreeNode* child = new CTreeNode((HTREEITEM)i, NULL, NULL);
+		CTreeNode* child = new CTreeNode((HTREEITEM)NULL, NULL, NULL);
 		child->LoadTreeNodeXml(xml);
 		children.push_back(child);
 		xml.OutOfElem();
@@ -958,7 +962,7 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 	return true;
 }
 /*============================================================================*/
-/*! ツリーノード
+/*! カスタムデータ管理クラス
 
 -# ノードウィンドウのZオーダーの設定
 
@@ -983,7 +987,7 @@ void CCustomDataManager::SetTreeZorder()
 	}
 }
 /*============================================================================*/
-/*! ツリーノード
+/*! カスタムデータ管理クラス
 
 -# ノードウィンドウのZオーダー更新
 
@@ -1004,4 +1008,127 @@ void CCustomDataManager::ResetTreeZorder()
 	for (ritr = winmap.rbegin(); ritr != winmap.rend(); ++ritr){
 		SetWindowPos((*ritr).second->m_hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
 	}
+}
+
+/*============================================================================*/
+/*! カスタムデータ管理クラス
+
+-# 設備詳細設定の復元
+
+@param		typeLayout	レイアウトファイル種別
+@param		strfile		ノードデータのファイル名
+@param		bClear		trueの場合、保存されているノードデータを削除
+@retval
+
+*/
+/*============================================================================*/
+void CCustomDataManager::LoadEquipmentData(UINT typeLayout, CString strfile, bool bClear/* = true*/)
+{
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("LoadEquipmentData"), _T("Start"), _T(""), nLogEx::info);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
+	CWaitCursor wait;
+	timeBeginPeriod(1);
+	DWORD	start_time = timeGetTime();
+
+	theApp.PrintMemoryInfo();
+
+	// アプリケーション終了時に保存された設備詳細データの復元
+	switch (typeLayout) {
+	case	eLayoutFileType_SCL:
+		LoadTreeData(strfile, bClear);
+		break;
+	case	eLayoutFileType_XML:
+		LoadTreeDataXml(strfile, bClear);
+		break;
+	default:
+		return;
+	}
+
+	// 設備詳細画面を復元する
+	vector<CTreeNode*>& treedata = GetTreeNode();
+	vector<CTreeNode*>::iterator itr;
+	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
+		if (bClear == false && (*itr)->GetWindowInfo().wnd != NULL)
+			continue;
+
+		// 設備詳細画面の作成
+		// ※作成時は非表示とする
+		CCustomDetail* pitem = theApp.CreateEquipment((*itr));
+	}
+
+	//ResetTreeZorder();
+
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	//CLogTraceEx::Write(_T("***"), _T("CCustomEquipmentApp"), _T("RestoreEquipmentDataArchive"), _T("Show Window"), _T(""), nLogEx::info);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
+	// 記憶している状態で再表示
+	//for (itr = treedata.begin(); itr != treedata.end(); itr++) {
+	//	(*itr)->getWindowInfo().wnd->ShowWindow((*itr)->getWindowInfo().placement.showCmd);
+	//}
+
+	DWORD	end_time = timeGetTime();
+	theApp.PrintMemoryInfo();
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CString msg;
+	msg.Format(_T("TreeNode Count : %d"), GetTreeNode().size());
+	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("LoadEquipmentData"), msg, _T(""), nLogEx::info);
+	msg.Format(_T("Elaps Time : %dms"), end_time - start_time);
+	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("LoadEquipmentData"), msg, _T(""), nLogEx::info);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
+}
+
+/*============================================================================*/
+/*! カスタムデータ管理クラス
+
+-# 設備詳細設定の復元
+
+@param		typeLayout	レイアウトファイル種別
+@param		strfile		ノードデータのファイル名
+@retval
+
+*/
+/*============================================================================*/
+void CCustomDataManager::SaveEquipmentData(UINT typeLayout, CString strfile)
+{
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveEquipmentData"), _T("Start"), _T(""), nLogEx::info);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
+	CWaitCursor wait;
+	timeBeginPeriod(1);
+	DWORD	start_time = timeGetTime();
+
+	theApp.PrintMemoryInfo();
+
+	// アプリケーション終了時に保存された設備詳細データの復元
+	switch (typeLayout) {
+	case	eLayoutFileType_SCL:
+		SaveTreeData(strfile);
+		break;
+	case	eLayoutFileType_XML:
+		SaveTreeDataXml(strfile);
+		break;
+	default:
+		return;
+	}
+
+	DWORD	end_time = timeGetTime();
+	theApp.PrintMemoryInfo();
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CString msg;
+	msg.Format(_T("TreeNode Count : %d"), GetTreeNode().size());
+	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveEquipmentData"), msg, _T(""), nLogEx::info);
+	msg.Format(_T("Elaps Time : %dms"), end_time - start_time);
+	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveEquipmentData"), msg, _T(""), nLogEx::info);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
 }

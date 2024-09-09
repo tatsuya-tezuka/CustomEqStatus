@@ -90,6 +90,12 @@ enum eUserMessage{
 	eUserMessage_TreeCtrlEventLast = (eUserMessage_TreeCtrlEventFirst + mCtrlMax),
 };
 
+/// レイアウトファイル種別
+enum eLayoutFileType {
+	eLayoutFileType_SCL = 0,
+	eLayoutFileType_XML,
+};
+
 /// ツリーデータ
 enum eTreeItemMode{
 	eTreeItemMode_Monitor = 0,
@@ -444,8 +450,8 @@ public:
 	}
 
 	/// ◆カラー情報
-	bool	GetNodeColor(CWnd* pwnd, UINT type, UINT subtype, stColorData& color);
-	bool	SetNodeColor(CWnd* pwnd, UINT type, UINT subtype, stColorData& color);
+	bool	GetNodeColor(CWnd* pwnd, UINT type, stColorData& color);
+	bool	SetNodeColor(CWnd* pwnd, UINT type, stColorData& color);
 
 	/// ◆設備制御詳細画面レイアウト
 	bool	SaveTreeData(CString strFile, CWnd* pTargetWnd = NULL);
@@ -457,10 +463,14 @@ public:
 	void	SetTreeZorder();
 	void	ResetTreeZorder();
 
+	/// ファイル管理
+	void	LoadEquipmentData(UINT typeLayout, CString strfile, bool bClear = true);
+	void	SaveEquipmentData(UINT typeLayout, CString strfile);
+
 protected:
 	/// カラー情報
-	bool	getNodeTypeColor(CTreeNode* pnode, UINT type, UINT subtype, stColorData& color);
-	bool	setNodeTypeColor(CTreeNode* pnode, UINT type, UINT subtype, stColorData& color);
+	bool	getNodeTypeColor(CTreeNode* pnode, UINT type, stColorData& color);
+	bool	setNodeTypeColor(CTreeNode* pnode, UINT type, stColorData& color);
 
 	/* ------------------------------------------------------------------------------------ */
 };
