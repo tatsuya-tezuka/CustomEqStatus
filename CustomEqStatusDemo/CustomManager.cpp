@@ -76,9 +76,15 @@ BOOL CCustomManager::OnInitDialog()
 	mManagerList.CreateGroupControl();
 	SetControlInfo(IDC_LIST_MANAGER, ANCHORE_LEFTTOP | RESIZE_BOTH);
 
+	// 登録されているカスタム画面の作成
+	createEquipment();
+
+	// リストに登録
 	if (theApp.GetDataManager().GetTreeNode().size() != 0){
 		createItem((int)eSelectUser);
 	}
+
+	updateGroup();
 
 	CenterWindow();
 
@@ -390,12 +396,12 @@ void CCustomManager::OnManagerSave()
 
 -# 設備詳細をリストへ登録する
 
-@param
+@param	nSelect		ユーザorマスタ
 
 @retval
 */
 /*============================================================================*/
-void CCustomManager::createItem(int nSelect)
+void CCustomManager::createItem(UINT nSelect)
 {
 	mManagerList.SetRedraw(FALSE);
 
@@ -409,7 +415,7 @@ void CCustomManager::createItem(int nSelect)
 		if ((*itr)->GetWindowInfo().kind == nSelect){
 			mManagerList.AddItem(count, 0, (*itr)->GetWindowInfo().title, (LPARAM)(*itr));
 			mManagerList.AddItem(count, 1, (*itr)->GetWindowInfo().memo);
-			mManagerList.AddItem(count, 2, (*itr)->GetWindowInfo().group);
+			mManagerList.AddItem(count, 2, (*itr)->GetWindowInfo().groupname);
 			mManagerList.SetItemData(count, (LPARAM)(*itr));
 			(*itr)->GetWindowInfo().manager = this;
 		}
@@ -418,6 +424,55 @@ void CCustomManager::createItem(int nSelect)
 	mManagerList.SetRedraw(TRUE);
 
 	mManagerList.GroupByColumn(eManagerGroup, (nSelect == eSelectUser) ? TRUE : FALSE);
+}
+
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# 設備詳細の作成
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomManager::createEquipment()
+{
+	// 登録されているカスタム画面の作成
+	vector<CTreeNode*>& treedata = theApp.GetDataManager().GetTreeNode();
+	vector<CTreeNode*>::iterator itr;
+	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
+		// 設備詳細画面の作成
+		//if ((*itr)->GetWindowInfo().kind == eTreeItemKind_User) {
+		CCustomDetail* pitem = theApp.CreateEquipment((*itr));
+		//}
+	}
+}
+
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# 設備詳細の作成
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomManager::updateGroup()
+{
+	// 登録されているカスタム画面のグループ更新
+	vector<CTreeNode*>& treedata = theApp.GetDataManager().GetTreeNode();
+	vector<CTreeNode*>::iterator itr;
+	// 全てのグループ情報を削除
+	mSyncWindow.Clear(0);
+	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
+		if ((*itr)->GetWindowInfo().kind == eTreeItemKind_User && HIWORD((*itr)->GetWindowInfo().groupno) != 0) {
+			mSyncWindow.Set((*itr)->GetWindowInfo().groupno, (*itr)->GetWindowInfo().wnd);
+		}
+	}
+
+	mSyncWindow.Start();
 }
 
 /*============================================================================*/

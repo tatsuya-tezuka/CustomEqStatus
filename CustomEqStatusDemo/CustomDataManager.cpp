@@ -433,7 +433,7 @@ bool CTreeNode::SaveTreeNode(CArchive& ar)
 	if (wininfo.type == eTreeItemType_Title) {
 		ar << CString(wininfo.title);
 		ar << CString(wininfo.memo);
-		ar << CString(wininfo.group);
+		ar << CString(wininfo.groupname);
 		ar << wininfo.groupno;
 		ar << wininfo.monitor;
 		ar << wininfo.placement.flags;
@@ -576,7 +576,7 @@ bool CTreeNode::LoadTreeNode(CArchive& ar)
 		ar >> str;
 		swprintf_s(wininfo.memo, mTitleSize, _T("%s"), (LPCTSTR)str);
 		ar >> str;
-		swprintf_s(wininfo.group, mNameSize, _T("%s"), (LPCTSTR)str);
+		swprintf_s(wininfo.groupname, mNameSize, _T("%s"), (LPCTSTR)str);
 		ar >> wininfo.groupno;
 		ar >> wininfo.monitor;
 		wininfo.placement.length = sizeof(WINDOWPLACEMENT);
@@ -735,7 +735,7 @@ bool CTreeNode::SaveTreeNodeXml(CMarkup& xml)
 	if (wininfo.type == eTreeItemType_Title){
 		xml.AddElem(_T("TITLE"), wininfo.title);
 		xml.AddElem(_T("MEMO"), wininfo.memo);
-		xml.AddElem(_T("GROUP"), wininfo.group);
+		xml.AddElem(_T("GROUP"), wininfo.groupname);
 		xml.AddElem(_T("GROUPNO"), wininfo.groupno);
 		xml.AddElem(_T("MONITOR"), wininfo.monitor);
 		xml.AddElem(_T("FLAGS"), wininfo.placement.flags);
@@ -876,7 +876,7 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 		xml.FindElem(_T("MEMO"));
 		swprintf_s(wininfo.memo, mTitleSize, _T("%s"), (LPCTSTR)xml.GetData());
 		xml.FindElem(_T("GROUP"));
-		swprintf_s(wininfo.group, mNameSize, _T("%s"), (LPCTSTR)xml.GetData());
+		swprintf_s(wininfo.groupname, mNameSize, _T("%s"), (LPCTSTR)xml.GetData());
 		xml.FindElem(_T("GROUPNO"));
 		wininfo.groupno = _wtoi(xml.GetData());
 		xml.FindElem(_T("MONITOR"));

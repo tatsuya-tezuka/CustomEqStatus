@@ -481,12 +481,12 @@ BOOL CCustomGroupListCtrl::GroupByColumn(int nCol, BOOL bEnableGroup/* = TRUE*/)
 		for (int nRow = 0; nRow < GetItemCount(); ++nRow){
 			// データのグループ番号から対象カラムのテキストを設定する
 			CTreeNode* pnode = (CTreeNode*)GetItemData(nRow);
-			if (pnode->GetWindowInfo().groupno == 0){
+			if (HIWORD(pnode->GetWindowInfo().groupno) == 0){
 				SetItemText(nRow, nCol, _T("No Group"));
 			}
 			else{
 				CString str;
-				str.Format(_T("Group_%d"), pnode->GetWindowInfo().groupno);
+				str.Format(_T("Group_%d"), HIWORD(pnode->GetWindowInfo().groupno));
 				SetItemText(nRow, nCol, str);
 			}
 			// アイテム文字列からグループを作成する

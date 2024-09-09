@@ -10,6 +10,7 @@
 #include "CustomDialogBase.h"
 #include "afxcmn.h"
 #include "CustomGroupListCtrl.h"
+#include "CustomSynchroWindow.h"
 
 // CCustomManager ダイアログ
 
@@ -38,14 +39,18 @@ protected:
 public:
 
 protected:
+	CCustomSynchroWindow		mSyncWindow;
 
 	/* ------------------------------------------------------------------------------------ */
 	/* メンバ関数                                                                           */
 	/* ------------------------------------------------------------------------------------ */
 public:
+	CCustomSynchroWindow& GetCustomSyncWindow() { return mSyncWindow; }
 
 protected:
-	void	createItem(int nSelect);
+	void	createItem(UINT nSelect);
+	void	createEquipment();
+	void	updateGroup();
 	void	createEqDetail(CTreeNode* node = NULL);
 	void	updateMenuItemStatus(CMenu* pMenu);
 

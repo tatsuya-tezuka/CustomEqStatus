@@ -75,5 +75,6 @@ public:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	afx_msg void OnClose();
 	virtual INT_PTR DoModal();
+	afx_msg void OnMoving(UINT fwSide, LPRECT pRect);
 };
 

@@ -220,7 +220,7 @@ CCustomDetail* CCustomEqStatusDemoApp::CreateEquipment(CTreeNode* pnode)
 		CTreeNode* pnodeitem = theApp.GetDataManager().SearchWndNode(pitem);
 		pnodeitem->GetWindowInfo().wnd = pitem;
 		pnodeitem->GetWindowInfo().manager = &mCustomManager;
-		swprintf_s(pnodeitem->GetWindowInfo().group, mNameSize, _T("%s"), (LPCTSTR)_T("0"));
+		swprintf_s(pnodeitem->GetWindowInfo().groupname, mNameSize, _T("%s"), (LPCTSTR)_T("0"));
 		pnodeitem->GetWindowInfo().groupno = 0;
 		pnodeitem->GetWindowInfo().mode = eTreeItemMode_Monitor;
 		pnodeitem->GetWindowInfo().kind = eTreeItemKind_User;

@@ -146,8 +146,8 @@ typedef struct{
 	UINT			type;				// 表示名種別：eTreeItemType
 	TCHAR			title[mTitleSize];	// ウィンドウタイトル
 	TCHAR			memo[mTitleSize];	// ウィンドメモ
-	TCHAR			group[mNameSize];	// グループ
-	UINT			groupno;			// グループ番号
+	TCHAR			groupname[mNameSize];	// グループ
+	UINT			groupno;			// グループ番号(下位ワード：グループ内番号　上位ワード：グループ番号)
 	WINDOWPLACEMENT	placement;			// ウィンドウ位置情報
 	UINT			treeopen;			// ツリーアイテムの開閉状態
 	UINT			hwidth[mHeaderSize]; // 詳細画面ヘッダー幅
@@ -164,7 +164,7 @@ typedef struct{
 	TCHAR			format[mFormatSize];// フォーマット書式文字列
 } stMonCtrlData;
 
-typedef struct{
+typedef struct {
 	COLORREF		back;				// 背景色
 	COLORREF		textback;			// テキスト背景色
 	COLORREF		text;				// テキスト色

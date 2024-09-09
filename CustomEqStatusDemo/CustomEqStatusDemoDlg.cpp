@@ -193,6 +193,8 @@ void CCustomEqStatusDemoDlg::createCustomControl()
 	}
 	theApp.GetCustomManager().ShowWindow(SW_SHOW);
 
+	return;
+
 #ifdef _DEMO
 	// デモ用のカスタム
 	vector<CTreeNode*>& treedata = theApp.GetDataManager().GetTreeNode();

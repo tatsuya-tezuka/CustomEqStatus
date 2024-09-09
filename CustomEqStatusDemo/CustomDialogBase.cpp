@@ -6,6 +6,7 @@
 * @par
 ******************************************************************************/
 #include "stdafx.h"
+#include "CustomEqStatusDemo.h"
 #include "CustomDialogBase.h"
 
 /*
@@ -39,6 +40,7 @@ BEGIN_MESSAGE_MAP(CCustomDialogBase, CDialogEx)
 	ON_WM_SIZE()
 	ON_WM_GETMINMAXINFO()
 	ON_WM_CLOSE()
+	ON_WM_MOVING()
 END_MESSAGE_MAP()
 
 /*============================================================================*/
@@ -116,6 +118,29 @@ void CCustomDialogBase::OnSize(UINT nType, int cx, int cy)
 
 	mSaveCx = cx;
 	mSaveCy = cy;
+}
+
+/*============================================================================*/
+/*! CCustomDialogBase
+
+-# ウィンドウ移動
+
+@breif	画面連動されている場合は同期して移動する
+@param
+@retval
+*/
+/*============================================================================*/
+void CCustomDialogBase::OnMoving(UINT fwSide, LPRECT pRect)
+{
+	CDialogEx::OnMoving(fwSide, pRect);
+
+	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
+	if (pnode == NULL || HIWORD(pnode->GetWindowInfo().groupno) == 0)
+		return;
+
+	CRect rect;
+	pnode->GetWindowInfo().wnd->GetWindowRect(rect);
+	theApp.GetCustomManager().GetCustomSyncWindow().Move(pnode->GetWindowInfo().groupno, pnode->GetWindowInfo().wnd, &rect);
 }
 
 /*============================================================================*/
