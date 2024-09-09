@@ -112,6 +112,7 @@ void CCustomSynchroWindow::Move(UINT group, CWnd* pbase, CRect rectbase)
 			rect.right = rect.left + (GetSystemMetrics(SM_CXSIZEFRAME) * 3);
 			rect.left = rect.right - rc.Width();
 			(*itrRight).wnd->MoveWindow(rect.left, rect.top, rc.Width(), rc.Height());
+			SetWindowPos((*itrRight).wnd->m_hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE| SWP_NOACTIVATE);
 			//rect.right -= rc.Width();
 		}
 		else {
@@ -129,6 +130,7 @@ void CCustomSynchroWindow::Move(UINT group, CWnd* pbase, CRect rectbase)
 			(*itrLeft).wnd->GetWindowRect(rc);
 			rect.right -= (GetSystemMetrics(SM_CXSIZEFRAME) * 3);
 			(*itrLeft).wnd->MoveWindow(rect.right, rect.top, rc.Width(), rc.Height());
+			SetWindowPos((*itrLeft).wnd->m_hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE| SWP_NOACTIVATE);
 			rect.right += rc.Width();
 		}
 		else {
@@ -137,7 +139,6 @@ void CCustomSynchroWindow::Move(UINT group, CWnd* pbase, CRect rectbase)
 			}
 		}
 	}
-
 }
 
 /*============================================================================*/

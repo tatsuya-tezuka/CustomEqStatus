@@ -116,6 +116,13 @@ void CCustomDialogBase::OnSize(UINT nType, int cx, int cy)
 		}
 	}
 
+	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
+	if (pnode != NULL && HIWORD(pnode->GetWindowInfo().groupno) != 0) {
+		CRect rect;
+		pnode->GetWindowInfo().wnd->GetWindowRect(rect);
+		theApp.GetCustomManager().GetCustomSyncWindow().Move(pnode->GetWindowInfo().groupno, pnode->GetWindowInfo().wnd, &rect);
+	}
+
 	mSaveCx = cx;
 	mSaveCy = cy;
 }

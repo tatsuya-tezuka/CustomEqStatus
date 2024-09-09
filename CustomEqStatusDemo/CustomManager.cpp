@@ -443,9 +443,7 @@ void CCustomManager::createEquipment()
 	vector<CTreeNode*>::iterator itr;
 	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
 		// 設備詳細画面の作成
-		//if ((*itr)->GetWindowInfo().kind == eTreeItemKind_User) {
 		CCustomDetail* pitem = theApp.CreateEquipment((*itr));
-		//}
 	}
 }
 
@@ -461,6 +459,9 @@ void CCustomManager::createEquipment()
 /*============================================================================*/
 void CCustomManager::updateGroup()
 {
+#ifdef _DEMO
+	//return;
+#endif
 	// 登録されているカスタム画面のグループ更新
 	vector<CTreeNode*>& treedata = theApp.GetDataManager().GetTreeNode();
 	vector<CTreeNode*>::iterator itr;

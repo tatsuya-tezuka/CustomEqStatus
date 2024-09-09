@@ -383,7 +383,7 @@ void CCustomDetail::createTreeControl()
 /*============================================================================*/
 BOOL CALLBACK CCustomDetail::messageClick(CWnd* pwnd, HTREEITEM hItem, UINT nSubItem, CPoint point)
 {
-#ifdef _DEMO
+#ifdef _NOPROC
 	return FALSE;
 #else
 	//CCustomDetail* p = CCustomDetail::Instance();
@@ -426,7 +426,7 @@ BOOL CALLBACK CCustomDetail::messageClick(CWnd* pwnd, HTREEITEM hItem, UINT nSub
 /*============================================================================*/
 BOOL CALLBACK CCustomDetail::messageDrag(CWnd* pwnd, UINT status, HTREEITEM hItem, LPARAM lParam1, LPARAM lParam2, LPARAM lParam3)
 {
-#ifdef _DEMO
+#ifdef _NOPROC
 	return FALSE;
 #else
 	//CCustomDetail* p = CCustomDetail::Instance();

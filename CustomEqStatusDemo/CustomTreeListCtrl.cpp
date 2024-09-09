@@ -638,7 +638,7 @@ void CCustomTreeListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 	CPoint		pt = point;
 	ClientToScreen(&pt);
 
-#ifdef _DEMO
+#ifdef _NOPROC
 #else
 	if (mbDragging){
 		// ÉhÉâÉbÉOíÜ
@@ -722,7 +722,7 @@ void CCustomTreeListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 /*============================================================================*/
 void CCustomTreeListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 {
-#ifdef _DEMO
+#ifdef _NOPROC
 #else
 	if (!(MK_CONTROL & nFlags)/* && !(MK_SHIFT & nFlags)*/){
 		if (mSelectItems.size() > 1){
@@ -1126,7 +1126,7 @@ void CCustomTreeListCtrl::OnTvnBegindrag(NMHDR *pNMHDR, LRESULT *pResult)
 	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
 	*pResult = 0;
 
-#ifdef _DEMO
+#ifdef _NOPROC
 #else
 	if (mDragCallback == NULL)
 		return;
@@ -1858,7 +1858,7 @@ CImageList* CCustomTreeListCtrl::createDragImageEx(HTREEITEM hItem)
 /*============================================================================*/
 bool CCustomTreeListCtrl::isDropExecute(HTREEITEM hItemDrag, HTREEITEM hItemDrop)
 {
-#ifdef _DEMO
+#ifdef _NOPROC
 	return false;
 #else
 	if (mDragCallback == NULL)
@@ -2077,7 +2077,7 @@ int CCustomTreeListCtrl::getMaxColumnWidth(HTREEITEM hItem, int nColumn, int nDe
 	return nMaxWidth;
 }
 
-#ifndef _DEMO
+#ifndef _NOPROC
 /*============================================================================*/
 /*! ê›îıè⁄ç◊
 
