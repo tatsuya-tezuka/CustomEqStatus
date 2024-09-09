@@ -80,6 +80,8 @@ BOOL CCustomManager::OnInitDialog()
 		createItem((int)eSelectUser);
 	}
 
+	CenterWindow();
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
 }
