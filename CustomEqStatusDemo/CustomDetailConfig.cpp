@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "CustomEqStatusDemo.h"
 #include "afxdialogex.h"
-#include "CCustomDetailConfig.h"
+#include "CustomDetailConfig.h"
 
 
 // CCustomDetailConfig ダイアログ

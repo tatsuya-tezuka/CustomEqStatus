@@ -9,7 +9,7 @@
 #include "CustomEqStatusDemo.h"
 #include "CustomDetail.h"
 #include "afxdialogex.h"
-#include "CCustomDetailConfig.h"
+#include "CustomDetailConfig.h"
 
 #include <dwmapi.h>
 #pragma comment(lib, "Dwmapi.lib")
