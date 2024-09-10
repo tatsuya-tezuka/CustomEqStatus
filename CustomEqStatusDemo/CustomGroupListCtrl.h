@@ -100,6 +100,12 @@ public:
 	/* 定義                                                                                 */
 	/* ------------------------------------------------------------------------------------ */
 public:
+	///  グループリストのドラッグデータ
+	typedef struct {
+		UINT		group;		// グループ番号
+		POINT		point;		// マウス位置情報
+		vector<int>	indexes;	// ドラッグアイテム
+	} stGroupDragData;
 protected:
 
 	/* ------------------------------------------------------------------------------------ */
@@ -107,16 +113,22 @@ protected:
 	/* ------------------------------------------------------------------------------------ */
 public:
 protected:
+	CWnd*	mParent;
 	CFont	mListFont;
 	CEdit	*mpEdit;
 
 	/// ドラッグ＆ドロップ関連
+	/// ドラッグ＆ドロップ関連
+	stGroupDragData		mDragData;
+	CImageList*			mpDragImage;
+	COLORREF			mcDragBackColor;
+	COLORREF			mcDragTextColor;
 
 	/* ------------------------------------------------------------------------------------ */
 	/* メンバ関数                                                                           */
 	/* ------------------------------------------------------------------------------------ */
 public:
-	void	CreateGroupControl();
+	void	CreateGroupControl(CWnd* parent);
 	BOOL	GroupByColumn(int nCol, BOOL bEnableGroup=TRUE);
 
 	/// カラムの自動サイズ調整
@@ -172,6 +184,9 @@ protected:
 
 	CEdit*	editSubLabel(int item, int colnum);
 
+	CImageList* createDragImageEx(LPPOINT lpPoint);
+	void	dropItem(CPoint point);
+
 	/* ------------------------------------------------------------------------------------ */
 
 	DECLARE_MESSAGE_MAP()
@@ -183,5 +198,8 @@ public:
 	afx_msg void OnHdnDividerdblclick(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnLvnBegindrag(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 };
 

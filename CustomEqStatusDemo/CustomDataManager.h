@@ -467,6 +467,9 @@ public:
 	void	LoadEquipmentData(UINT typeLayout, CString strfile, bool bClear = true);
 	void	SaveEquipmentData(UINT typeLayout, CString strfile, CWnd* pTargetWnd=NULL);
 
+	/// 画面連結関連
+	UINT	GetMaxInnerNo(UINT group);
+
 protected:
 	/// カラー情報
 	bool	getNodeTypeColor(CTreeNode* pnode, UINT type, stColorData& color);

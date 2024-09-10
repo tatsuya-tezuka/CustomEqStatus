@@ -293,6 +293,11 @@ CCustomGroupListCtrl::CCustomGroupListCtrl()
 	}
 
 	mpEdit = NULL;
+
+	mDragData.indexes.clear();
+	mpDragImage = NULL;
+	mcDragBackColor = GetSysColor(COLOR_WINDOW);
+	mcDragTextColor = GetSysColor(COLOR_WINDOWTEXT);
 }
 
 
@@ -309,6 +314,9 @@ BEGIN_MESSAGE_MAP(CCustomGroupListCtrl, CListCtrl)
 	ON_NOTIFY(HDN_DIVIDERDBLCLICKW, 0, &CCustomGroupListCtrl::OnHdnDividerdblclick)
 	ON_WM_LBUTTONDOWN()
 	ON_NOTIFY_REFLECT(LVN_ENDLABELEDIT, &CCustomGroupListCtrl::OnLvnEndlabeledit)
+	ON_NOTIFY_REFLECT(LVN_BEGINDRAG, &CCustomGroupListCtrl::OnLvnBegindrag)
+	ON_WM_MOUSEMOVE()
+	ON_WM_LBUTTONUP()
 END_MESSAGE_MAP()
 
 /*============================================================================*/
@@ -324,7 +332,16 @@ END_MESSAGE_MAP()
 BOOL CCustomGroupListCtrl::PreTranslateMessage(MSG* pMsg)
 {
 	if (pMsg->wParam == VK_ESCAPE){
-		return TRUE;
+		if (mpDragImage) {
+			::ReleaseCapture();
+			mpDragImage->DragLeave(CWnd::GetDesktopWindow());
+			mpDragImage->EndDrag();
+
+			delete mpDragImage;
+			mpDragImage = NULL;
+			SetItemState(-1, 0, LVIS_DROPHILITED);
+			return TRUE;
+		}
 	}
 
 	return CListCtrl::PreTranslateMessage(pMsg);
@@ -427,8 +444,9 @@ void CCustomGroupListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 
 */
 /*============================================================================*/
-void CCustomGroupListCtrl::CreateGroupControl()
+void CCustomGroupListCtrl::CreateGroupControl(CWnd* parent)
 {
+	mParent = parent;
 	// 拡張スタイルの取得
 	DWORD  dwStyle = ListView_GetExtendedListViewStyle(m_hWnd);
 	//  拡張スタイルのセット
@@ -584,12 +602,14 @@ int CCustomGroupListCtrl::HitTestEx(CPoint &point, int *col)
 				int colwidth = GetColumnWidth(colnum);
 				if (point.x >= rect.left && point.x <= (rect.left + colwidth)){
 					if (col) *col = colnum;
+					TRACE("Select Item(%d) SubItem(%d)\n", row, *col);
 					return row;
 				}
 				rect.left += colwidth;
 			}
 		}
 	}
+	TRACE("Not Select Item\n");
 	return -1;
 }
 
@@ -902,4 +922,273 @@ void CCustomGroupListCtrl::OnLvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 		mpEdit = NULL;
 	}
 	*pResult = 0;
+}
+
+/*============================================================================*/
+/*! グループリスト
+
+-# ドラッグの開始
+
+@param		pNMHDR	NMHDR 構造体
+@param		pResult	処理結果
+
+@retval
+*/
+/*============================================================================*/
+void CCustomGroupListCtrl::OnLvnBegindrag(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
+
+	if (pNMLV) {
+		mDragData.indexes.clear();
+		// 先頭のドラッグアイテム情報を取得する
+		POSITION pos = GetFirstSelectedItemPosition();
+		while (pos) {
+			int item = GetNextSelectedItem(pos);
+			CTreeNode* pnode = (CTreeNode*)GetItemData(item);
+			mDragData.group = HIWORD(pnode->GetWindowInfo().groupno);
+			break;
+		}
+
+		// 選択されている項目が全て同じグループかチェックする
+		pos = GetFirstSelectedItemPosition();
+		while (pos) {
+			int item = (int)GetNextSelectedItem(pos);
+			CTreeNode* pnode = (CTreeNode*)GetItemData(item);
+			if (mDragData.group == HIWORD(pnode->GetWindowInfo().groupno)) {
+				mDragData.indexes.push_back(item);
+			}
+			else {
+				// 異なったグループの選択状態なので何もしない
+				*pResult = 0;
+				return;
+			}
+		}
+
+		if (mDragData.indexes.size() > 0) {
+			if (mpDragImage != NULL)
+				delete mpDragImage;
+			CPoint ptDragItem;
+			mpDragImage = createDragImageEx(&ptDragItem);
+			if (mpDragImage) {
+				mpDragImage->BeginDrag(0, ptDragItem);
+				mpDragImage->DragEnter(CWnd::GetDesktopWindow(), pNMLV->ptAction);
+				SetCapture();
+			}
+		}
+	}
+
+	*pResult = 0;
+}
+
+
+void CCustomGroupListCtrl::OnMouseMove(UINT nFlags, CPoint point)
+{
+#if 0
+	if (mpDragImage) {
+		CPoint ptDragImage(point);
+		ClientToScreen(&ptDragImage);
+		mpDragImage->DragMove(ptDragImage);
+
+		// ドロップウィンドウの確認
+		CWnd* pDropWnd = WindowFromPoint(ptDragImage);
+		mDragData.point.x = ptDragImage.x;
+		mDragData.point.y = ptDragImage.y;
+
+		BOOL bTarget = FALSE;
+		//if (mDragDropCallback != NULL) {
+		//	bTarget = mDragDropCallback(eUserMessage_Drag_Select, (LPARAM)pDropWnd, (LPARAM)&mDragData, 0);
+		//}
+		if (bTarget == TRUE) {
+			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+		}
+		else {
+			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
+		}
+	}
+#else
+	if (mpDragImage) {
+		CPoint ptDragImage(point);
+		ClientToScreen(&ptDragImage);
+		mpDragImage->DragMove(ptDragImage);
+
+		SetRedraw(FALSE);
+		UINT flags = 0;
+		int index = HitTest(point, &flags);
+
+		if (index >= 0) {
+			TRACE("Drop Item(%d)\n", index);
+			SetItemState(-1, 0, LVIS_DROPHILITED);
+			SetItemState(index, LVIS_DROPHILITED, LVIS_DROPHILITED);
+			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+		}
+		else {
+			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
+		}
+
+		SetRedraw(TRUE);
+	}
+#endif
+
+	CListCtrl::OnMouseMove(nFlags, point);
+}
+
+
+void CCustomGroupListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	if (mpDragImage) {
+		::ReleaseCapture();
+		mpDragImage->DragLeave(CWnd::GetDesktopWindow());
+		mpDragImage->EndDrag();
+
+		delete mpDragImage;
+		mpDragImage = NULL;
+		dropItem(point);
+		SetItemState(-1, 0, LVIS_DROPHILITED);
+	}
+
+	CListCtrl::OnLButtonUp(nFlags, point);
+}
+
+/*============================================================================*/
+/*! グループリスト
+
+-# ドラッグイメージの作成
+
+@param		lpPoint	位置情報
+
+@retval
+*/
+/*============================================================================*/
+CImageList* CCustomGroupListCtrl::createDragImageEx(LPPOINT lpPoint)
+{
+	const COLORREF	mDragImageMaskColor = RGB(255, 0, 255);
+
+	CRect rectSingle;
+	CRect rectComplete(0, 0, 0, 0);
+	int	nIndex = -1;
+	BOOL bFirst = TRUE;
+
+	// ここで選択されているアイテムの矩形と文字列を取得する
+
+	// ビットマップを作成するための矩形を取得する
+	// ドラッグデータの工数で縦サイズを決定する
+	CPoint ptCursor;
+	GetCursorPos(&ptCursor);
+	ScreenToClient(&ptCursor);
+	GetItemRect(0, rectSingle, LVIR_BOUNDS);
+	rectComplete = rectSingle;
+	rectComplete.top = ptCursor.y;
+	rectComplete.bottom = ptCursor.y + (rectSingle.Height() * (int)mDragData.indexes.size());
+
+	CClientDC dcClient(this);
+	CDC dcMem;
+	CBitmap Bitmap;
+	// リストコントロールのフォントを取得
+	CFont* oldfont, * pfont = GetFont();
+
+	// メモリDCとビットマップの作成
+	if (!dcMem.CreateCompatibleDC(&dcClient)) {
+		return NULL;
+	}
+
+	if (!Bitmap.CreateCompatibleBitmap(&dcClient, rectComplete.Width(), rectComplete.Height())) {
+		dcMem.DeleteDC();
+		return NULL;
+	}
+
+	CBitmap* pOldMemDCBitmap = dcMem.SelectObject(&Bitmap);
+	// 背景塗りつぶし
+	dcMem.FillSolidRect(0, 0, rectComplete.Width(), rectComplete.Height(), mcDragBackColor);
+
+	oldfont = dcMem.SelectObject(pfont);
+	COLORREF oldcolor = dcMem.SetTextColor(mcDragTextColor);
+
+	CHeaderCtrl* pHeader = (CHeaderCtrl*)GetDlgItem(0);
+	int nColumnCount = pHeader->GetItemCount();
+	CString str;
+	CRect rectItem, rectDraw;
+
+	vector<int>::iterator itr;
+	rectDraw = CRect(0,0,0,0);
+	for(itr= mDragData.indexes.begin(); itr!= mDragData.indexes.end(); itr++){
+		GetItemRect((*itr), rectItem, LVIR_BOUNDS);
+		rectDraw.right = rectItem.Width();
+		rectDraw.bottom += rectItem.Height();
+		str = GetItemText((*itr), 0);
+		dcMem.DrawText(str, rectDraw, DT_LEFT | DT_TOP);
+		rectDraw.top = rectDraw.bottom;
+	}
+
+	dcMem.SetTextColor(oldcolor);
+	dcMem.SelectObject(oldfont);
+	dcMem.SelectObject(pOldMemDCBitmap);
+
+	// ドラッグイメージの作成
+	CImageList* pCompleteImageList = new CImageList;
+	pCompleteImageList->Create(rectComplete.Width(), rectComplete.Height(), ILC_COLOR | ILC_MASK, 0, 1);
+	pCompleteImageList->Add(&Bitmap, mDragImageMaskColor);
+
+	Bitmap.DeleteObject();
+	if (lpPoint) {
+		CPoint ptCursor;
+		GetCursorPos(&ptCursor);
+		ScreenToClient(&ptCursor);
+		lpPoint->x = ptCursor.x - rectComplete.left;
+		lpPoint->y = ptCursor.y - rectComplete.top;
+	}
+
+	return pCompleteImageList;
+}
+
+/*============================================================================*/
+/*! グループリスト
+
+-# ドロップアイテム
+
+@param		lpPoint	位置情報
+
+@retval
+*/
+/*============================================================================*/
+void CCustomGroupListCtrl::dropItem(CPoint point)
+{
+	SetRedraw(FALSE);
+
+	UINT flags = 0;
+	int index = HitTest(point, &flags);
+	vector<CTreeNode*> nodeList;
+	if (index >= 0) {
+		// ドロップ先のノード情報を取得する
+		CTreeNode* masternode = (CTreeNode*)GetItemData(index);
+
+		// 先ずは選択項目のノード情報を取得する
+		vector<int>::iterator itr;
+		for (itr = mDragData.indexes.begin(); itr != mDragData.indexes.end(); itr++) {
+			CTreeNode* node = (CTreeNode*)GetItemData((*itr));
+			nodeList.push_back(node);
+		}
+
+		// 選択項目を削除する
+		POSITION pos;
+		pos = GetFirstSelectedItemPosition();
+		while(pos){
+			pos = GetFirstSelectedItemPosition();
+			int item = GetNextSelectedItem(pos);
+			DeleteItem(item);
+		}
+
+		// グループ内番号の最大を取得
+		UINT max = theApp.GetDataManager().GetMaxInnerNo(masternode->GetWindowInfo().groupno);
+		// ドロップ先のグループ情報に変更する
+		vector<CTreeNode*>::iterator itrnode;
+		for (itrnode = nodeList.begin(); itrnode != nodeList.end(); itrnode++) {
+			(*itrnode)->GetWindowInfo().groupno = HIWORD(masternode->GetWindowInfo().groupno)<<16 | max+1;
+			max++;
+		}
+	}
+
+	SetRedraw(TRUE);
+
+	mParent->PostMessage(eUserMessage_Manager_Reset, 0, 0);
 }

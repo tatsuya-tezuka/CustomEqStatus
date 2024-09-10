@@ -1134,3 +1134,25 @@ void CCustomDataManager::SaveEquipmentData(UINT typeLayout, CString strfile, CWn
 	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 	//=====================================================//
 }
+
+/*============================================================================*/
+/*! カスタムデータ管理クラス
+
+-# グループ番号の最大内部番号の取得
+
+@param		group	グループ番号
+@retval		最大内部番号
+
+*/
+/*============================================================================*/
+UINT CCustomDataManager::GetMaxInnerNo(UINT group)
+{
+	vector<CTreeNode*>::iterator itr;
+	UINT max = 0;
+	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
+		if (HIWORD((*itr)->GetWindowInfo().groupno) == HIWORD(group)) {
+			max = __max(max, LOWORD((*itr)->GetWindowInfo().groupno));
+		}
+	}
+	return max;
+}

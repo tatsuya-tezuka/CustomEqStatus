@@ -73,7 +73,7 @@ BOOL CCustomManager::OnInitDialog()
 {
 	CCustomDialogBase::OnInitDialog();
 
-	mManagerList.CreateGroupControl();
+	mManagerList.CreateGroupControl(this);
 	SetControlInfo(IDC_LIST_MANAGER, ANCHORE_LEFTTOP | RESIZE_BOTH);
 
 	// ìoò^Ç≥ÇÍÇƒÇ¢ÇÈÉJÉXÉ^ÉÄâÊñ ÇÃçÏê¨
@@ -639,6 +639,8 @@ LRESULT CCustomManager::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 		updateItemData(lParam);
 		break;
 	case	eUserMessage_Manager_Reset:
+		createItem((int)eSelectUser);
+		UpdateGroup();
 		break;
 	default:
 		return CCustomDialogBase::WindowProc(message, wParam, lParam);
