@@ -32,6 +32,7 @@ CCustomDetail::CCustomDetail(CWnd* pParent /*=NULL*/, bool bRestore/* = false*/)
 	mTreeLogFont.lfHeight = -mTreeFontHeight;
 	mTreeLogFont.lfWeight = FW_NORMAL;
 	temp.DeleteObject();
+	mMode = eTreeItemMode_Monitor;
 }
 
 CCustomDetail::~CCustomDetail()
@@ -47,7 +48,6 @@ void CCustomDetail::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CCustomDetail, CCustomDialogBase)
 	ON_NOTIFY(NM_RCLICK, IDC_TREE_CTRL, &CCustomDetail::OnNMRClickTreeCtrl)
-	ON_NOTIFY(TVN_GETDISPINFO, IDC_TREE_CTRL, &CCustomDetail::OnTvnGetdispinfoTreeCtrl)
 	ON_WM_CLOSE()
 	ON_WM_HSCROLL()
 	//ON_NOTIFY(HDN_ITEMCHANGING, CCustomTreeListCtrl::eHeaderID, OnHeaderItemChanged)
@@ -59,6 +59,7 @@ BEGIN_MESSAGE_MAP(CCustomDetail, CCustomDialogBase)
 	ON_COMMAND(ID_DETAIL_RENAME, &CCustomDetail::OnDetailRename)
 	ON_COMMAND(ID_DETAIL_MONCTRL, &CCustomDetail::OnDetailMonctrl)
 	ON_COMMAND(ID_DETAIL_CONFIG, &CCustomDetail::OnDetailConfig)
+	ON_NOTIFY(TVN_GETINFOTIP, IDC_TREE_CTRL, &CCustomDetail::OnTvnGetInfoTipTreeCtrl)
 END_MESSAGE_MAP()
 
 
@@ -194,23 +195,6 @@ void CCustomDetail::OnNMRClickTreeCtrl(NMHDR *pNMHDR, LRESULT *pResult)
 
 	mTreeCtrl.ClientToScreen(&pos);
 	pMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pos.x, pos.y, this);
-}
-
-/*============================================================================*/
-/*! 設備詳細
-
--# ツールチップイベント
-
-@param  なし
-
-@retval なし
-*/
-/*============================================================================*/
-void CCustomDetail::OnTvnGetdispinfoTreeCtrl(NMHDR *pNMHDR, LRESULT *pResult)
-{
-	LPNMTVDISPINFO pTVDispInfo = reinterpret_cast<LPNMTVDISPINFO>(pNMHDR);
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
-	*pResult = 0;
 }
 
 /*============================================================================*/
@@ -358,6 +342,8 @@ void CCustomDetail::createTreeControl()
 	mTreeCtrl.SetClickCallback(messageClick);
 	//mTreeCtrl.SetDragCallback(messageDrag);
 
+	mTreeCtrl.ModifyStyle(TVS_EDITLABELS, 0);
+
 	if (mRestore == true){
 		restoreRoot();
 	}
@@ -383,13 +369,18 @@ void CCustomDetail::createTreeControl()
 /*============================================================================*/
 BOOL CALLBACK CCustomDetail::messageClick(CWnd* pwnd, HTREEITEM hItem, UINT nSubItem, CPoint point)
 {
-#ifdef _NOPROC
+#ifndef _NOPROC
 	return FALSE;
 #else
 	//CCustomDetail* p = CCustomDetail::Instance();
 	CCustomDetail* p = (CCustomDetail*)pwnd;
 
-	UINT mask = 1 << CTreeListCtrl::eItem | 1 << CTreeListCtrl::eUnit;
+	if (p->mMode != eTreeItemMode_Edit) {
+		return FALSE;
+	}
+
+
+	UINT mask = 1 << eTreeItemSubType_Item | 1 << eTreeItemSubType_Unit;
 	if ((1 << nSubItem) & mask)
 		return TRUE;
 
@@ -399,7 +390,7 @@ BOOL CALLBACK CCustomDetail::messageClick(CWnd* pwnd, HTREEITEM hItem, UINT nSub
 		return FALSE;
 	}
 
-	CString strText = p->mTreeCtrl.GetSubItemText(hItem, CTreeListCtrl::eControl);
+	CString strText = p->mTreeCtrl.GetSubItemText(hItem, eTreeItemSubType_Control);
 	// 制御文字列の場合は制御コマンド実行
 	if (strText.IsEmpty() == false && strText == CString(mCOntrolSignString)){
 		// 制御コマンドを送信
@@ -737,28 +728,6 @@ void CCustomDetail::setNodeWindowInfo(CTreeNode* pnode, UINT type, TCHAR* text, 
 		SetWindowText(text);
 	}
 }
-
-/*============================================================================*/
-/*! 設備詳細
-
--# タイトル設定
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-void CCustomDetail::setTreeTitle(LPARAM lParam)
-{
-	CTreeNode* pnode = theApp.GetDataManager().SearchItemNode(this, (HTREEITEM)lParam);
-
-	if (pnode->GetWindowInfo().type == eTreeItemType_Title){
-		swprintf_s(pnode->GetWindowInfo().title, mNameSize, _T("%s"), pnode->GetMonCtrl().display);
-		SetWindowText(pnode->GetMonCtrl().display);
-		if (pnode->GetWindowInfo().manager->GetSafeHwnd())
-			pnode->GetWindowInfo().manager->SendMessage(eUserMessage_Manager_Update, 0, (LPARAM)this);
-	}
-}
 /*============================================================================*/
 /*! 設備詳細
 
@@ -1016,4 +985,112 @@ void CCustomDetail::OnDetailConfig()
 	if (pnode->GetWindowInfo().manager->GetSafeHwnd()) {
 		pnode->GetWindowInfo().manager->SendMessage(eUserMessage_Manager_Update, 0, (LPARAM)this);
 	}
+}
+
+/*============================================================================*/
+/*! 設備詳細
+
+-# ツールチップイベント
+
+@param  なし
+
+@retval なし
+*/
+/*============================================================================*/
+void CCustomDetail::OnTvnGetInfoTipTreeCtrl(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMTVGETINFOTIP pGetInfoTip = reinterpret_cast<LPNMTVGETINFOTIP>(pNMHDR);
+	// TODO: ここにコントロール通知ハンドラー コードを追加します。
+	*pResult = 0;
+
+	CTreeNode* pnode = theApp.GetDataManager().SearchItemNode(this, pGetInfoTip->hItem);
+	if (pnode == NULL) {
+		return;
+	}
+	if (pnode->GetWindowInfo().type != eTreeItemType_Item) {
+		return;
+	}
+
+	CString strmon = _T("EMPTY"), strcon = _T("EMPTY");
+	if (CString(pnode->GetMonCtrl().mname).IsEmpty() == false) {
+		strmon = pnode->GetMonCtrl().mname;
+	}
+	if (CString(pnode->GetMonCtrl().cname).IsEmpty() == false) {
+		strcon = pnode->GetMonCtrl().cname;
+	}
+	mToolText.Format(_T("%s\n%s"), strmon, strcon);
+	pGetInfoTip->pszText = (LPWSTR)(LPCTSTR)mToolText;
+}
+
+/*============================================================================*/
+/*! 設備詳細
+
+-# メッセージ処理
+
+@param  なし
+
+@retval なし
+*/
+/*============================================================================*/
+LRESULT CCustomDetail::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
+{
+	switch (message) {
+	case	eUserMessage_Detail_Mode:
+		updateMode();
+		break;
+	case	eUserMessage_Manager_Update:
+		setTreeTitle(lParam);
+		break;
+	default:
+		return CCustomDialogBase::WindowProc(message, wParam, lParam);
+	}
+	return TRUE;
+}
+
+/*============================================================================*/
+/*! 設備詳細
+
+-# タイトル文字の設定
+
+@param  なし
+
+@retval なし
+*/
+/*============================================================================*/
+void CCustomDetail::setTreeTitle(LPARAM lParam)
+{
+	CTreeNode* pnode = theApp.GetDataManager().SearchItemNode(this, (HTREEITEM)lParam);
+
+	if (pnode->GetWindowInfo().type == eTreeItemType_Title) {
+		swprintf_s(pnode->GetWindowInfo().title, mNameSize, _T("%s"), pnode->GetMonCtrl().display);
+		updateMode();
+		if (pnode->GetWindowInfo().manager->GetSafeHwnd())
+			pnode->GetWindowInfo().manager->SendMessage(eUserMessage_Manager_Update, 0, (LPARAM)this);
+	}
+}
+
+/*============================================================================*/
+/*! 設備詳細
+
+-# タイトル文字の変更
+
+@param  なし
+
+@retval なし
+*/
+/*============================================================================*/
+void CCustomDetail::updateMode()
+{
+	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
+	CString title = pnode->GetWindowInfo().title;
+	mMode = eTreeItemMode_Monitor;
+	mTreeCtrl.ModifyStyle(TVS_EDITLABELS, 0);
+	if (pnode->GetWindowInfo().mode == eTreeItemMode_Edit) {
+		title += CString(mEditModeString);
+		mMode = eTreeItemMode_Edit;
+		mTreeCtrl.ModifyStyle(0, TVS_EDITLABELS);
+	}
+
+	// ウィンドウテキストの変更
+	SetWindowText(title);
 }

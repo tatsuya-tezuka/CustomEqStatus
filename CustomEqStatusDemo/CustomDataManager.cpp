@@ -568,6 +568,7 @@ bool CTreeNode::LoadTreeNode(CArchive& ar)
 	CString str;
 	// ウィンドウ情報
 	ar >> wininfo.mode;
+	wininfo.mode = eTreeItemMode_Monitor; // ロード時は常に監視モード
 	ar >> wininfo.kind;
 	ar >> wininfo.type;
 	if (wininfo.type == eTreeItemType_Title) {
@@ -866,6 +867,7 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 	xml.IntoElem();
 	xml.FindElem(_T("MODE"));
 	wininfo.mode = _wtoi(xml.GetData());
+	wininfo.mode = eTreeItemMode_Monitor; // ロード時は常に監視モード
 	xml.FindElem(_T("KIND"));
 	wininfo.kind = _wtoi(xml.GetData());
 	xml.FindElem(_T("TYPE"));
@@ -1095,7 +1097,7 @@ void CCustomDataManager::LoadEquipmentData(UINT typeLayout, CString strfile, boo
 
 */
 /*============================================================================*/
-void CCustomDataManager::SaveEquipmentData(UINT typeLayout, CString strfile)
+void CCustomDataManager::SaveEquipmentData(UINT typeLayout, CString strfile, CWnd* pTargetWnd/* = NULL*/)
 {
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
@@ -1111,10 +1113,10 @@ void CCustomDataManager::SaveEquipmentData(UINT typeLayout, CString strfile)
 	// アプリケーション終了時に保存された設備詳細データの復元
 	switch (typeLayout) {
 	case	eLayoutFileType_SCL:
-		SaveTreeData(strfile);
+		SaveTreeData(strfile, pTargetWnd);
 		break;
 	case	eLayoutFileType_XML:
-		SaveTreeDataXml(strfile);
+		SaveTreeDataXml(strfile, pTargetWnd);
 		break;
 	default:
 		return;

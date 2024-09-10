@@ -1505,8 +1505,10 @@ BOOL CCustomTreeListCtrl::SwitchEditMode(HTREEITEM hItem, UINT col, CPoint point
 
 	CTreeNode* pnode = theApp.GetDataManager().SearchItemNode(mTreeParent, hItem);
 	UINT type = pnode->GetWindowInfo().type;
-	if (type != eTreeItemType_Item)
+	if (type != eTreeItemType_Item) {
+		SetFocus();
 		return FALSE;
+	}
 
 	CEdit* pedit = editSubLabel(hItem, col);
 	if (pedit == NULL){

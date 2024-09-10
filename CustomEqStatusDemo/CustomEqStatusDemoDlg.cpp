@@ -64,7 +64,8 @@ BEGIN_MESSAGE_MAP(CCustomEqStatusDemoDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_MFCBUTTON_LOAD, &CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad)
-	ON_BN_CLICKED(IDC_MFCBUTTON__SAVE, &CCustomEqStatusDemoDlg::OnBnClickedMfcbutton)
+	ON_BN_CLICKED(IDC_MFCBUTTON__SAVE, &CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave)
+	ON_BN_CLICKED(IDC_MFCBUTTON__MANAGER, &CCustomEqStatusDemoDlg::OnBnClickedMfcbutton)
 END_MESSAGE_MAP()
 
 
@@ -306,7 +307,7 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad()
 @retval
 */
 /*============================================================================*/
-void CCustomEqStatusDemoDlg::OnBnClickedMfcbutton()
+void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave()
 {
 	const TCHAR BASED_CODE szFilter[] = _T("Station Control Layout(*.scl)|*.scl|Layout File(*.xml)|*.xml|");
 	CFileDialog dlg(FALSE, _T("xml"), NULL, OFN_OVERWRITEPROMPT | OFN_LONGNAMES | OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY, szFilter);
@@ -320,4 +321,12 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbutton()
 	else {
 		theApp.GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, dlg.GetPathName());
 	}
+}
+
+void CCustomEqStatusDemoDlg::OnBnClickedMfcbutton()
+{
+	if (theApp.GetCustomManager().GetSafeHwnd() == NULL) {
+		theApp.GetCustomManager().Create(IDD_DIALOG_MANAGER, this);
+	}
+	theApp.GetCustomManager().ShowWindow(SW_SHOW);
 }

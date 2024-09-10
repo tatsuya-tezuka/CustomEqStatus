@@ -46,13 +46,15 @@ protected:
 	/* ------------------------------------------------------------------------------------ */
 public:
 	CCustomSynchroWindow& GetCustomSyncWindow() { return mSyncWindow; }
+	void	UpdateGroup();
 
 protected:
 	void	createItem(UINT nSelect);
 	void	createEquipment();
-	void	updateGroup();
 	void	createEqDetail(CTreeNode* node = NULL);
 	void	updateMenuItemStatus(CMenu* pMenu);
+	void
+		updateItemData(LPARAM lParam);
 
 	/* ------------------------------------------------------------------------------------ */
 
@@ -81,4 +83,5 @@ public:
 	afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
 	afx_msg void OnShowWindow(BOOL bShow, UINT nStatus);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
 };

@@ -50,6 +50,7 @@ static const COLORREF mDragTextColor = RGB(0, 0, 0);
 static const COLORREF mManagerHideColor = RGB(200, 200, 200);
 static const TCHAR* mCOntrolSignString = { _T("#CNTL#") };
 static const TCHAR* mCOntrolSignStringDisplay = { _T("制御") };
+static const TCHAR* mEditModeString = { _T("（編集中）") };
 
 static const int mMonMax = 5000;			// 監視の最大数
 static const int mCtrlMax = 5000;			// 制御の最大数
@@ -73,12 +74,10 @@ static const TCHAR* mGroupListHeader[] = {
 
 /// 各種メッセージID
 enum eUserMessage{
-	eUserMessage_Manger_New = (WM_USER + 1),
-	eUserMessage_Manager_Update,
-	eUserMessage_Manager_Delete,
-	eUserMessage_Manager_ResizeFit,
+	eUserMessage_Manager_Update = (WM_USER + 1),
 	eUserMessage_Manager_Reset,
-	eUserMessage_Manager_Grid,
+
+	eUserMessage_Detail_Mode,
 
 	eUserMessage_Drag_Select,
 	eUserMessage_Drag_DropTarget,
@@ -100,6 +99,7 @@ enum eLayoutFileType {
 enum eTreeItemMode{
 	eTreeItemMode_Monitor = 0,
 	eTreeItemMode_Edit,
+	eTreeItemMode_Mofify,
 };
 enum eTreeItemKind{
 	eTreeItemKind_User = 0,
@@ -465,7 +465,7 @@ public:
 
 	/// ファイル管理
 	void	LoadEquipmentData(UINT typeLayout, CString strfile, bool bClear = true);
-	void	SaveEquipmentData(UINT typeLayout, CString strfile);
+	void	SaveEquipmentData(UINT typeLayout, CString strfile, CWnd* pTargetWnd=NULL);
 
 protected:
 	/// カラー情報

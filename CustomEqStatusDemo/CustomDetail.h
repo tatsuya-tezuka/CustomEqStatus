@@ -35,11 +35,15 @@ protected:
 	/* メンバ変数                                                                           */
 	/* ------------------------------------------------------------------------------------ */
 public:
+	UINT		mMode;
 
 protected:
 	bool		mRestore;
 	LOGFONT		mTreeLogFont;
 	HTREEITEM	mMenuItem;
+
+	/// ツールチップ
+	CString		mToolText;
 
 	/* ------------------------------------------------------------------------------------ */
 	/* メンバ関数                                                                           */
@@ -59,7 +63,6 @@ protected:
 	void	restoreNode(CTreeNode* pnode, HTREEITEM ptree);
 
 	void	setNodeWindowInfo(CTreeNode* pnode, UINT type, TCHAR* text, CTreeNode* parent);
-	void	setTreeTitle(LPARAM lParam);
 
 	CString createLeafText(CString item, CString unit, CString control)
 	{
@@ -68,8 +71,9 @@ protected:
 		return str;
 	}
 	void	resizeFit();
-
-
+	void	setTreeTitle(LPARAM lParam);
+	void	updateMode();
+\
 	/* ------------------------------------------------------------------------------------ */
 
 protected:
@@ -80,7 +84,6 @@ protected:
 public:
 	CCustomTreeListCtrl mTreeCtrl;
 	afx_msg void OnNMRClickTreeCtrl(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnTvnGetdispinfoTreeCtrl(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnClose();
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	virtual BOOL OnInitDialog();
@@ -92,4 +95,6 @@ public:
 	afx_msg void OnDetailRename();
 	afx_msg void OnDetailMonctrl();
 	afx_msg void OnDetailConfig();
+	afx_msg void OnTvnGetInfoTipTreeCtrl(NMHDR* pNMHDR, LRESULT* pResult);
+	virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
 };

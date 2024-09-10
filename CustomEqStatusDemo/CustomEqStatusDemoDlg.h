@@ -58,7 +58,7 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnBnClickedMfcbuttonDetail();
 	afx_msg void OnBnClickedMfcbuttonLoad();
+	afx_msg void OnBnClickedMfcbuttonSave();
 	afx_msg void OnBnClickedMfcbutton();
 };
