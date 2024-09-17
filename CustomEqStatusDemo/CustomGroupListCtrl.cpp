@@ -317,6 +317,7 @@ BEGIN_MESSAGE_MAP(CCustomGroupListCtrl, CListCtrl)
 	ON_NOTIFY_REFLECT(LVN_BEGINDRAG, &CCustomGroupListCtrl::OnLvnBegindrag)
 	ON_WM_MOUSEMOVE()
 	ON_WM_LBUTTONUP()
+	ON_WM_RBUTTONDOWN()
 END_MESSAGE_MAP()
 
 /*============================================================================*/
@@ -377,8 +378,8 @@ void CCustomGroupListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 	case CDDS_ITEMPREPAINT:
 		if (pnode != NULL){
 			lplvcd->clrText = pnode->GetColor().text;
-			if (pnode->GetWindowInfo().wnd == NULL || pnode->GetWindowInfo().wnd->IsWindowVisible() == FALSE)
-				lplvcd->clrText = mManagerHideColor;// GetSysColor(COLOR_GRAYTEXT);
+			//if (pnode->GetWindowInfo().wnd == NULL || pnode->GetWindowInfo().wnd->IsWindowVisible() == FALSE)
+			//	lplvcd->clrText = mManagerHideColor;// GetSysColor(COLOR_GRAYTEXT);
 		}
 		*pResult = CDRF_NOTIFYSUBITEMDRAW;
 		*pResult = CDRF_NOTIFYPOSTPAINT + CDRF_NOTIFYSUBITEMDRAW;
@@ -541,7 +542,8 @@ BOOL CCustomGroupListCtrl::GroupByColumn(int nCol, BOOL bEnableGroup/* = TRUE*/)
 			CString subtitle;
 			subtitle = groups.GetKeyAt(nGroupId);
 			//setGroupSubtitle(nGroupId, subtitle);
-			setGroupFooter(nGroupId, footers[nGroupId]);
+			//setGroupFooter(nGroupId, footers[nGroupId] + _T(" end"), LVGA_FOOTER_CENTER);
+			setGroupFooter(nGroupId, _T("----- ") + footers[nGroupId] + _T(" -----"), LVGA_FOOTER_CENTER);
 
 			for (int groupRow = 0; groupRow < groupRows.GetSize(); ++groupRow){
 				VERIFY(setRowGroupId(groupRows[groupRow], nGroupId));
@@ -697,7 +699,7 @@ BOOL CCustomGroupListCtrl::setGroupSubtitle(int nGroupID, const CString& subtitl
 
 */
 /*============================================================================*/
-BOOL CCustomGroupListCtrl::setGroupFooter(int nGroupID, const CString& footer, DWORD dwAlign /*= LVGA_FOOTER_CENTER*/)
+BOOL CCustomGroupListCtrl::setGroupFooter(int nGroupID, const CString& footer, DWORD dwAlign /*= LVGA_FOOTER_LEFT*/)
 {
 	LVGROUP lg = { 0 };
 	lg.cbSize = sizeof(lg);
@@ -794,9 +796,6 @@ void CCustomGroupListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	CListCtrl::OnLButtonDown(nFlags, point);
 
-#ifdef _TRIAL
-	return;
-#else
 	int pos = 0, index;
 	int colnum, strpos = 0;
 	CString str;
@@ -811,7 +810,6 @@ void CCustomGroupListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 			SetItemState(index, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 		}
 	}
-#endif
 }
 /*============================================================================*/
 /*! グループリスト
@@ -1191,4 +1189,37 @@ void CCustomGroupListCtrl::dropItem(CPoint point)
 	SetRedraw(TRUE);
 
 	mParent->PostMessage(eUserMessage_Manager_Reset, 0, 0);
+}
+
+/*============================================================================*/
+/*! グループリスト
+
+-# マウス右クリック
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomGroupListCtrl::OnRButtonDown(UINT nFlags, CPoint point)
+{
+	CPoint ptCursor;
+	GetCursorPos(&ptCursor);
+	ScreenToClient(&ptCursor);
+	UINT flags = 0;
+	int item = HitTest(point, &flags);
+	TRACE("[GROUP]RclickItem(%d)\n", item);
+	if (item < 0) {
+		for (int i = 0; i < GetGroupCount(); i++) {
+			// グループREC取得	
+			CRect rect;
+			if (GetGroupRect(i, rect, LVGGR_HEADER) == TRUE) {
+				if (rect.PtInRect(ptCursor) == TRUE) {
+					TRACE("[GROUP]GroupID(%d) OK\n", i);
+				}
+			}
+		}
+	}
+
+	CListCtrl::OnRButtonDown(nFlags, point);
 }

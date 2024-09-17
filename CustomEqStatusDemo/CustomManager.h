@@ -47,6 +47,7 @@ protected:
 public:
 	CCustomSynchroWindow& GetCustomSyncWindow() { return mSyncWindow; }
 	void	UpdateGroup();
+	void	ResetGroupInnerNo();
 
 protected:
 	void	createItem(UINT nSelect);
@@ -84,4 +85,5 @@ public:
 	afx_msg void OnShowWindow(BOOL bShow, UINT nStatus);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
+	afx_msg void OnMove(int x, int y);
 };

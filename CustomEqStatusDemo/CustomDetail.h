@@ -41,6 +41,7 @@ protected:
 	bool		mRestore;
 	LOGFONT		mTreeLogFont;
 	HTREEITEM	mMenuItem;
+	CTreeNode*	mBackupNode;
 
 	/// ツールチップ
 	CString		mToolText;
@@ -73,7 +74,10 @@ protected:
 	void	resizeFit();
 	void	setTreeTitle(LPARAM lParam);
 	void	updateMode();
-\
+
+	void	updateMenu(CMenu* pMenu);
+	bool	updateMenuItem(MENUITEMINFO* pMenuItemInfo);
+
 	/* ------------------------------------------------------------------------------------ */
 
 protected:
@@ -97,4 +101,8 @@ public:
 	afx_msg void OnDetailConfig();
 	afx_msg void OnTvnGetInfoTipTreeCtrl(NMHDR* pNMHDR, LRESULT* pResult);
 	virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
+	afx_msg void OnMenudetailClose();
+	afx_msg void OnMenudetailEdit();
+	afx_msg void OnMenudetailMonitor();
+	afx_msg void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
 };

@@ -38,7 +38,6 @@ public:
 
 protected:
 	void	createCustomControl();
-	void	getDemoFiles(vector<CString>& list);
 
 	/* ------------------------------------------------------------------------------------ */
 

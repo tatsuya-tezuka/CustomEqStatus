@@ -31,7 +31,7 @@ static const TCHAR* mAppDataSystem = { _T("NEC") };
 static const TCHAR* mAppDataDataPath = { _T("DATA") };
 static const TCHAR* mAppDataLogPath = { _T("LOG") };
 static const TCHAR* mAppDataMasterPath = { _T("MASTER") };
-static const TCHAR* mAppDataDemoPath = { _T("DEMO") };
+static const TCHAR* mAppDataUserPath = { _T("USER") };
 static const TCHAR* mAppSaveEquipmentFile = { _T("AppEquipment.xml") };
 
 /// カスタム画面関連
@@ -197,11 +197,11 @@ public:
 protected:
 	HTREEITEM			treeitem;			// ノードアイテム
 	CTreeNode*			parent;				// 親ノード
-	vector<CTreeNode*>	children;			// 子アイテムリスト
 
 	stWindowInfo		wininfo;			// 設備詳細ウィンドウ情報
 	stMonCtrlData		monctrl;			// 監視制御データ
 	stColorData			color;				// 色・フォント情報
+	vector<CTreeNode*>	children;			// 子アイテムリスト
 
 	/* ------------------------------------------------------------------------------------ */
 	/* メンバ関数                                                                           */
@@ -227,6 +227,8 @@ public:
 	CTreeNode* SearchTreeNode(HTREEITEM target);
 	CTreeNode* SearchTreeNodeType(UINT target);
 
+	// ノードコピー
+	void	CopyTreeNode(CTreeNode* copyNode);
 	void	CopyItem(CTreeNode* copyNode, bool bColorOnly = false)
 	{
 		if (bColorOnly == false){
@@ -241,6 +243,13 @@ public:
 	bool	LoadTreeNode(CArchive& ar);
 	bool	SaveTreeNodeXml(CMarkup& xml);
 	bool	LoadTreeNodeXml(CMarkup& xml);
+
+	//bool operator==(CTreeNode* data);
+	bool Equal(CTreeNode* data);
+	bool Equal(stWindowInfo& data);
+	bool Equal(stMonCtrlData& data);
+	bool Equal(stColorData& data);
+	bool Equal(LOGFONT& data);
 
 protected:
 	void	deleteNode(CTreeNode* pnode);
@@ -390,12 +399,18 @@ public:
 		}
 		return NULL;
 	}
+	/// 全てのウィンドウハンドル、ノードの削除
+	void DeleteAll()
+	{
+		DeleteAllWnd();
+		DeleteAllNode();
+	}
 	/// 全てのウィンドウハンドルの削除
 	void DeleteAllWnd()
 	{
 		vector<CTreeNode*>::iterator itr;
-		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++){
-			if ((*itr)->GetWindowInfo().wnd != NULL){
+		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
+			if ((*itr)->GetWindowInfo().wnd != NULL) {
 				delete (*itr)->GetWindowInfo().wnd;
 			}
 		}

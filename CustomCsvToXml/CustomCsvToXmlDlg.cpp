@@ -78,7 +78,7 @@ CCustomCsvToXmlDlg::CCustomCsvToXmlDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CCustomCsvToXmlDlg::IDD, pParent)
 	, mCsvFileName(_T(""))
 	, mSavePath(_T(""))
-	, mFileType(0)
+	, mFileType(1)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }

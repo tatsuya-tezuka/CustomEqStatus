@@ -54,6 +54,7 @@ BEGIN_MESSAGE_MAP(CCustomManager, CCustomDialogBase)
 	ON_WM_CONTEXTMENU()
 	ON_WM_SHOWWINDOW()
 	ON_WM_LBUTTONDOWN()
+	ON_WM_MOVE()
 END_MESSAGE_MAP()
 
 
@@ -77,7 +78,7 @@ BOOL CCustomManager::OnInitDialog()
 	SetControlInfo(IDC_LIST_MANAGER, ANCHORE_LEFTTOP | RESIZE_BOTH);
 
 	// 登録されているカスタム画面の作成
-	createEquipment();
+	//createEquipment();
 
 	// リストに登録
 	if (theApp.GetDataManager().GetTreeNode().size() != 0){
@@ -122,15 +123,34 @@ void CCustomManager::OnShowWindow(BOOL bShow, UINT nStatus)
 	if (bShow == TRUE){
 		// 表示
 		UpdateData(TRUE);
-#ifdef _TRIAL
-		_CreateDemo((int)mSelectType);
-		return;
-#endif
 		if (theApp.GetDataManager().GetTreeNode().size() != 0){
 			createItem((int)mSelectType);
 		}
+		CRect rect;
+		GetWindowRect(rect);
+		theApp.UpdateCustomManagerPoint(CPoint(rect.left, rect.top));
 	}
 }
+
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# ウィンドウの移動
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+void CCustomManager::OnMove(int x, int y)
+{
+	CCustomDialogBase::OnMove(x, y);
+
+	CRect rect;
+	GetWindowRect(rect);
+	theApp.UpdateCustomManagerPoint(CPoint(rect.left, rect.top));
+}
+
 /*============================================================================*/
 /*! 設備詳細管理
 
@@ -144,10 +164,6 @@ void CCustomManager::OnShowWindow(BOOL bShow, UINT nStatus)
 void CCustomManager::OnBnClickedRadioUser()
 {
 	UpdateData(TRUE);
-#ifdef _TRIAL
-	_CreateDemo((int)eSelectUser);
-	return;
-#endif
 	if (theApp.GetDataManager().GetTreeNode().size() != 0){
 		createItem((int)mSelectType);
 	}
@@ -166,10 +182,6 @@ void CCustomManager::OnBnClickedRadioUser()
 void CCustomManager::OnBnClickedRadioMaster()
 {
 	UpdateData(TRUE);
-#ifdef _TRIAL
-	_CreateDemo((int)eSelectMaster);
-	return;
-#endif
 	if (theApp.GetDataManager().GetTreeNode().size() != 0){
 		createItem((int)mSelectType);
 	}
@@ -198,6 +210,8 @@ void CCustomManager::OnNMRClickListManager(NMHDR *pNMHDR, LRESULT *pResult)
 
 	mManagerList.ScreenToClient(&pos);
 	int item = mManagerList.HitTest(pos);
+
+	TRACE("[MANAGER]RclickItem(%d)\n", item);
 
 	CMenu menu;
 	if (!menu.LoadMenu(IDR_POPUP_MANAGER)){
@@ -238,9 +252,16 @@ void CCustomManager::OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult)
 			CCustomDetail* pitem = theApp.CreateEquipment(pnode);
 			if (pitem == NULL)
 				return;
+			CPoint point = theApp.GetCascadePoint();
+			if (pnode->GetWindowInfo().wnd != NULL) {
+				pnode->GetWindowInfo().wnd->SetWindowPos(NULL, point.x, point.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+			}
 		}
 		pnode->GetWindowInfo().wnd->ShowWindow(SW_SHOWNA);
 		pnode->GetWindowInfo().wnd->SetActiveWindow();
+		// ダブルクリック時は常に編集モードとする
+		pnode->GetWindowInfo().mode = eTreeItemMode_Edit;
+		pnode->GetWindowInfo().wnd->PostMessageW(eUserMessage_Detail_Mode, 0, (LPARAM)eTreeItemMode_Edit);
 	}
 
 	*pResult = 0;
@@ -258,9 +279,6 @@ void CCustomManager::OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult)
 void CCustomManager::OnManagerNew()
 {
 	UpdateData(TRUE);
-#ifdef _TRIAL
-	return;
-#endif
 	createEqDetail(NULL);
 	mManagerList.GroupByColumn(eManagerGroup, (mSelectType == eSelectUser) ? TRUE : FALSE);
 }
@@ -458,9 +476,6 @@ void CCustomManager::OnManagerSave()
 /*============================================================================*/
 void CCustomManager::UpdateGroup()
 {
-#ifdef _DEMO
-	//return;
-#endif
 	// 登録されているカスタム画面のグループ更新
 	vector<CTreeNode*>& treedata = theApp.GetDataManager().GetTreeNode();
 	vector<CTreeNode*>::iterator itr;
@@ -473,6 +488,37 @@ void CCustomManager::UpdateGroup()
 	}
 
 	mSyncWindow.Start();
+}
+
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# グループ内部番号のリセット
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomManager::ResetGroupInnerNo()
+{
+	map<UINT, UINT>	maxlist;
+	vector<CTreeNode*>& treedata = theApp.GetDataManager().GetTreeNode();
+	vector<CTreeNode*>::iterator itr;
+	// 全てのグループ情報を削除
+	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
+		if ((*itr)->GetWindowInfo().kind == eTreeItemKind_User) {
+			map<UINT, UINT>::iterator itrmax = maxlist.find((UINT)HIWORD((*itr)->GetWindowInfo().groupno));
+			if (itrmax == maxlist.end()) {
+				maxlist.insert(map<UINT, UINT>::value_type(HIWORD((*itr)->GetWindowInfo().groupno), 1));
+				(*itr)->GetWindowInfo().groupno = HIWORD((*itr)->GetWindowInfo().groupno) << 16 | 1;
+			}
+			else {
+				(*itrmax).second += 10;
+				(*itr)->GetWindowInfo().groupno = HIWORD((*itr)->GetWindowInfo().groupno) << 16 | (*itrmax).second;
+			}
+		}
+	}
 }
 
 /*============================================================================*/
@@ -504,6 +550,8 @@ void CCustomManager::createItem(UINT nSelect)
 			(*itr)->GetWindowInfo().manager = this;
 		}
 	}
+
+	ResetGroupInnerNo();
 
 	mManagerList.SetRedraw(TRUE);
 

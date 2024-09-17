@@ -49,6 +49,102 @@ CTreeNode::~CTreeNode()
 	children.clear();
 }
 
+//bool CTreeNode::operator==(CTreeNode* data)
+//{
+//	if (Equal(data->GetWindowInfo()) == false)
+//		return false;
+//	if (Equal(data->GetMonCtrl()) == false)
+//		return false;
+//	if (Equal(data->GetColor()) == false)
+//		return false;
+//
+//	if (children.size() != data->GetChildren().size())
+//		return false;
+//
+//	UINT size = (UINT)children.size();
+//	for (UINT i = 0; i < size; i++) {
+//		if (!(*children[i] == data->GetChildren()[i]))
+//			return false;
+//	}
+//
+//	return true;
+//}
+
+bool CTreeNode::Equal(CTreeNode* data)
+{
+	if (Equal(data->GetWindowInfo()) == false)
+		return false;
+	if (Equal(data->GetMonCtrl()) == false)
+		return false;
+	if (Equal(data->GetColor()) == false)
+		return false;
+
+	if (children.size() != data->GetChildren().size())
+		return false;
+
+	UINT size = (UINT)children.size();
+	for (UINT i = 0; i < size; i++) {
+		if (children[i]->Equal(data->GetChildren()[i]) == false)
+			return false;
+	}
+
+	return true;
+}
+bool CTreeNode::Equal(stWindowInfo& data)
+{
+	if (CString(wininfo.title) != CString(data.title))
+		return false;
+
+	return true;
+}
+bool CTreeNode::Equal(stMonCtrlData& data)
+{
+	if (CString(monctrl.display) != CString(data.display))
+		return false;
+	if (CString(monctrl.mname) != CString(data.mname))
+		return false;
+	if (CString(monctrl.cname) != CString(data.cname))
+		return false;
+	if (CString(monctrl.unit) != CString(data.unit))
+		return false;
+	if (CString(monctrl.format) != CString(data.format))
+		return false;
+	if (monctrl.formattype != data.formattype)
+		return false;
+
+	return true;
+}
+bool CTreeNode::Equal(stColorData& data)
+{
+	if (color.back != data.back)
+		return false;
+	if (color.textback != data.textback)
+		return false;
+	if (color.text != data.text)
+		return false;
+	if (color.value != data.value)
+		return false;
+	if (color.unit != data.unit)
+		return false;
+	if (Equal(data.font) == false)
+		return false;
+
+	return true;
+}
+bool CTreeNode::Equal(LOGFONT& data)
+{
+	if (color.font.lfWeight != data.lfWeight)
+		return false;
+	if (CString(color.font.lfFaceName) != CString(data.lfFaceName))
+		return false;
+	if (color.font.lfItalic != data.lfItalic)
+		return false;
+	if (color.font.lfHeight != data.lfHeight)
+		return false;
+
+	return true;
+}
+
 /*============================================================================*/
 /*! ツリーノード
 
@@ -155,6 +251,31 @@ void CTreeNode::deleteNode(CTreeNode* pnode)
 		delete (*itr);
 	}
 	pnode->children.clear();
+}
+
+/*============================================================================*/
+/*! ツリーノード
+
+-# ツリーノードのコピー
+
+@param  copyNode	コピー対象ノード
+
+@retval	bool
+*/
+/*============================================================================*/
+void CTreeNode::CopyTreeNode(CTreeNode* copyNode)
+{
+	memcpy(&wininfo, &(copyNode->wininfo), sizeof(stWindowInfo));
+	memcpy(&monctrl, &(copyNode->monctrl), sizeof(stMonCtrlData));
+	memcpy(&color, &(copyNode->color), sizeof(stColorData));
+
+	// 子リストをコピーする
+	vector<CTreeNode*>::iterator itr;
+	for (itr = copyNode->GetChildren().begin(); itr != copyNode->GetChildren().end(); itr++) {
+		CTreeNode* child = new CTreeNode((HTREEITEM)NULL, NULL, NULL);
+		child->CopyTreeNode((*itr));
+		children.push_back(child);
+	}
 }
 
 /*============================================================================*/

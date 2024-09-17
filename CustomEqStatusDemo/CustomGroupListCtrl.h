@@ -179,7 +179,7 @@ protected:
 	LRESULT	insertGroupHeader(int nIndex, int nGroupId, const CString& strHeader, DWORD dwState = LVGS_NORMAL, DWORD dwAlign = LVGA_HEADER_LEFT);
 	BOOL	setGroupTask(int nGroupID, const CString& task);
 	BOOL	setGroupSubtitle(int nGroupID, const CString& subtitle);
-	BOOL	setGroupFooter(int nGroupID, const CString& footer, DWORD dwAlign = LVGA_FOOTER_CENTER);
+	BOOL	setGroupFooter(int nGroupID, const CString& footer, DWORD dwAlign = LVGA_FOOTER_LEFT);
 	BOOL	setRowGroupId(int nRow, int nGroupId);
 
 	CEdit*	editSubLabel(int item, int colnum);
@@ -201,5 +201,6 @@ public:
 	afx_msg void OnLvnBegindrag(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
+	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 };
 

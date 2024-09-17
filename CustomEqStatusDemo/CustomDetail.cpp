@@ -14,7 +14,6 @@
 #include <dwmapi.h>
 #pragma comment(lib, "Dwmapi.lib")
 
-
 // CCustomDetail ダイアログ
 
 IMPLEMENT_DYNAMIC(CCustomDetail, CCustomDialogBase)
@@ -37,6 +36,7 @@ CCustomDetail::CCustomDetail(CWnd* pParent /*=NULL*/, bool bRestore/* = false*/)
 
 CCustomDetail::~CCustomDetail()
 {
+	delete mBackupNode;
 }
 
 void CCustomDetail::DoDataExchange(CDataExchange* pDX)
@@ -60,6 +60,10 @@ BEGIN_MESSAGE_MAP(CCustomDetail, CCustomDialogBase)
 	ON_COMMAND(ID_DETAIL_MONCTRL, &CCustomDetail::OnDetailMonctrl)
 	ON_COMMAND(ID_DETAIL_CONFIG, &CCustomDetail::OnDetailConfig)
 	ON_NOTIFY(TVN_GETINFOTIP, IDC_TREE_CTRL, &CCustomDetail::OnTvnGetInfoTipTreeCtrl)
+	ON_COMMAND(ID_MENUDETAIL_CLOSE, &CCustomDetail::OnMenudetailClose)
+	ON_COMMAND(ID_MENUDETAIL_EDIT, &CCustomDetail::OnMenudetailEdit)
+	ON_COMMAND(ID_MENUDETAIL_MONITOR, &CCustomDetail::OnMenudetailMonitor)
+	ON_WM_INITMENUPOPUP()
 END_MESSAGE_MAP()
 
 
@@ -129,6 +133,11 @@ BOOL CCustomDetail::OnInitDialog()
 	}
 
 	createTreeControl();
+
+	// ノード情報のバックアップ
+	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
+	mBackupNode = new CTreeNode(0, NULL, NULL);
+	mBackupNode->CopyTreeNode(pnode);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
@@ -209,9 +218,29 @@ void CCustomDetail::OnNMRClickTreeCtrl(NMHDR *pNMHDR, LRESULT *pResult)
 /*============================================================================*/
 void CCustomDetail::OnClose()
 {
-	// TODO: ここにメッセージ ハンドラー コードを追加するか、既定の処理を呼び出します。
-
 	CCustomDialogBase::OnClose();
+}
+
+/*============================================================================*/
+/*! 設備詳細
+
+-# 閉じるボタン押下イベント
+
+@param  なし
+
+@retval なし
+*/
+/*============================================================================*/
+void CCustomDetail::OnMenudetailClose()
+{
+	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
+	bool ret = mBackupNode->Equal(pnode);
+	if (ret == true) {
+		MessageBox(_T("Same Data"));
+	}
+	else {
+		MessageBox(_T("Not Same Data"));
+	}
 }
 
 /*============================================================================*/
@@ -1093,4 +1122,57 @@ void CCustomDetail::updateMode()
 
 	// ウィンドウテキストの変更
 	SetWindowText(title);
+}
+
+
+void CCustomDetail::OnMenudetailEdit()
+{
+	// TODO: ここにコマンド ハンドラー コードを追加します。
+}
+
+void CCustomDetail::OnMenudetailMonitor()
+{
+	// TODO: ここにコマンド ハンドラー コードを追加します。
+}
+
+
+void CCustomDetail::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu)
+{
+	CCustomDialogBase::OnInitMenuPopup(pPopupMenu, nIndex, bSysMenu);
+
+	// TODO: ここにメッセージ ハンドラー コードを追加します。
+	updateMenu(pPopupMenu);
+}
+
+void CCustomDetail::updateMenu(CMenu* pMenu)
+{
+	int menuCount = pMenu->GetMenuItemCount();
+	for (int i = 0; i < menuCount; i++){
+		MENUITEMINFO menuItemInfo;
+		::memset(&menuItemInfo, 0, sizeof(MENUITEMINFO));
+		menuItemInfo.cbSize = sizeof(MENUITEMINFO);
+		menuItemInfo.fMask = MIIM_STATE | MIIM_ID;
+		if (pMenu->GetMenuItemInfo(i, &menuItemInfo, TRUE))
+		{
+			if (updateMenuItem(&menuItemInfo))
+			{
+				pMenu->SetMenuItemInfo(i, &menuItemInfo, TRUE);
+			}
+		}
+	}
+}
+
+bool CCustomDetail::updateMenuItem(MENUITEMINFO* pMenuItemInfo)
+{
+	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
+	switch (pMenuItemInfo->wID)
+	{
+	case ID_MENUDETAIL_EDIT:
+		pMenuItemInfo->fState = pnode->GetWindowInfo().mode == eTreeItemMode_Edit ? MFS_CHECKED : MFS_UNCHECKED;
+		return true;
+	case ID_MENUDETAIL_MONITOR:
+		pMenuItemInfo->fState = pnode->GetWindowInfo().mode == eTreeItemMode_Monitor ? MFS_CHECKED : MFS_UNCHECKED;
+		return true;
+	}
+	return false;
 }

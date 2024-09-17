@@ -61,7 +61,7 @@ void CCustomSynchroWindow::Start()
 	for (itr = mGroupWindowList.begin(); itr != mGroupWindowList.end(); itr++) {
 		vector<GroupInfo>::iterator itrlist;
 		for (itrlist = (*itr).second.begin(); itrlist != (*itr).second.end(); itrlist++) {
-			if ((*itrlist).innerno == 1) {
+			if ((*itrlist).innerno == 1 && (*itrlist).wnd) {
 				(*itrlist).wnd->GetWindowRect(rect);
 				Move(((*itr).first<<16 | (*itrlist).innerno), (*itrlist).wnd, rect);
 				break;

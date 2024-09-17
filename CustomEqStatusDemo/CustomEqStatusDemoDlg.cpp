@@ -168,98 +168,11 @@ HCURSOR CCustomEqStatusDemoDlg::OnQueryDragIcon()
 /*============================================================================*/
 void CCustomEqStatusDemoDlg::createCustomControl()
 {
-	CWaitCursor wait;
-
-#ifdef _DEMO
-	// デモ用のカスタム
-	vector<CString> demolist;
-	getDemoFiles(demolist);
-
-	//=====================================================//
-	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
-	CLogTraceEx::Write(_T("***"), _T("CCustomEqStatusDemoDlg"), _T("Restore Custom Window"), _T("Start"), _T(""), nLogEx::debug);
-	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
-	//=====================================================//
-	vector<CString>::iterator itrdemo;
-	bool bClear = false;
-	for (itrdemo = demolist.begin(); itrdemo != demolist.end(); itrdemo++) {
-		theApp.GetDataManager().LoadTreeDataXml((*itrdemo), bClear);
-		bClear = false;
-	}
-#endif
-
 	// カスタム管理画面の作成
 	if (theApp.GetCustomManager().GetSafeHwnd() == NULL) {
 		theApp.GetCustomManager().Create(IDD_DIALOG_MANAGER, this);
 	}
 	theApp.GetCustomManager().ShowWindow(SW_SHOW);
-
-	return;
-
-#ifdef _DEMO
-	// デモ用のカスタム
-	vector<CTreeNode*>& treedata = theApp.GetDataManager().GetTreeNode();
-	vector<CTreeNode*>::iterator itr;
-	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
-		// 設備詳細画面の作成
-		// ※作成時は非表示とする
-		if ((*itr)->GetWindowInfo().kind == eTreeItemKind_User) {
-			CCustomDetail* pitem = theApp.CreateEquipment((*itr));
-		}
-	}
-	//=====================================================//
-	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
-	CLogTraceEx::Write(_T("***"), _T("CCustomEqStatusDemoDlg"), _T("Restore Custom Window"), _T("Stop"), _T(""), nLogEx::debug);
-	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
-	//=====================================================//
-#endif
-}
-
-/*============================================================================*/
-/*! メイン画面
-
--# デモデータファイルの取得
-
-@param	list	デモファイルリスト
-
-@retval
-*/
-/*============================================================================*/
-void CCustomEqStatusDemoDlg::getDemoFiles(vector<CString>& list)
-{
-	//=====================================================//
-	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
-	CLogTraceEx::Write(_T("***"), _T("CCustomEqStatusDemoDlg"), _T("getDemoFiles"), _T("Start"), _T(""), nLogEx::debug);
-	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
-	//=====================================================//
-	HANDLE hFind;
-	WIN32_FIND_DATA win32fd;
-
-	list.clear();
-
-	//拡張子の設定
-	CString search_name = theApp.GetDemoDataPath() + _T("\\*.xml");
-
-	hFind = FindFirstFile(search_name, &win32fd);
-
-	if (hFind == INVALID_HANDLE_VALUE) {
-		return;
-	}
-
-	do {
-		if (win32fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-		}
-		else {
-			list.push_back(theApp.GetDemoDataPath() + _T("\\") + CString(win32fd.cFileName));
-		}
-	} while (FindNextFile(hFind, &win32fd));
-
-	FindClose(hFind);
-	//=====================================================//
-	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
-	CLogTraceEx::Write(_T("***"), _T("CCustomEqStatusDemoDlg"), _T("getDemoFiles"), _T("Stop"), _T(""), nLogEx::debug);
-	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
-	//=====================================================//
 }
 
 /*============================================================================*/

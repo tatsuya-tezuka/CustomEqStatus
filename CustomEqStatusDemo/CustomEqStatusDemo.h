@@ -47,8 +47,6 @@ protected:
 	CString		mAppPath;
 	/// AppDataパス
 	CString		mAppDataPath;
-	/// デモデータ格納パス
-	CString		mAppDemoDataPath;
 
 	/* ------------------------------------------------------------------------------------ */
 	/* メンバ関数                                                                           */
@@ -56,7 +54,6 @@ protected:
 public:
 	void	InitializeApp();
 	void	TerminateApp();
-	CString	GetDemoDataPath() { return mAppDemoDataPath; }
 
 protected:
 
@@ -80,11 +77,16 @@ public:
 
 protected:
 	/// マスタデータ格納パス
-	CString		mAppMasterDataPath;
+	CString					mAppMasterDataPath;
+	/// ユーザデータ格納パス
+	CString					mAppUserDataPath;
 	/// カスタムデータ管理関連 
 	CCustomDataManager		mDataManager;
 	/// カスタマイズ管理
 	CCustomManager			mCustomManager;
+	/// カスタム管理画面位置
+	CPoint					mManagerPoint;
+	CPoint					mCascadePoint;
 
 	/* ------------------------------------------------------------------------------------ */
 	/* メンバ関数                                                                           */
@@ -133,16 +135,37 @@ public:
 
 	/// マスタ設備詳細データ格納パス
 	CString	GetMasterDataPath() { return mAppMasterDataPath; }
+	/// ユーザ設備詳細データ格納パス
+	CString	GetUserDataPath() { return mAppUserDataPath; }
 	/// カスタムデータ管理関連
 	CCustomDataManager&	GetDataManager() { return mDataManager; }
 	/// カスタマイズ管理
 	CCustomManager&	GetCustomManager() { return mCustomManager; }
 	/// 設備詳細ウィンドウの作成
 	CCustomDetail*	CreateEquipment(CTreeNode* pnode);
+	/// カスタム管理画面位置の更新
+	void UpdateCustomManagerPoint(CPoint point)
+	{
+		mManagerPoint = point;
+		CRect rect;
+		mCustomManager.GetWindowRect(rect);
+		mCascadePoint = CPoint(rect.right + 5, rect.top);
+	}
+	/// カスケード表示位置の取得
+	CPoint GetCascadePoint()
+	{
+		CPoint point = mCascadePoint;
+		int CYCAPTION = GetSystemMetrics(SM_CYCAPTION);
+		mCascadePoint.x += CYCAPTION;
+		mCascadePoint.y += CYCAPTION;
+		return point;
+	}
 
 protected:
 	void	createMasterEquipment();
+	void	createUserEquipment();
 	void	getMasterEquipmentFiles(vector<CString>& list);
+	void	getUserEquipmentFiles(vector<CString>& list);
 
 	//////////////////////////////////////////////////////////////////////////////////////////
 
