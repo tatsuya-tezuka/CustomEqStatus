@@ -57,7 +57,6 @@ BEGIN_MESSAGE_MAP(CCustomManager, CCustomDialogBase)
 	ON_WM_MOVE()
 END_MESSAGE_MAP()
 
-
 // CCustomManager メッセージ ハンドラー
 
 /*============================================================================*/
@@ -313,7 +312,7 @@ void CCustomManager::OnManagerMonitor()
 	while (pos) {
 		int nItem = mManagerList.GetNextSelectedItem(pos);
 		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
-		if (pnode == NULL)
+		if (pnode == NULL || pnode->GetWindowInfo().wnd == NULL)
 			continue;
 		pnode->GetWindowInfo().mode = eTreeItemMode_Monitor;
 		pnode->GetWindowInfo().wnd->PostMessageW(eUserMessage_Detail_Mode, 0, (LPARAM)eTreeItemMode_Monitor);
@@ -336,7 +335,7 @@ void CCustomManager::OnManagerEdit()
 	while (pos) {
 		int nItem = mManagerList.GetNextSelectedItem(pos);
 		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
-		if (pnode == NULL)
+		if (pnode == NULL || pnode->GetWindowInfo().wnd == NULL)
 			continue;
 		pnode->GetWindowInfo().mode = eTreeItemMode_Edit;
 		pnode->GetWindowInfo().wnd->PostMessageW(eUserMessage_Detail_Mode, 0, (LPARAM)eTreeItemMode_Edit);
@@ -358,7 +357,7 @@ void CCustomManager::OnManagerShow()
 	while (pos) {
 		int nItem = mManagerList.GetNextSelectedItem(pos);
 		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
-		if (pnode == NULL)
+		if (pnode == NULL || pnode->GetWindowInfo().wnd == NULL)
 			continue;
 		pnode->GetWindowInfo().wnd->ShowWindow(SW_SHOW);
 	}
@@ -379,7 +378,7 @@ void CCustomManager::OnManagerHide()
 	while (pos) {
 		int nItem = mManagerList.GetNextSelectedItem(pos);
 		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
-		if (pnode == NULL)
+		if (pnode == NULL || pnode->GetWindowInfo().wnd == NULL)
 			continue;
 		pnode->GetWindowInfo().wnd->ShowWindow(SW_HIDE);
 	}
@@ -556,6 +555,13 @@ void CCustomManager::createItem(UINT nSelect)
 	mManagerList.SetRedraw(TRUE);
 
 	mManagerList.GroupByColumn(eManagerGroup, (nSelect == eSelectUser) ? TRUE : FALSE);
+
+	if (nSelect == eSelectUser) {
+		mManagerList.SortGroup();
+	}
+
+	mSelectType = nSelect;
+	UpdateData(FALSE);
 }
 
 /*============================================================================*/
@@ -687,6 +693,9 @@ LRESULT CCustomManager::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 		updateItemData(lParam);
 		break;
 	case	eUserMessage_Manager_Reset:
+		if (lParam == 1 && mSelectType != eSelectUser) {
+			break;
+		}
 		createItem((int)eSelectUser);
 		UpdateGroup();
 		break;

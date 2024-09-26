@@ -80,6 +80,7 @@ BOOL CCustomEqStatusDemoApp::InitInstance()
 
 	/// 全てのウィンドウハンドル、ノードの削除
 	theApp.GetDataManager().DeleteAll();
+
 	/// マスタ設備詳細データを読み込む
 	createMasterEquipment();
 
@@ -251,7 +252,7 @@ void CCustomEqStatusDemoApp::createMasterEquipment()
 	getMasterEquipmentFiles(filelist);
 	vector<CString>::iterator itrmaster;
 	for (itrmaster = filelist.begin(); itrmaster != filelist.end(); itrmaster++){
-		theApp.GetDataManager().LoadTreeDataXml((*itrmaster), false);
+		theApp.GetDataManager().LoadTreeDataXml((*itrmaster), eTreeItemKind_Master);
 	}
 }
 
@@ -273,7 +274,7 @@ void CCustomEqStatusDemoApp::createUserEquipment()
 	getUserEquipmentFiles(filelist);
 	vector<CString>::iterator itruser;
 	for (itruser = filelist.begin(); itruser != filelist.end(); itruser++) {
-		theApp.GetDataManager().LoadTreeDataXml((*itruser), false);
+		theApp.GetDataManager().LoadTreeDataXml((*itruser), eTreeItemKind_User);
 	}
 }
 

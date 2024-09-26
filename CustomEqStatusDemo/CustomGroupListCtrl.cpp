@@ -320,6 +320,128 @@ BEGIN_MESSAGE_MAP(CCustomGroupListCtrl, CListCtrl)
 	ON_WM_RBUTTONDOWN()
 END_MESSAGE_MAP()
 
+
+namespace
+{
+	struct GROUPSORT
+	{
+		GROUPSORT(HWND hWnd, int nCol, bool bAscending)
+			:m_hWnd(hWnd)
+			, m_ColumnIndex(nCol)
+			, m_Ascending(bAscending)
+		{}
+
+		HWND m_hWnd;
+		int  m_ColumnIndex;
+		bool m_Ascending;
+		CSimpleMap<int, CString> m_GroupNames;
+		CSimpleMap<int, CString> m_ItemNames;
+
+		const CString& LookupGroupName(int nGroupId)
+		{
+			int groupIdx = m_GroupNames.FindKey(nGroupId);
+			if (groupIdx == -1)
+			{
+				static const CString emptyStr;
+				return emptyStr;
+			}
+			return m_GroupNames.GetValueAt(groupIdx);
+		}
+
+		const CString& LookupItemName(int nItemId)
+		{
+			int itemIdx = m_ItemNames.FindKey(nItemId);
+			if (itemIdx == -1)
+			{
+				static const CString emptyStr;
+				return emptyStr;
+			}
+			return m_ItemNames.GetValueAt(itemIdx);
+		}
+	};
+	int CALLBACK SortFuncGroup(int nLeftId, int nRightId, void* lParamSort)
+	{
+		GROUPSORT& ps = *(GROUPSORT*)lParamSort;
+
+		const CString& left = ps.LookupGroupName(nLeftId);
+		const CString& right = ps.LookupGroupName(nRightId);
+
+		if (ps.m_Ascending)
+			return _tcscmp(left, right);
+		else
+			return _tcscmp(right, left);
+	}
+	int CALLBACK SortFuncGroupEx(int nLeftId, int nRightId, void* lParamSort)
+	{
+		GROUPSORT& ps = *(GROUPSORT*)lParamSort;
+
+		const CString& left = ps.LookupGroupName(nLeftId);
+		const CString& right = ps.LookupGroupName(nRightId);
+
+		if (ps.m_Ascending)
+			return _tcscmp(left, right);
+		else
+			return _tcscmp(right, left);
+	}
+	int CALLBACK SortFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+	{
+		GROUPSORT& ps = *reinterpret_cast<GROUPSORT*>(lParamSort);
+
+		int leftno = static_cast<int>(lParam1);
+		int rightno = static_cast<int>(lParam2);
+		const CString& left = ps.LookupItemName(leftno);
+		const CString& right = ps.LookupItemName(rightno);
+
+		return _tcscmp(left, right);
+
+		//TCHAR leftText[256] = _T(""), rightText[256] = _T("");
+
+		//LVITEM leftItem = { 0 };
+		//leftItem.iItem = static_cast<int>(lParam1);
+		//leftItem.iSubItem = ps.m_ColumnIndex;
+		//leftItem.mask = LVIF_IMAGE | LVIF_TEXT | LVIF_PARAM;
+		//leftItem.pszText = leftText;
+		//leftItem.cchTextMax = sizeof(leftText) / sizeof(TCHAR);
+		//ListView_GetItem(ps.m_hWnd, &leftItem);
+
+		//LVITEM rightItem = { 0 };
+		//rightItem.iItem = static_cast<int>(lParam2);
+		//rightItem.iSubItem = ps.m_ColumnIndex;
+		//rightItem.mask = LVIF_IMAGE | LVIF_TEXT | LVIF_PARAM;
+		//rightItem.pszText = rightText;
+		//rightItem.cchTextMax = sizeof(rightText) / sizeof(TCHAR);
+		//ListView_GetItem(ps.m_hWnd, &rightItem);
+
+		//return 1;// ps.m_pTrait->OnSortRows(leftItem, rightItem, ps.m_Ascending);
+	}
+}
+
+/*============================================================================*/
+/*! グループリスト
+
+-# ウィンドウメッセージ処理
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomGroupListCtrl::SortGroup()
+{
+	GROUPSORT groupsort(m_hWnd, 0, true);
+	for (int nRow = 0; nRow < GetItemCount(); ++nRow)
+	{
+		int nGroupId = getRowGroupId(nRow);
+		if (nGroupId != -1 && groupsort.m_GroupNames.FindKey(nGroupId) == -1)
+			groupsort.m_GroupNames.Add(nGroupId, getGroupHeader(nGroupId));
+		groupsort.m_ItemNames.Add(nRow, GetItemText(nRow, 0));
+	}
+	//ListView_SortGroups(m_hWnd, SortFuncGroup, &groupsort);
+	//SortGroups(&SortFuncGroupEx, &groupsort);
+	ListView_SortItemsEx(m_hWnd, SortFunc, &groupsort);
+}
+
+
 /*============================================================================*/
 /*! グループリスト
 
@@ -731,6 +853,49 @@ BOOL CCustomGroupListCtrl::setRowGroupId(int nRow, int nGroupId)
 	lvItem.iSubItem = 0;
 	lvItem.iGroupId = nGroupId;
 	return SetItem(&lvItem);
+}
+/*============================================================================*/
+/*! グループリスト
+
+-# グループIDの取得
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+int CCustomGroupListCtrl::getRowGroupId(int nRow)
+{
+	LVITEM lvi = { 0 };
+	lvi.mask = LVIF_GROUPID;
+	lvi.iItem = nRow;
+	VERIFY(GetItem(&lvi));
+	return lvi.iGroupId;
+}
+/*============================================================================*/
+/*! グループリスト
+
+-# グループヘッダー名称の取得
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+CString CCustomGroupListCtrl::getGroupHeader(int nGroupId)
+{
+	LVGROUP lg = { 0 };
+	lg.cbSize = sizeof(lg);
+	lg.iGroupId = nGroupId;
+	lg.mask = LVGF_HEADER | LVGF_GROUPID;
+	VERIFY(GetGroupInfo(nGroupId, (PLVGROUP)&lg) != -1);
+
+#ifdef UNICODE
+	return lg.pszHeader;
+#else
+	CComBSTR header(lg.pszHeader);
+	return (LPCTSTR)COLE2T(header);
+#endif
 }
 /*============================================================================*/
 /*! グループリスト

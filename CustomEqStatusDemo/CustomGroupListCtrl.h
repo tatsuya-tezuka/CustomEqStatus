@@ -131,6 +131,8 @@ public:
 	void	CreateGroupControl(CWnd* parent);
 	BOOL	GroupByColumn(int nCol, BOOL bEnableGroup=TRUE);
 
+	void	SortGroup();
+
 	/// カラムの自動サイズ調整
 	void AutoSizeColumns(int col = -1)
 	{
@@ -181,6 +183,9 @@ protected:
 	BOOL	setGroupSubtitle(int nGroupID, const CString& subtitle);
 	BOOL	setGroupFooter(int nGroupID, const CString& footer, DWORD dwAlign = LVGA_FOOTER_LEFT);
 	BOOL	setRowGroupId(int nRow, int nGroupId);
+
+	int		getRowGroupId(int nRow);
+	CString	getGroupHeader(int nGroupId);
 
 	CEdit*	editSubLabel(int item, int colnum);
 

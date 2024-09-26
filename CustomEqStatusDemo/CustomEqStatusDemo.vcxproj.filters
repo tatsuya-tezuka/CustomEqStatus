@@ -66,6 +66,9 @@
     <ClInclude Include="CustomSynchroWindow.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="CustomSelectSaveFile.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CustomEqStatusDemo.cpp">
@@ -108,6 +111,9 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="CustomSynchroWindow.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="CustomSelectSaveFile.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

@@ -500,7 +500,7 @@ bool CCustomDataManager::SaveTreeData(CString strFile, CWnd* pTargetWnd/* = NULL
 	mArc << (UINT)EN_FILE_VERSION_MAJOR;
 
 	if (pTargetWnd == NULL) {
-		mArc << (UINT)mTreeNode.size();
+		mArc << (UINT)GetNodeKindCount(eTreeItemKind_User);
 	}
 	else {
 		mArc << (UINT)1;
@@ -512,6 +512,9 @@ bool CCustomDataManager::SaveTreeData(CString strFile, CWnd* pTargetWnd/* = NULL
 		if (pTargetWnd != NULL && pTargetWnd != (*itr)->GetWindowInfo().wnd) {
 			continue;
 		}
+		if ((*itr)->GetWindowInfo().kind != eTreeItemKind_User)
+			continue;
+
 		(*itr)->SaveTreeNode(mArc);
 	}
 
@@ -649,8 +652,8 @@ bool CCustomDataManager::LoadTreeData(CString strFile, bool bClear)
 
 	if (bClear == true) {
 		// 現行のデータを削除する
-		DeleteAllWnd();
-		DeleteAllNode();
+		//DeleteKindWnd(eTreeItemKind_User);
+		DeleteKindNode(eTreeItemKind_User);
 	}
 
 	UINT size;
@@ -928,15 +931,17 @@ bool CTreeNode::SaveTreeNodeXml(CMarkup& xml)
 -# ツリーデータ情報の読込
 
 @param		strFile	読込ファイル
-@param		bClear	現行データの削除フタグ
+@param		kind	ノード種別
+@param		pnode	交換ノード
 
 @retval
 */
 /*============================================================================*/
-bool CCustomDataManager::LoadTreeDataXml(CString strFile, bool bClear)
+CTreeNode* CCustomDataManager::LoadTreeDataXml(CString strFile, UINT kind)
 {
 	CMarkup xml;
 	CString str;
+	CTreeNode* pnode = NULL;
 
 	// XMLファイルを読み込む
 	xml.Load(strFile);
@@ -945,13 +950,7 @@ bool CCustomDataManager::LoadTreeDataXml(CString strFile, bool bClear)
 	xml.FindElem(_T("VERSION"));
 	UINT version = _wtoi(xml.GetData());
 	if (version != EN_FILE_VERSION_MAJOR){
-		return false;
-	}
-
-	if (bClear == true){
-		// 現行のデータを削除する
-		DeleteAllWnd();
-		DeleteAllNode();
+		return pnode;
 	}
 
 	xml.FindElem(_T("SIZE"));
@@ -960,16 +959,21 @@ bool CCustomDataManager::LoadTreeDataXml(CString strFile, bool bClear)
 		xml.FindElem(_T("EQUIPMENT"));
 		xml.IntoElem();
 		//CTreeNode* pnode = new CTreeNode((HTREEITEM)i, NULL, NULL);
-		CTreeNode* pnode = new CTreeNode((HTREEITEM)NULL, NULL, NULL);
+		pnode = new CTreeNode((HTREEITEM)NULL, NULL, NULL);
 		if (pnode->LoadTreeNodeXml(xml) == false){
 			delete pnode;
+			pnode = NULL;
 			xml.OutOfElem();
 			break;
 		}
+
+		swprintf_s(pnode->GetXmlFileName(), _MAX_PATH, _T("%s"), (LPCTSTR)strFile);
+		pnode->GetWindowInfo().kind = kind;
 		mTreeNode.push_back(pnode);
 		xml.OutOfElem();
 	}
-	return true;
+
+	return pnode;
 }
 /*============================================================================*/
 /*! ツリーノード
@@ -1164,7 +1168,9 @@ void CCustomDataManager::LoadEquipmentData(UINT typeLayout, CString strfile, boo
 		LoadTreeData(strfile, bClear);
 		break;
 	case	eLayoutFileType_XML:
-		LoadTreeDataXml(strfile, bClear);
+		AfxMessageBox(_T("LoadEquipmentData Error"));
+		return;
+		//LoadTreeDataXml(strfile, bClear);
 		break;
 	default:
 		return;

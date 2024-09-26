@@ -10,6 +10,7 @@
 #include "CustomDetail.h"
 #include "afxdialogex.h"
 #include "CustomDetailConfig.h"
+#include "CustomSelectSaveFile.h"
 
 #include <dwmapi.h>
 #pragma comment(lib, "Dwmapi.lib")
@@ -64,6 +65,8 @@ BEGIN_MESSAGE_MAP(CCustomDetail, CCustomDialogBase)
 	ON_COMMAND(ID_MENUDETAIL_EDIT, &CCustomDetail::OnMenudetailEdit)
 	ON_COMMAND(ID_MENUDETAIL_MONITOR, &CCustomDetail::OnMenudetailMonitor)
 	ON_WM_INITMENUPOPUP()
+	ON_COMMAND(ID_MENUDETAIL_SAVE, &CCustomDetail::OnMenudetailSave)
+	ON_COMMAND(ID_MENUDETAIL_SAVEAS, &CCustomDetail::OnMenudetailSaveas)
 END_MESSAGE_MAP()
 
 
@@ -224,7 +227,7 @@ void CCustomDetail::OnClose()
 /*============================================================================*/
 /*! 設備詳細
 
--# 閉じるボタン押下イベント
+-# メニュー閉じるボタン
 
 @param  なし
 
@@ -239,7 +242,69 @@ void CCustomDetail::OnMenudetailClose()
 		MessageBox(_T("Same Data"));
 	}
 	else {
-		MessageBox(_T("Not Same Data"));
+		MessageBox(_T("Different Data"));
+	}
+}
+
+/*============================================================================*/
+/*! 設備詳細
+
+-# メニュー保存イベント
+
+@param  なし
+
+@retval なし
+*/
+/*============================================================================*/
+void CCustomDetail::OnMenudetailSave()
+{
+	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
+	// ツリーデータの保存
+	theApp.GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, pnode->GetXmlFileName(), this);
+}
+
+/*============================================================================*/
+/*! 設備詳細
+
+-# メニュー名前を付けて保存イベント
+
+@param  なし
+
+@retval なし
+*/
+/*============================================================================*/
+void CCustomDetail::OnMenudetailSaveas()
+{
+	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
+
+	CCustomSelectSaveFile dlg;
+	dlg.SetSavePathName(theApp.GetUserDataPath());
+	dlg.SetSaveFileName(CString(pnode->GetXmlFileName()).Mid(theApp.GetUserDataPath().GetLength()+1));
+	if (dlg.DoModal() == IDCANCEL)
+		return;
+
+	CString filename = dlg.GetSavePathName() + _T("\\") + dlg.GetSaveFileName();
+
+	CString backxml = CString(pnode->GetXmlFileName());
+
+	// ①CTreeNodeを指定ファイル名で保存する
+	// ②一旦カレントノードを削除する
+	// ③保存したXMLをロードする
+	// ④削除したノードを再度読み込む
+
+
+	// ★問題点：カスタム管理画面の並び替えを行う必要がある
+	// ①CTreeNodeを指定ファイル名で保存する
+	theApp.GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, filename, this);
+	// ②CTreeNodeのXMLファイル名を変更する
+	swprintf_s(pnode->GetXmlFileName(), _MAX_PATH, _T("%s"), (LPCTSTR)filename);
+	// ③保存前のXMLを再ロードする
+	CTreeNode* pnode_new = theApp.GetDataManager().LoadTreeDataXml(backxml, eTreeItemKind_User);
+	// ★名前を付けて保存したアイテムと再度読み込みしたアイテムSWAPする
+
+	// ④CCustomManagerの表示更新
+	if (theApp.GetCustomManager().GetSafeHwnd() != NULL) {
+		theApp.GetCustomManager().PostMessage(eUserMessage_Manager_Reset, 0, 1);
 	}
 }
 

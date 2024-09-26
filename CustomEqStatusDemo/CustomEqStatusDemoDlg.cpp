@@ -192,9 +192,15 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad()
 	if (dlg.DoModal() != IDOK)
 		return;
 
+	return;
+
 	bool bClear = false;
 	if (MessageBox(_T("設備詳細画面を全て削除しますか？"), _T(""), MB_YESNO) == IDYES)
 		bClear = true;
+
+	/*
+		SCLファイルについては、XMLファイル名を保持するように修正が必要
+	*/
 
 	// ツリーデータの読込
 	if (dlg.GetFileExt().MakeLower() == _T("scl")) {
@@ -206,7 +212,7 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad()
 
 	// 復元処理を行う
 	if (theApp.GetCustomManager().GetSafeHwnd() != NULL) {
-		theApp.GetCustomManager().PostMessage(eUserMessage_Manager_Reset, 0, 0);
+		theApp.GetCustomManager().PostMessage(eUserMessage_Manager_Reset, 0, 1);
 	}
 }
 
@@ -226,6 +232,8 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave()
 	CFileDialog dlg(FALSE, _T("xml"), NULL, OFN_OVERWRITEPROMPT | OFN_LONGNAMES | OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY, szFilter);
 	if (dlg.DoModal() != IDOK)
 		return;
+
+	return;
 
 	// ツリーデータの保存
 	if (dlg.GetFileExt().MakeLower() == _T("scl")) {

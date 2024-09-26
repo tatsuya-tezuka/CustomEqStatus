@@ -198,6 +198,7 @@ protected:
 	HTREEITEM			treeitem;			// ノードアイテム
 	CTreeNode*			parent;				// 親ノード
 
+	TCHAR				xmlfile[_MAX_PATH];	// XMLファイル名
 	stWindowInfo		wininfo;			// 設備詳細ウィンドウ情報
 	stMonCtrlData		monctrl;			// 監視制御データ
 	stColorData			color;				// 色・フォント情報
@@ -209,6 +210,11 @@ protected:
 public:
 	HTREEITEM			GetTreeItem()	{ return treeitem; }
 	void				SetTreeItem(HTREEITEM val)	{ treeitem = val; }
+	TCHAR*				GetXmlFileName() { return xmlfile; }
+	void				SetXmlFileName(TCHAR* xml)
+	{
+		swprintf_s(xmlfile, _MAX_PATH, _T("%s"), (LPCTSTR)xml);
+	}
 	stWindowInfo&		GetWindowInfo() { return wininfo; }
 	stMonCtrlData&		GetMonCtrl() { return monctrl; }
 	stColorData&		GetColor() { return color; }
@@ -415,6 +421,16 @@ public:
 			}
 		}
 	}
+	/// 種別毎のウィンドウハンドルの削除
+	void DeleteKindWnd(UINT kind)
+	{
+		vector<CTreeNode*>::iterator itr;
+		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
+			if ((*itr)->GetWindowInfo().wnd != NULL && (*itr)->GetWindowInfo().kind == kind) {
+				delete (*itr)->GetWindowInfo().wnd;
+			}
+		}
+	}
 	/// 個別ウィンドウハンドルの削除
 	void DeleteItemWnd(CWnd* p)
 	{
@@ -433,12 +449,23 @@ public:
 	void DeleteAllNode()
 	{
 		vector<CTreeNode*>::iterator itr;
-		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++){
-			if ((*itr) != NULL){
+		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
+			if ((*itr) != NULL) {
 				delete (*itr);
 			}
 		}
 		mTreeNode.clear();
+	}
+	// 種別毎のノードの削除
+	void DeleteKindNode(UINT kind)
+	{
+		vector<CTreeNode*>::iterator itr;
+		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
+			if ((*itr) != NULL && (*itr)->GetWindowInfo().wnd != NULL && (*itr)->GetWindowInfo().kind == kind) {
+				delete (*itr)->GetWindowInfo().wnd;
+				delete (*itr);
+			}
+		}
 	}
 	// 個別ノードの削除
 	void DeleteItemNode(CTreeNode* p)
@@ -454,6 +481,20 @@ public:
 			}
 		}
 	}
+
+	/// ノード毎の登録数を取得する
+	UINT GetNodeKindCount(UINT kind)
+	{
+		UINT count = 0;
+		vector<CTreeNode*>::iterator itr;
+		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
+			if ((*itr)->GetWindowInfo().wnd != NULL && (*itr)->GetWindowInfo().kind == kind) {
+				count++;
+			}
+		}
+		return count;
+	}
+
 	// ノードの交換
 	void SwapItemNode(UINT pos1, UINT pos2)
 	{
@@ -472,7 +513,7 @@ public:
 	bool	SaveTreeData(CString strFile, CWnd* pTargetWnd = NULL);
 	bool	LoadTreeData(CString strFile, bool bClear);
 	bool	SaveTreeDataXml(CString strFile, CWnd* pTargetWnd = NULL);
-	bool	LoadTreeDataXml(CString strFile, bool bClear);
+	CTreeNode* LoadTreeDataXml(CString strFile, UINT kind);
 
 	/// Zオーダー設定
 	void	SetTreeZorder();
@@ -480,7 +521,7 @@ public:
 
 	/// ファイル管理
 	void	LoadEquipmentData(UINT typeLayout, CString strfile, bool bClear = true);
-	void	SaveEquipmentData(UINT typeLayout, CString strfile, CWnd* pTargetWnd=NULL);
+	void	SaveEquipmentData(UINT typeLayout, CString strfile, CWnd* pTargetWnd = NULL);
 
 	/// 画面連結関連
 	UINT	GetMaxInnerNo(UINT group);

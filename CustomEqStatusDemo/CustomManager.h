@@ -54,8 +54,7 @@ protected:
 	void	createEquipment();
 	void	createEqDetail(CTreeNode* node = NULL);
 	void	updateMenuItemStatus(CMenu* pMenu);
-	void
-		updateItemData(LPARAM lParam);
+	void	updateItemData(LPARAM lParam);
 
 	/* ------------------------------------------------------------------------------------ */
 

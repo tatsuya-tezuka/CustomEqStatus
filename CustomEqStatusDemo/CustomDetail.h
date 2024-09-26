@@ -105,4 +105,6 @@ public:
 	afx_msg void OnMenudetailEdit();
 	afx_msg void OnMenudetailMonitor();
 	afx_msg void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
+	afx_msg void OnMenudetailSave();
+	afx_msg void OnMenudetailSaveas();
 };
