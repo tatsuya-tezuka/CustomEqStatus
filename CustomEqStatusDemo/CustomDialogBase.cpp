@@ -116,11 +116,11 @@ void CCustomDialogBase::OnSize(UINT nType, int cx, int cy)
 		}
 	}
 
-	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 	if (pnode != NULL && HIWORD(pnode->GetWindowInfo().groupno) != 0) {
 		CRect rect;
 		pnode->GetWindowInfo().wnd->GetWindowRect(rect);
-		theApp.GetCustomManager().GetCustomSyncWindow().Move(pnode->GetWindowInfo().groupno, pnode->GetWindowInfo().wnd, &rect);
+		theApp.GetCustomControl().GetCustomManager().GetCustomSyncWindow().Move(pnode->GetWindowInfo().groupno, pnode->GetWindowInfo().wnd, &rect);
 	}
 
 	mSaveCx = cx;
@@ -141,13 +141,13 @@ void CCustomDialogBase::OnMoving(UINT fwSide, LPRECT pRect)
 {
 	CDialogEx::OnMoving(fwSide, pRect);
 
-	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 	if (pnode == NULL || HIWORD(pnode->GetWindowInfo().groupno) == 0)
 		return;
 
 	CRect rect;
 	pnode->GetWindowInfo().wnd->GetWindowRect(rect);
-	theApp.GetCustomManager().GetCustomSyncWindow().Move(pnode->GetWindowInfo().groupno, pnode->GetWindowInfo().wnd, &rect);
+	theApp.GetCustomControl().GetCustomManager().GetCustomSyncWindow().Move(pnode->GetWindowInfo().groupno, pnode->GetWindowInfo().wnd, &rect);
 }
 
 /*============================================================================*/

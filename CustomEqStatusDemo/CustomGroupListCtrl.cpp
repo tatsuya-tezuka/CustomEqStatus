@@ -989,6 +989,9 @@ void CCustomGroupListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 /*============================================================================*/
 bool CCustomGroupListCtrl::EditExecute(int item, int colnum)
 {
+#ifdef _NOPROC
+	return false;
+#else
 	// 選択文字列の取得
 	CString text = GetItemText(item, colnum);
 	//DWORD data = GetItemData(item);
@@ -999,6 +1002,7 @@ bool CCustomGroupListCtrl::EditExecute(int item, int colnum)
 	ModifyStyle(0, LVS_EDITLABELS);
 	editSubLabel(item, colnum);
 	return true;
+#endif
 }
 /*============================================================================*/
 /*! グループリスト
@@ -1342,7 +1346,7 @@ void CCustomGroupListCtrl::dropItem(CPoint point)
 		}
 
 		// グループ内番号の最大を取得
-		UINT max = theApp.GetDataManager().GetMaxInnerNo(masternode->GetWindowInfo().groupno);
+		UINT max = theApp.GetCustomControl().GetDataManager().GetMaxInnerNo(masternode->GetWindowInfo().groupno);
 		// ドロップ先のグループ情報に変更する
 		vector<CTreeNode*>::iterator itrnode;
 		for (itrnode = nodeList.begin(); itrnode != nodeList.end(); itrnode++) {

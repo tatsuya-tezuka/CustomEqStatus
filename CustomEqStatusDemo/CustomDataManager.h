@@ -52,6 +52,9 @@ static const TCHAR* mCOntrolSignString = { _T("#CNTL#") };
 static const TCHAR* mCOntrolSignStringDisplay = { _T("制御") };
 static const TCHAR* mEditModeString = { _T("（編集中）") };
 
+/// メッセージ
+static const TCHAR* mMessage_DetailSaveDifferentData = { _T("設備詳細の変更内容を保存しますか？") };
+
 static const int mMonMax = 5000;			// 監視の最大数
 static const int mCtrlMax = 5000;			// 制御の最大数
 
@@ -76,6 +79,7 @@ static const TCHAR* mGroupListHeader[] = {
 enum eUserMessage{
 	eUserMessage_Manager_Update = (WM_USER + 1),
 	eUserMessage_Manager_Reset,
+	eUserMessage_Manager_Delete,
 
 	eUserMessage_Detail_Mode,
 
@@ -418,6 +422,7 @@ public:
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
 			if ((*itr)->GetWindowInfo().wnd != NULL) {
 				delete (*itr)->GetWindowInfo().wnd;
+				(*itr)->GetWindowInfo().wnd = NULL;
 			}
 		}
 	}
@@ -428,6 +433,7 @@ public:
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
 			if ((*itr)->GetWindowInfo().wnd != NULL && (*itr)->GetWindowInfo().kind == kind) {
 				delete (*itr)->GetWindowInfo().wnd;
+				(*itr)->GetWindowInfo().wnd = NULL;
 			}
 		}
 	}
@@ -439,6 +445,7 @@ public:
 			if ((*itr)->GetWindowInfo().wnd == p){
 				if ((*itr)->GetWindowInfo().wnd != NULL){
 					delete (*itr)->GetWindowInfo().wnd;
+					(*itr)->GetWindowInfo().wnd = NULL;
 				}
 				break;
 			}
@@ -463,6 +470,7 @@ public:
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
 			if ((*itr) != NULL && (*itr)->GetWindowInfo().wnd != NULL && (*itr)->GetWindowInfo().kind == kind) {
 				delete (*itr)->GetWindowInfo().wnd;
+				(*itr)->GetWindowInfo().wnd = NULL;
 				delete (*itr);
 			}
 		}
@@ -471,15 +479,45 @@ public:
 	void DeleteItemNode(CTreeNode* p)
 	{
 		vector<CTreeNode*>::iterator itr;
-		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++){
-			if ((*itr) == p){
-				if ((*itr) != NULL){
+		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
+			if ((*itr) == p) {
+				if ((*itr) != NULL) {
 					delete (*itr);
 				}
 				mTreeNode.erase(itr);
 				break;
 			}
 		}
+	}
+	// 個別ノードのクリア
+	void ClearItemNode(CTreeNode* p)
+	{
+		vector<CTreeNode*>::iterator itr;
+		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
+			if ((*itr) == p) {
+				if ((*itr) != NULL) {
+					vector<CTreeNode*>::iterator itrch;
+					for (itrch = (*itr)->GetChildren().begin(); itrch != (*itr)->GetChildren().end(); itrch++) {
+						if ((*itrch) != NULL) {
+							delete (*itrch);
+						}
+					}
+					(*itr)->GetChildren().clear();
+				}
+				break;
+			}
+		}
+	}
+	// ノードのクローン作成
+	CTreeNode* CloneItemNode(CTreeNode* source, CTreeNode* dest)
+	{
+		if (dest == NULL) {
+			dest = new CTreeNode(0, NULL, NULL);
+		}
+		ClearItemNode(dest);
+
+		dest->CopyTreeNode(source);
+		return dest;
 	}
 
 	/// ノード毎の登録数を取得する

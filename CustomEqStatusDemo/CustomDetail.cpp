@@ -33,11 +33,13 @@ CCustomDetail::CCustomDetail(CWnd* pParent /*=NULL*/, bool bRestore/* = false*/)
 	mTreeLogFont.lfWeight = FW_NORMAL;
 	temp.DeleteObject();
 	mMode = eTreeItemMode_Monitor;
+	mBackupNode = NULL;
 }
 
 CCustomDetail::~CCustomDetail()
 {
-	delete mBackupNode;
+	if(mBackupNode != NULL)
+		delete mBackupNode;
 }
 
 void CCustomDetail::DoDataExchange(CDataExchange* pDX)
@@ -137,10 +139,12 @@ BOOL CCustomDetail::OnInitDialog()
 
 	createTreeControl();
 
-	// ノード情報のバックアップ
-	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
-	mBackupNode = new CTreeNode(0, NULL, NULL);
-	mBackupNode->CopyTreeNode(pnode);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
+
+	// ノード情報のクローン
+	mBackupNode = theApp.GetCustomControl().GetDataManager().CloneItemNode(pnode, mBackupNode);
+	//mBackupNode = new CTreeNode(0, NULL, NULL);
+	//mBackupNode->CopyTreeNode(pnode);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
@@ -187,7 +191,7 @@ void CCustomDetail::OnNMRClickTreeCtrl(NMHDR *pNMHDR, LRESULT *pResult)
 	CMenu* pMenu = menu.GetSubMenu(0);
 	ASSERT(pMenu);
 
-	CTreeNode* pnode = theApp.GetDataManager().SearchItemNode(this, mMenuItem);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, mMenuItem);
 	// ここでツリーノード種別によってメニューの活性、非活性を行う
 	switch (pnode->GetWindowInfo().type) {
 	case	eTreeItemType_Title:
@@ -221,7 +225,7 @@ void CCustomDetail::OnNMRClickTreeCtrl(NMHDR *pNMHDR, LRESULT *pResult)
 /*============================================================================*/
 void CCustomDetail::OnClose()
 {
-	CCustomDialogBase::OnClose();
+	OnMenudetailClose();
 }
 
 /*============================================================================*/
@@ -236,14 +240,38 @@ void CCustomDetail::OnClose()
 /*============================================================================*/
 void CCustomDetail::OnMenudetailClose()
 {
-	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
+
 	bool ret = mBackupNode->Equal(pnode);
 	if (ret == true) {
-		MessageBox(_T("Same Data"));
+		TRACE("Same Data\b");
 	}
 	else {
-		MessageBox(_T("Different Data"));
+		TRACE("Different Data\n");
 	}
+
+
+	int retmsg = CustomSaveDifferentMessageBoxHooked(m_hWnd, mMessage_DetailSaveDifferentData, pnode->GetWindowInfo().title, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1);
+
+	if (retmsg == IDCANCEL)
+		return;
+
+	if (retmsg == IDYES) {
+		// 変更内容を保存する
+		OnMenudetailSave();
+	}
+	else {
+		// ノード情報のクローン
+		theApp.GetCustomControl().GetDataManager().CloneItemNode(mBackupNode, pnode);
+		// 対象ノードをクリアする
+		//theApp.GetCustomControl().GetDataManager().ClearItemNode(pnode);
+		// バックアップノードから元に戻す
+		//pnode->CopyTreeNode(mBackupNode);
+	}
+
+	theApp.GetCustomControl().GetCustomManager().PostMessageW(eUserMessage_Manager_Delete, 0, (LPARAM)this);
+
+	CCustomDialogBase::OnClose();
 }
 
 /*============================================================================*/
@@ -258,9 +286,15 @@ void CCustomDetail::OnMenudetailClose()
 /*============================================================================*/
 void CCustomDetail::OnMenudetailSave()
 {
-	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
+
 	// ツリーデータの保存
-	theApp.GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, pnode->GetXmlFileName(), this);
+	saveHeaderWidth();
+	theApp.GetCustomControl().GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, pnode->GetXmlFileName(), this);
+
+	// カスタム管理画面へ通知してタイトルを更新する
+	if (pnode->GetWindowInfo().manager->GetSafeHwnd())
+		pnode->GetWindowInfo().manager->SendMessage(eUserMessage_Manager_Update, 0, (LPARAM)this);
 }
 
 /*============================================================================*/
@@ -275,36 +309,91 @@ void CCustomDetail::OnMenudetailSave()
 /*============================================================================*/
 void CCustomDetail::OnMenudetailSaveas()
 {
-	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 
 	CCustomSelectSaveFile dlg;
-	dlg.SetSavePathName(theApp.GetUserDataPath());
-	dlg.SetSaveFileName(CString(pnode->GetXmlFileName()).Mid(theApp.GetUserDataPath().GetLength()+1));
+	dlg.SetSavePathName(theApp.GetCustomControl().GetUserDataPath());
+	dlg.SetSaveFileName(CString(pnode->GetXmlFileName()).Mid(theApp.GetCustomControl().GetUserDataPath().GetLength()+1));
 	if (dlg.DoModal() == IDCANCEL)
 		return;
 
 	CString filename = dlg.GetSavePathName() + _T("\\") + dlg.GetSaveFileName();
-
 	CString backxml = CString(pnode->GetXmlFileName());
 
-	// ①CTreeNodeを指定ファイル名で保存する
-	// ②一旦カレントノードを削除する
-	// ③保存したXMLをロードする
-	// ④削除したノードを再度読み込む
+	saveHeaderWidth();
 
-
-	// ★問題点：カスタム管理画面の並び替えを行う必要がある
 	// ①CTreeNodeを指定ファイル名で保存する
-	theApp.GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, filename, this);
+	theApp.GetCustomControl().GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, filename, this);
 	// ②CTreeNodeのXMLファイル名を変更する
 	swprintf_s(pnode->GetXmlFileName(), _MAX_PATH, _T("%s"), (LPCTSTR)filename);
 	// ③保存前のXMLを再ロードする
-	CTreeNode* pnode_new = theApp.GetDataManager().LoadTreeDataXml(backxml, eTreeItemKind_User);
+	CTreeNode* pnode_new = theApp.GetCustomControl().GetDataManager().LoadTreeDataXml(backxml, eTreeItemKind_User);
 	// ★名前を付けて保存したアイテムと再度読み込みしたアイテムSWAPする
 
 	// ④CCustomManagerの表示更新
-	if (theApp.GetCustomManager().GetSafeHwnd() != NULL) {
-		theApp.GetCustomManager().PostMessage(eUserMessage_Manager_Reset, 0, 1);
+	if (theApp.GetCustomControl().GetCustomManager().GetSafeHwnd() != NULL) {
+		theApp.GetCustomControl().GetCustomManager().PostMessage(eUserMessage_Manager_Reset, 0, 1);
+	}
+}
+
+/*============================================================================*/
+/*! 設備詳細
+
+-# ヘッダーサイズの保存
+
+@param  なし
+
+@retval なし
+*/
+/*============================================================================*/
+void CCustomDetail::saveHeaderWidth()
+{
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
+
+	mTreeCtrl.GetHeaderWidth(pnode->GetWindowInfo().hwidth, mHeaderSize);
+}
+
+/*============================================================================*/
+/*! 設備詳細
+
+-# メニュー編集ー編集イベント
+
+@param  なし
+
+@retval なし
+*/
+/*============================================================================*/
+void CCustomDetail::OnMenudetailEdit()
+{
+#ifdef _NOPROC
+	return;
+#endif
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
+	if (pnode != NULL) {
+		pnode->GetWindowInfo().mode = eTreeItemMode_Edit;
+		updateMode();
+	}
+}
+
+/*============================================================================*/
+/*! 設備詳細
+
+-# メニュー編集ー監視イベント
+
+@param  なし
+
+@retval なし
+*/
+/*============================================================================*/
+void CCustomDetail::OnMenudetailMonitor()
+{
+#ifdef _NOPROC
+	return;
+#endif
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
+	if (pnode != NULL) {
+		pnode->GetWindowInfo().mode = eTreeItemMode_Monitor;
+		updateMode();
 	}
 }
 
@@ -463,7 +552,7 @@ void CCustomDetail::createTreeControl()
 /*============================================================================*/
 BOOL CALLBACK CCustomDetail::messageClick(CWnd* pwnd, HTREEITEM hItem, UINT nSubItem, CPoint point)
 {
-#ifndef _NOPROC
+#ifdef _NOPROC
 	return FALSE;
 #else
 	//CCustomDetail* p = CCustomDetail::Instance();
@@ -581,7 +670,7 @@ void CCustomDetail::createRoot()
 	// 論理フォントの取得
 	mTreeCtrl.GetFontEx(eTreeItemType_Window).GetLogFont(&tn_root->GetColor().font);
 
-	theApp.GetDataManager().AddTreeNode(tn_root);
+	theApp.GetCustomControl().GetDataManager().AddTreeNode(tn_root);
 }
 /*============================================================================*/
 /*! 設備詳細
@@ -601,7 +690,7 @@ void CCustomDetail::createMainNode(HTREEITEM parentitem, CTreeNode* parentnode)
 	HTREEITEM item = mTreeCtrl.InsertItem(str, NULL, NULL, parentitem);
 	mTreeCtrl.SetItemData(item, (LPARAM)item);
 	CTreeNode* item_node = parentnode->CreateTreeNode(parentitem, item);
-	CTreeNode* pcopyitem = theApp.GetDataManager().SearchItemNodeType(this, eTreeItemType_Main);
+	CTreeNode* pcopyitem = theApp.GetCustomControl().GetDataManager().SearchItemNodeType(this, eTreeItemType_Main);
 	if (pcopyitem != NULL)
 		item_node->CopyItem(pcopyitem, true);
 	setNodeWindowInfo(item_node, eTreeItemType_Main, (LPWSTR)mDefaultCustomMainText, parentnode);
@@ -630,7 +719,7 @@ void CCustomDetail::createSubNode(HTREEITEM parentitem, CTreeNode* parentnode)
 	HTREEITEM item = mTreeCtrl.InsertItem(str, NULL, NULL, parentitem);
 	mTreeCtrl.SetItemData(item, (LPARAM)item);
 	CTreeNode* item_node = parentnode->CreateTreeNode(parentitem, item);
-	CTreeNode* pcopyitem = theApp.GetDataManager().SearchItemNodeType(this, eTreeItemType_Sub);
+	CTreeNode* pcopyitem = theApp.GetCustomControl().GetDataManager().SearchItemNodeType(this, eTreeItemType_Sub);
 	if (pcopyitem != NULL)
 		item_node->CopyItem(pcopyitem, true);
 	setNodeWindowInfo(item_node, eTreeItemType_Sub, (LPWSTR)mDefaultCustomSubText, parentnode);
@@ -659,7 +748,7 @@ void CCustomDetail::createLeaf(HTREEITEM parentitem, CTreeNode* parentnode)
 	HTREEITEM item = mTreeCtrl.InsertItem(str, NULL, NULL, parentitem);
 	mTreeCtrl.SetItemData(item, (LPARAM)item);
 	CTreeNode* item_node = parentnode->CreateTreeNode(parentitem, item);
-	CTreeNode* pcopyitem = theApp.GetDataManager().SearchItemNodeType(this, eTreeItemType_Item);
+	CTreeNode* pcopyitem = theApp.GetCustomControl().GetDataManager().SearchItemNodeType(this, eTreeItemType_Item);
 	if (pcopyitem != NULL)
 		item_node->CopyItem(pcopyitem, true);
 	setNodeWindowInfo(item_node, eTreeItemType_Item, (LPWSTR)mDefaultCustomItemText, parentnode);
@@ -682,7 +771,7 @@ void CCustomDetail::createLeaf(HTREEITEM parentitem, CTreeNode* parentnode)
 /*============================================================================*/
 void CCustomDetail::restoreRoot()
 {
-	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 
 #if 0//(_WIN32_WINNT >= _WIN32_WINNT_WINBLUE)
 	/*
@@ -956,7 +1045,7 @@ void CCustomDetail::OnDetailConfig()
 	if (mMenuItem == NULL)
 		return;
 
-	CTreeNode* pnode = theApp.GetDataManager().SearchItemNode(this, mMenuItem);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, mMenuItem);
 
 	CCustomDetailConfig config(this, pnode->GetWindowInfo().type);
 
@@ -964,7 +1053,7 @@ void CCustomDetail::OnDetailConfig()
 	for (int i = 0; i < sizeof(mColorConfig) / sizeof(mColorConfig[0]); i++) {
 
 		stColorData color;
-		if (theApp.GetDataManager().GetNodeColor(this, mColorConfig[i].type, color) == true) {
+		if (theApp.GetCustomControl().GetDataManager().GetNodeColor(this, mColorConfig[i].type, color) == true) {
 			switch (mColorConfig[i].type) {
 			case	eTreeItemType_Window:
 				config.mColor[eColorType_Window] = color.back;
@@ -1004,6 +1093,10 @@ void CCustomDetail::OnDetailConfig()
 		return;
 	}
 
+#ifdef _NOPROC
+	return;
+#endif
+
 	// 設定されたフォントから最大高さを求める
 	mTreeLogFont.lfHeight = 0;
 	for (int i = 0; i < sizeof(mColorConfig) / sizeof(mColorConfig[0]); i++) {
@@ -1037,7 +1130,7 @@ void CCustomDetail::OnDetailConfig()
 	// 設定ダイアログで設定された色情報を保存する
 	for (int i = 0; i < sizeof(mColorConfig) / sizeof(mColorConfig[0]); i++) {
 		stColorData color;
-		if (theApp.GetDataManager().GetNodeColor(this, mColorConfig[i].type, color) == true) {
+		if (theApp.GetCustomControl().GetDataManager().GetNodeColor(this, mColorConfig[i].type, color) == true) {
 			switch (mColorConfig[i].type) {
 			case	eTreeItemType_Window:
 				color.back = config.mColor[eColorType_Window];
@@ -1067,7 +1160,7 @@ void CCustomDetail::OnDetailConfig()
 				break;
 			}
 			if (mColorConfig[i].type != eTreeItemType_Window) {
-				theApp.GetDataManager().SetNodeColor(this, mColorConfig[i].type, color);
+				theApp.GetCustomControl().GetDataManager().SetNodeColor(this, mColorConfig[i].type, color);
 				mTreeCtrl.SetFontEx(mColorConfig[i].type, color.font);
 			}
 		}
@@ -1075,10 +1168,10 @@ void CCustomDetail::OnDetailConfig()
 
 	mTreeCtrl.Invalidate();
 
-	pnode = theApp.GetDataManager().SearchWndNode(this);
-	if (pnode->GetWindowInfo().manager->GetSafeHwnd()) {
-		pnode->GetWindowInfo().manager->SendMessage(eUserMessage_Manager_Update, 0, (LPARAM)this);
-	}
+	//pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
+	//if (pnode->GetWindowInfo().manager->GetSafeHwnd()) {
+	//	pnode->GetWindowInfo().manager->SendMessage(eUserMessage_Manager_Update, 0, (LPARAM)this);
+	//}
 }
 
 /*============================================================================*/
@@ -1097,7 +1190,7 @@ void CCustomDetail::OnTvnGetInfoTipTreeCtrl(NMHDR* pNMHDR, LRESULT* pResult)
 	// TODO: ここにコントロール通知ハンドラー コードを追加します。
 	*pResult = 0;
 
-	CTreeNode* pnode = theApp.GetDataManager().SearchItemNode(this, pGetInfoTip->hItem);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, pGetInfoTip->hItem);
 	if (pnode == NULL) {
 		return;
 	}
@@ -1153,13 +1246,11 @@ LRESULT CCustomDetail::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 /*============================================================================*/
 void CCustomDetail::setTreeTitle(LPARAM lParam)
 {
-	CTreeNode* pnode = theApp.GetDataManager().SearchItemNode(this, (HTREEITEM)lParam);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, (HTREEITEM)lParam);
 
 	if (pnode->GetWindowInfo().type == eTreeItemType_Title) {
 		swprintf_s(pnode->GetWindowInfo().title, mNameSize, _T("%s"), pnode->GetMonCtrl().display);
 		updateMode();
-		if (pnode->GetWindowInfo().manager->GetSafeHwnd())
-			pnode->GetWindowInfo().manager->SendMessage(eUserMessage_Manager_Update, 0, (LPARAM)this);
 	}
 }
 
@@ -1175,7 +1266,7 @@ void CCustomDetail::setTreeTitle(LPARAM lParam)
 /*============================================================================*/
 void CCustomDetail::updateMode()
 {
-	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 	CString title = pnode->GetWindowInfo().title;
 	mMode = eTreeItemMode_Monitor;
 	mTreeCtrl.ModifyStyle(TVS_EDITLABELS, 0);
@@ -1189,26 +1280,33 @@ void CCustomDetail::updateMode()
 	SetWindowText(title);
 }
 
+/*============================================================================*/
+/*! 設備詳細
 
-void CCustomDetail::OnMenudetailEdit()
-{
-	// TODO: ここにコマンド ハンドラー コードを追加します。
-}
+-# メニューの初期化
 
-void CCustomDetail::OnMenudetailMonitor()
-{
-	// TODO: ここにコマンド ハンドラー コードを追加します。
-}
+@param
 
-
+@retval なし
+*/
+/*============================================================================*/
 void CCustomDetail::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu)
 {
 	CCustomDialogBase::OnInitMenuPopup(pPopupMenu, nIndex, bSysMenu);
 
-	// TODO: ここにメッセージ ハンドラー コードを追加します。
 	updateMenu(pPopupMenu);
 }
 
+/*============================================================================*/
+/*! 設備詳細
+
+-# メニュー項目の活性/非活性の設定
+
+@param
+
+@retval なし
+*/
+/*============================================================================*/
 void CCustomDetail::updateMenu(CMenu* pMenu)
 {
 	int menuCount = pMenu->GetMenuItemCount();
@@ -1227,9 +1325,19 @@ void CCustomDetail::updateMenu(CMenu* pMenu)
 	}
 }
 
+/*============================================================================*/
+/*! 設備詳細
+
+-# メニュー項目のチェック状態の取得
+
+@param
+
+@retval なし
+*/
+/*============================================================================*/
 bool CCustomDetail::updateMenuItem(MENUITEMINFO* pMenuItemInfo)
 {
-	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(this);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 	switch (pMenuItemInfo->wID)
 	{
 	case ID_MENUDETAIL_EDIT:

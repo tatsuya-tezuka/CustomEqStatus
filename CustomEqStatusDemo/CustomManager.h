@@ -55,6 +55,8 @@ protected:
 	void	createEqDetail(CTreeNode* node = NULL);
 	void	updateMenuItemStatus(CMenu* pMenu);
 	void	updateItemData(LPARAM lParam);
+	void	updateXmlFile();
+	void	showCustomDetail(int nItem);
 
 	/* ------------------------------------------------------------------------------------ */
 
@@ -85,4 +87,5 @@ public:
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
 	afx_msg void OnMove(int x, int y);
+	afx_msg void OnClose();
 };

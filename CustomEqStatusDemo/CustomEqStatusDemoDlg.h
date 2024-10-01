@@ -6,7 +6,6 @@
 #include "afxbutton.h"
 #include "resource.h"		// メイン シンボル
 
-
 // CCustomEqStatusDemoDlg ダイアログ
 class CCustomEqStatusDemoDlg : public CDialogEx
 {

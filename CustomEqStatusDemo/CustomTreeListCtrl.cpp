@@ -533,6 +533,23 @@ void CCustomTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 	SelectItem(hItem);
 	SetFocus();
 #else
+
+	{
+		// 値セルを押下された場合は選択状態にして何もしない
+		HTREEITEM hItem;
+		UINT col = 0;
+		hItem = HitTestEx(point, col);
+		if (hItem == NULL) {
+			SetFocus();
+			return;
+		}
+		if (col == eTreeItemSubType_Value) {
+			SelectItem(hItem);
+			SetFocus();
+			return;
+		}
+	}
+
 	// Controlキーを押下している場合は、複数選択
 	// Controlキーを押下していない場合は、単数選択あるいは名称変更
 	if (!(MK_CONTROL & nFlags)/* && !(MK_SHIFT & nFlags)*/) {
@@ -544,6 +561,10 @@ void CCustomTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 		UINT col = 0;
 		hItem = HitTestEx(point, col);
 		if (hItem == NULL) {
+			SetFocus();
+			return;
+		}
+		if (col == eTreeItemSubType_Value) {
 			SetFocus();
 			return;
 		}
@@ -827,7 +848,7 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 	{
 		//*pResult = CDRF_DODEFAULT | CDRF_NOTIFYPOSTPAINT;
 		HTREEITEM hItem = (HTREEITEM)pNMCustomDraw->dwItemSpec;
-		CTreeNode* pnode = theApp.GetDataManager().SearchItemNode(mTreeParent, hItem);
+		CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hItem);
 		if (pnode == NULL) {
 			// デフォルト描画
 			*pResult = CDRF_DODEFAULT | CDRF_NOTIFYPOSTPAINT;
@@ -862,7 +883,7 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		HTREEITEM hItem = (HTREEITEM)pNMCustomDraw->dwItemSpec;
 		CRect rcItem = pNMCustomDraw->rc;
 
-		CTreeNode* pnode = theApp.GetDataManager().SearchItemNode(mTreeParent, hItem);
+		CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hItem);
 		if (pnode == NULL){
 			// デフォルト描画
 			*pResult = CDRF_DODEFAULT;
@@ -1025,7 +1046,7 @@ void CCustomTreeListCtrl::OnTvnBeginlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMTVDISPINFO pTVDispInfo = reinterpret_cast<LPNMTVDISPINFO>(pNMHDR);
 
-	CTreeNode* pnode = theApp.GetDataManager().SearchItemNode(mTreeParent, pTVDispInfo->item.hItem);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, pTVDispInfo->item.hItem);
 	if (pnode != NULL){
 		UINT type = pnode->GetWindowInfo().type;
 		if (type == eTreeItemType_Item){
@@ -1037,7 +1058,11 @@ void CCustomTreeListCtrl::OnTvnBeginlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 			ScreenToClient(&point);
 			hItem = HitTestEx(point, col);
 			// 先頭セルの場合は編集処理を行う
-			if (hItem != NULL/* && col != 0*/){
+			if (hItem != NULL){
+				if (col != 0) {
+					*pResult = 0;
+					return;
+				}
 				// 先頭セルの場合はラベル編集を行う
 				SwitchEditMode(hItem, col, point);
 				*pResult = 1;
@@ -1061,7 +1086,7 @@ void CCustomTreeListCtrl::OnTvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMTVDISPINFO pTVDispInfo = reinterpret_cast<LPNMTVDISPINFO>(pNMHDR);
 
-	CTreeNode* pnode = theApp.GetDataManager().SearchItemNode(mTreeParent, pTVDispInfo->item.hItem);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, pTVDispInfo->item.hItem);
 	if (pnode == NULL){
 		*pResult = 0;
 		return;
@@ -1503,7 +1528,7 @@ BOOL CCustomTreeListCtrl::SwitchEditMode(HTREEITEM hItem, UINT col, CPoint point
 	if (hItem == NULL)
 		return FALSE;
 
-	CTreeNode* pnode = theApp.GetDataManager().SearchItemNode(mTreeParent, hItem);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hItem);
 	UINT type = pnode->GetWindowInfo().type;
 	if (type != eTreeItemType_Item) {
 		SetFocus();
@@ -1688,7 +1713,7 @@ void CCustomTreeListCtrl::clearSelection()
 /*============================================================================*/
 CString CCustomTreeListCtrl::createDragString(HTREEITEM hDragItem)
 {
-	CTreeNode* pnode = theApp.GetDataManager().SearchItemNode(mTreeParent, hDragItem);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hDragItem);
 	if (pnode == NULL)
 		return _T("");
 

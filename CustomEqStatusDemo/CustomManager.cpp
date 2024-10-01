@@ -55,6 +55,7 @@ BEGIN_MESSAGE_MAP(CCustomManager, CCustomDialogBase)
 	ON_WM_SHOWWINDOW()
 	ON_WM_LBUTTONDOWN()
 	ON_WM_MOVE()
+	ON_WM_CLOSE()
 END_MESSAGE_MAP()
 
 // CCustomManager メッセージ ハンドラー
@@ -80,7 +81,7 @@ BOOL CCustomManager::OnInitDialog()
 	//createEquipment();
 
 	// リストに登録
-	if (theApp.GetDataManager().GetTreeNode().size() != 0){
+	if (theApp.GetCustomControl().GetDataManager().GetTreeNode().size() != 0){
 		createItem((int)eSelectUser);
 	}
 
@@ -122,12 +123,12 @@ void CCustomManager::OnShowWindow(BOOL bShow, UINT nStatus)
 	if (bShow == TRUE){
 		// 表示
 		UpdateData(TRUE);
-		if (theApp.GetDataManager().GetTreeNode().size() != 0){
+		if (theApp.GetCustomControl().GetDataManager().GetTreeNode().size() != 0){
 			createItem((int)mSelectType);
 		}
 		CRect rect;
 		GetWindowRect(rect);
-		theApp.UpdateCustomManagerPoint(CPoint(rect.left, rect.top));
+		theApp.GetCustomControl().UpdateCustomManagerPoint(CPoint(rect.left, rect.top));
 	}
 }
 
@@ -147,7 +148,7 @@ void CCustomManager::OnMove(int x, int y)
 
 	CRect rect;
 	GetWindowRect(rect);
-	theApp.UpdateCustomManagerPoint(CPoint(rect.left, rect.top));
+	theApp.GetCustomControl().UpdateCustomManagerPoint(CPoint(rect.left, rect.top));
 }
 
 /*============================================================================*/
@@ -163,7 +164,7 @@ void CCustomManager::OnMove(int x, int y)
 void CCustomManager::OnBnClickedRadioUser()
 {
 	UpdateData(TRUE);
-	if (theApp.GetDataManager().GetTreeNode().size() != 0){
+	if (theApp.GetCustomControl().GetDataManager().GetTreeNode().size() != 0){
 		createItem((int)mSelectType);
 	}
 	UpdateData(FALSE);
@@ -181,7 +182,7 @@ void CCustomManager::OnBnClickedRadioUser()
 void CCustomManager::OnBnClickedRadioMaster()
 {
 	UpdateData(TRUE);
-	if (theApp.GetDataManager().GetTreeNode().size() != 0){
+	if (theApp.GetCustomControl().GetDataManager().GetTreeNode().size() != 0){
 		createItem((int)mSelectType);
 	}
 }
@@ -245,23 +246,8 @@ void CCustomManager::OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult)
 	int nItem = pNMItemActivate->iItem;
 	if (nItem < 0)
 		return;
-	CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
-	if (pnode != NULL){
-		if (pnode->GetWindowInfo().wnd == NULL){
-			CCustomDetail* pitem = theApp.CreateEquipment(pnode);
-			if (pitem == NULL)
-				return;
-			CPoint point = theApp.GetCascadePoint();
-			if (pnode->GetWindowInfo().wnd != NULL) {
-				pnode->GetWindowInfo().wnd->SetWindowPos(NULL, point.x, point.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
-			}
-		}
-		pnode->GetWindowInfo().wnd->ShowWindow(SW_SHOWNA);
-		pnode->GetWindowInfo().wnd->SetActiveWindow();
-		// ダブルクリック時は常に編集モードとする
-		pnode->GetWindowInfo().mode = eTreeItemMode_Edit;
-		pnode->GetWindowInfo().wnd->PostMessageW(eUserMessage_Detail_Mode, 0, (LPARAM)eTreeItemMode_Edit);
-	}
+
+	showCustomDetail(nItem);
 
 	*pResult = 0;
 }
@@ -356,10 +342,7 @@ void CCustomManager::OnManagerShow()
 	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
 	while (pos) {
 		int nItem = mManagerList.GetNextSelectedItem(pos);
-		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
-		if (pnode == NULL || pnode->GetWindowInfo().wnd == NULL)
-			continue;
-		pnode->GetWindowInfo().wnd->ShowWindow(SW_SHOW);
+		showCustomDetail(nItem);
 	}
 }
 /*============================================================================*/
@@ -429,7 +412,7 @@ void CCustomManager::OnManagerLoad()
 		return;
 
 	// ツリーデータの読込
-	theApp.GetDataManager().LoadEquipmentData((UINT)eLayoutFileType_XML, dlg.GetPathName(), false);
+	theApp.GetCustomControl().GetDataManager().LoadEquipmentData((UINT)eLayoutFileType_XML, dlg.GetPathName(), false);
 
 	// 復元処理を行う
 	createItem((int)eSelectUser);
@@ -460,7 +443,7 @@ void CCustomManager::OnManagerSave()
 	CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
 
 	// ツリーデータの保存
-	theApp.GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, dlg.GetPathName(), pnode->GetWindowInfo().wnd);
+	theApp.GetCustomControl().GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, dlg.GetPathName(), pnode->GetWindowInfo().wnd);
 }
 
 /*============================================================================*/
@@ -476,7 +459,7 @@ void CCustomManager::OnManagerSave()
 void CCustomManager::UpdateGroup()
 {
 	// 登録されているカスタム画面のグループ更新
-	vector<CTreeNode*>& treedata = theApp.GetDataManager().GetTreeNode();
+	vector<CTreeNode*>& treedata = theApp.GetCustomControl().GetDataManager().GetTreeNode();
 	vector<CTreeNode*>::iterator itr;
 	// 全てのグループ情報を削除
 	mSyncWindow.Clear(0);
@@ -502,7 +485,7 @@ void CCustomManager::UpdateGroup()
 void CCustomManager::ResetGroupInnerNo()
 {
 	map<UINT, UINT>	maxlist;
-	vector<CTreeNode*>& treedata = theApp.GetDataManager().GetTreeNode();
+	vector<CTreeNode*>& treedata = theApp.GetCustomControl().GetDataManager().GetTreeNode();
 	vector<CTreeNode*>::iterator itr;
 	// 全てのグループ情報を削除
 	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
@@ -537,7 +520,7 @@ void CCustomManager::createItem(UINT nSelect)
 	mManagerList.RemoveAllGroups();
 	mManagerList.DeleteAllItems();
 
-	vector<CTreeNode*>& treedata = theApp.GetDataManager().GetTreeNode();
+	vector<CTreeNode*>& treedata = theApp.GetCustomControl().GetDataManager().GetTreeNode();
 	vector<CTreeNode*>::iterator itr;
 	for (itr = treedata.begin(); itr != treedata.end(); itr++){
 		int count = mManagerList.GetItemCount();
@@ -577,11 +560,11 @@ void CCustomManager::createItem(UINT nSelect)
 void CCustomManager::createEquipment()
 {
 	// 登録されているカスタム画面の作成
-	vector<CTreeNode*>& treedata = theApp.GetDataManager().GetTreeNode();
+	vector<CTreeNode*>& treedata = theApp.GetCustomControl().GetDataManager().GetTreeNode();
 	vector<CTreeNode*>::iterator itr;
 	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
 		// 設備詳細画面の作成
-		CCustomDetail* pitem = theApp.CreateEquipment((*itr));
+		CCustomDetail* pitem = theApp.GetCustomControl().CreateEquipment((*itr));
 	}
 }
 
@@ -598,9 +581,9 @@ void CCustomManager::createEquipment()
 void CCustomManager::createEqDetail(CTreeNode* node/*=NULL*/)
 {
 	// 設備詳細画面の作成
-	CCustomDetail* pitem = theApp.CreateEquipment(NULL);
+	CCustomDetail* pitem = theApp.GetCustomControl().CreateEquipment(NULL);
 
-	CTreeNode* pnode = theApp.GetDataManager().SearchWndNode(pitem);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(pitem);
 	createItem((int)mSelectType);
 	//int count = mManagerList.GetItemCount();
 	//mManagerList.AddItem(count, 0, mDefaultCustomTitle, (LPARAM)node);
@@ -631,17 +614,10 @@ void CCustomManager::updateMenuItemStatus(CMenu* pMenu)
 			BOOL bKind = (mSelectType == eSelectUser) ? TRUE : FALSE;
 			BOOL bSelect = (mManagerList.GetSelectedCount() > 0) ? TRUE : FALSE;
 			BOOL bMultiSelect = (mManagerList.GetSelectedCount() > 1) ? TRUE : FALSE;
-			pMenu->EnableMenuItem(ID_MANAGER_NEW, MF_BYCOMMAND | (bKind && mSelectType == eSelectUser) ? MF_ENABLED : MF_GRAYED);
-			pMenu->EnableMenuItem(ID_MANAGER_DELETE, MF_BYCOMMAND | (bSelect && mSelectType == eSelectUser) ? MF_ENABLED : MF_GRAYED);
-			pMenu->EnableMenuItem(ID_MANAGER_MONITOR, MF_BYCOMMAND | (bSelect && mSelectType == eSelectUser) ? MF_ENABLED : MF_GRAYED);
-			pMenu->EnableMenuItem(ID_MANAGER_EDIT, MF_BYCOMMAND | (bSelect && mSelectType == eSelectUser) ? MF_ENABLED : MF_GRAYED);
-			pMenu->EnableMenuItem(ID_MANAGER_SHOW, MF_BYCOMMAND | (bSelect) ? MF_ENABLED : MF_GRAYED);
-			pMenu->EnableMenuItem(ID_MANAGER_HIDE, MF_BYCOMMAND | (bSelect) ? MF_ENABLED : MF_GRAYED);
-			pMenu->EnableMenuItem(ID_MANAGER_CREATE, MF_BYCOMMAND | (bSelect && mSelectType == eSelectUser) ? MF_ENABLED : MF_GRAYED);
-			pMenu->EnableMenuItem(ID_MANAGER_CANCEL, MF_BYCOMMAND | (bSelect && mSelectType == eSelectUser) ? MF_ENABLED : MF_GRAYED);
-
-			pMenu->EnableMenuItem(ID_MANAGER_LOAD, MF_BYCOMMAND | (mSelectType== eSelectUser) ? MF_ENABLED : MF_GRAYED);
-			pMenu->EnableMenuItem(ID_MANAGER_SAVE, MF_BYCOMMAND | (bSelect && mSelectType == eSelectUser) ? MF_ENABLED : MF_GRAYED);
+			pMenu->EnableMenuItem(ID_MANAGER_NEW, MF_BYCOMMAND | (bKind) ? MF_ENABLED : MF_GRAYED);
+			pMenu->EnableMenuItem(ID_MANAGER_DELETE, MF_BYCOMMAND | (bKind) && (bSelect || bMultiSelect) ? MF_ENABLED : MF_GRAYED);
+			pMenu->EnableMenuItem(ID_MANAGER_SHOW, MF_BYCOMMAND | (bSelect || bMultiSelect) ? MF_ENABLED : MF_GRAYED);
+			pMenu->EnableMenuItem(ID_MANAGER_CREATE, MF_BYCOMMAND | (bKind) && (bSelect || bMultiSelect) ? MF_ENABLED : MF_GRAYED);
 		}
 	}
 }
@@ -699,6 +675,9 @@ LRESULT CCustomManager::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 		createItem((int)eSelectUser);
 		UpdateGroup();
 		break;
+	case	eUserMessage_Manager_Delete:
+		theApp.GetCustomControl().GetDataManager().DeleteItemWnd((CWnd*)lParam);
+		break;
 	default:
 		return CCustomDialogBase::WindowProc(message, wParam, lParam);
 	}
@@ -723,4 +702,96 @@ void CCustomManager::updateItemData(LPARAM lParam)
 		mManagerList.SetItemText(i, 0, pnode->GetWindowInfo().title);
 	}
 	mManagerList.Invalidate();
+}
+
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# ウィンドウ「X」ボタン押下
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+void CCustomManager::OnClose()
+{
+	updateXmlFile();
+
+	CCustomDialogBase::OnClose();
+}
+
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# 備考欄の更新
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+void CCustomManager::updateXmlFile()
+{
+#ifdef _NOPROC
+	return;
+#endif
+	int count = mManagerList.GetItemCount();
+	for (int i = 0; i < count; i++) {
+		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(i);
+		swprintf_s(pnode->GetWindowInfo().memo, mTitleSize, _T("%s"), (LPCTSTR)mManagerList.GetItemText(i, 1));
+
+		CMarkup xml;
+		xml.Load(pnode->GetXmlFileName());
+		xml.FindElem(_T("ROOT"));
+		xml.IntoElem();
+		xml.FindElem(_T("EQUIPMENT"));
+		xml.IntoElem();
+		xml.FindElem(_T("WINDOWINFO"));
+		xml.IntoElem();
+
+		xml.FindElem(_T("TYPE"));
+		UINT type = _wtoi(xml.GetData());
+		if (type == eTreeItemType_Title) {
+			xml.FindElem(_T("TITLE"));
+			if (xml.FindElem(_T("MEMO")) == false) {
+				xml.AddElem(_T("MEMO"), mManagerList.GetItemText(i, 1));
+			}
+			else {
+				xml.SetData(mManagerList.GetItemText(i, 1));
+			}
+		}
+
+		xml.Save(pnode->GetXmlFileName());
+	}
+}
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# 指定アイテムの設備詳細を開く
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomManager::showCustomDetail(int nItem)
+{
+	CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
+	if (pnode != NULL) {
+		if (pnode->GetWindowInfo().wnd == NULL) {
+			CCustomDetail* pitem = theApp.GetCustomControl().CreateEquipment(pnode);
+			if (pitem == NULL)
+				return;
+			CPoint point = theApp.GetCustomControl().GetCascadePoint();
+			if (pnode->GetWindowInfo().wnd != NULL) {
+				pnode->GetWindowInfo().wnd->SetWindowPos(NULL, point.x, point.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+			}
+		}
+		pnode->GetWindowInfo().wnd->ShowWindow(SW_SHOWNA);
+		pnode->GetWindowInfo().wnd->SetActiveWindow();
+		// ダブルクリック時は常に編集モードとする
+		pnode->GetWindowInfo().mode = eTreeItemMode_Edit;
+		pnode->GetWindowInfo().wnd->PostMessageW(eUserMessage_Detail_Mode, 0, (LPARAM)eTreeItemMode_Edit);
+	}
 }

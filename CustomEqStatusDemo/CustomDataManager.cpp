@@ -1160,7 +1160,7 @@ void CCustomDataManager::LoadEquipmentData(UINT typeLayout, CString strfile, boo
 	timeBeginPeriod(1);
 	DWORD	start_time = timeGetTime();
 
-	theApp.PrintMemoryInfo();
+	theApp.GetCustomControl().PrintMemoryInfo();
 
 	// アプリケーション終了時に保存された設備詳細データの復元
 	switch (typeLayout) {
@@ -1185,7 +1185,7 @@ void CCustomDataManager::LoadEquipmentData(UINT typeLayout, CString strfile, boo
 
 		// 設備詳細画面の作成
 		// ※作成時は非表示とする
-		CCustomDetail* pitem = theApp.CreateEquipment((*itr));
+		CCustomDetail* pitem = theApp.GetCustomControl().CreateEquipment((*itr));
 	}
 
 	//ResetTreeZorder();
@@ -1201,7 +1201,7 @@ void CCustomDataManager::LoadEquipmentData(UINT typeLayout, CString strfile, boo
 	//}
 
 	DWORD	end_time = timeGetTime();
-	theApp.PrintMemoryInfo();
+	theApp.GetCustomControl().PrintMemoryInfo();
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
 	CString msg;
@@ -1235,7 +1235,7 @@ void CCustomDataManager::SaveEquipmentData(UINT typeLayout, CString strfile, CWn
 	timeBeginPeriod(1);
 	DWORD	start_time = timeGetTime();
 
-	theApp.PrintMemoryInfo();
+	theApp.GetCustomControl().PrintMemoryInfo();
 
 	// アプリケーション終了時に保存された設備詳細データの復元
 	switch (typeLayout) {
@@ -1250,7 +1250,7 @@ void CCustomDataManager::SaveEquipmentData(UINT typeLayout, CString strfile, CWn
 	}
 
 	DWORD	end_time = timeGetTime();
-	theApp.PrintMemoryInfo();
+	theApp.GetCustomControl().PrintMemoryInfo();
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
 	CString msg;

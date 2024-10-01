@@ -187,6 +187,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CustomControl.h" />
     <ClInclude Include="CustomDetailConfig.h" />
     <ClInclude Include="CustomSelectSaveFile.h" />
     <ClInclude Include="CustomSynchroWindow.h" />
@@ -206,6 +207,7 @@
     <ClInclude Include="CustomTreeListCtrl.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CustomControl.cpp" />
     <ClCompile Include="CustomDetailConfig.cpp" />
     <ClCompile Include="CustomSelectSaveFile.cpp" />
     <ClCompile Include="CustomSynchroWindow.cpp" />

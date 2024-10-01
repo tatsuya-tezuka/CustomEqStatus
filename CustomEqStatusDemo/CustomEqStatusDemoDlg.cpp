@@ -169,10 +169,10 @@ HCURSOR CCustomEqStatusDemoDlg::OnQueryDragIcon()
 void CCustomEqStatusDemoDlg::createCustomControl()
 {
 	// カスタム管理画面の作成
-	if (theApp.GetCustomManager().GetSafeHwnd() == NULL) {
-		theApp.GetCustomManager().Create(IDD_DIALOG_MANAGER, this);
+	if (theApp.GetCustomControl().GetCustomManager().GetSafeHwnd() == NULL) {
+		theApp.GetCustomControl().GetCustomManager().Create(IDD_DIALOG_MANAGER, this);
 	}
-	theApp.GetCustomManager().ShowWindow(SW_SHOW);
+	theApp.GetCustomControl().GetCustomManager().ShowWindow(SW_SHOW);
 }
 
 /*============================================================================*/
@@ -204,15 +204,15 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad()
 
 	// ツリーデータの読込
 	if (dlg.GetFileExt().MakeLower() == _T("scl")) {
-		theApp.GetDataManager().LoadEquipmentData((UINT)eLayoutFileType_SCL, dlg.GetPathName(), bClear);
+		theApp.GetCustomControl().GetDataManager().LoadEquipmentData((UINT)eLayoutFileType_SCL, dlg.GetPathName(), bClear);
 	}
 	else {
-		theApp.GetDataManager().LoadEquipmentData((UINT)eLayoutFileType_XML, dlg.GetPathName(), bClear);
+		theApp.GetCustomControl().GetDataManager().LoadEquipmentData((UINT)eLayoutFileType_XML, dlg.GetPathName(), bClear);
 	}
 
 	// 復元処理を行う
-	if (theApp.GetCustomManager().GetSafeHwnd() != NULL) {
-		theApp.GetCustomManager().PostMessage(eUserMessage_Manager_Reset, 0, 1);
+	if (theApp.GetCustomControl().GetCustomManager().GetSafeHwnd() != NULL) {
+		theApp.GetCustomControl().GetCustomManager().PostMessage(eUserMessage_Manager_Reset, 0, 1);
 	}
 }
 
@@ -237,17 +237,14 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave()
 
 	// ツリーデータの保存
 	if (dlg.GetFileExt().MakeLower() == _T("scl")) {
-		theApp.GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_SCL, dlg.GetPathName());
+		theApp.GetCustomControl().GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_SCL, dlg.GetPathName());
 	}
 	else {
-		theApp.GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, dlg.GetPathName());
+		theApp.GetCustomControl().GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, dlg.GetPathName());
 	}
 }
 
 void CCustomEqStatusDemoDlg::OnBnClickedMfcbutton()
 {
-	if (theApp.GetCustomManager().GetSafeHwnd() == NULL) {
-		theApp.GetCustomManager().Create(IDD_DIALOG_MANAGER, this);
-	}
-	theApp.GetCustomManager().ShowWindow(SW_SHOW);
+	createCustomControl();
 }

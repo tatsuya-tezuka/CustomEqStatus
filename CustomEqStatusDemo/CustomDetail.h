@@ -78,6 +78,8 @@ protected:
 	void	updateMenu(CMenu* pMenu);
 	bool	updateMenuItem(MENUITEMINFO* pMenuItemInfo);
 
+	void	saveHeaderWidth();
+
 	/* ------------------------------------------------------------------------------------ */
 
 protected:
