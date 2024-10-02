@@ -103,6 +103,11 @@ BOOL CCustomEqStatusDemoDlg::OnInitDialog()
 	// カスタマイズ機能画面の作成
 	createCustomControl();
 
+	CenterWindow();
+	CRect rect;
+	GetWindowRect(rect);
+	::SetWindowPos(m_hWnd, HWND_TOP, rect.left, 0, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
+
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
 
@@ -187,12 +192,45 @@ void CCustomEqStatusDemoDlg::createCustomControl()
 /*============================================================================*/
 void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad()
 {
-	const TCHAR BASED_CODE szFilter[] = _T("Station Control Layout(*.scl)|*.scl|Layout File(*.xml)|*.xml|");
+	const TCHAR BASED_CODE szFilter[] = _T("Station Control Layout(*.scl)|*.scl|");
 	CFileDialog dlg(TRUE, _T("xml"), NULL, OFN_OVERWRITEPROMPT | OFN_LONGNAMES | OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY, szFilter);
 	if (dlg.DoModal() != IDOK)
 		return;
 
+	CFile file;
+	if (file.Open(dlg.GetPathName(), CFile::modeRead | CFile::typeBinary) == NULL) {
+		return;
+	}
+	CArchive mArc(&file, CArchive::load);
+
+	bool ret;
+
+	try
+	{
+		theApp.GetCustomControl().GetDataManager().LoadCustomLayout(mArc);
+		ret = true;
+	}
+	catch (CArchiveException* e)
+	{
+		e->Delete();
+		ret = false;
+	}
+	catch (CFileException* e)
+	{
+		e->Delete();
+		ret = false;
+	}
+
+	mArc.Flush();
+	file.Close();
+
 	return;
+
+
+
+
+
+
 
 	bool bClear = false;
 	if (MessageBox(_T("設備詳細画面を全て削除しますか？"), _T(""), MB_YESNO) == IDYES)
@@ -228,12 +266,49 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad()
 /*============================================================================*/
 void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave()
 {
-	const TCHAR BASED_CODE szFilter[] = _T("Station Control Layout(*.scl)|*.scl|Layout File(*.xml)|*.xml|");
+	const TCHAR BASED_CODE szFilter[] = _T("Station Control Layout(*.scl)|*.scl|");
 	CFileDialog dlg(FALSE, _T("xml"), NULL, OFN_OVERWRITEPROMPT | OFN_LONGNAMES | OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY, szFilter);
 	if (dlg.DoModal() != IDOK)
 		return;
 
+	CFile file;
+	if (file.Open(dlg.GetPathName(), CFile::modeCreate | CFile::modeWrite | CFile::typeBinary) == NULL) {
+		return;
+	}
+	CArchive mArc(&file, CArchive::store);
+
+	bool ret = false;
+
+	try
+	{
+		theApp.GetCustomControl().GetDataManager().SaveCustomLayout(mArc);
+		ret = true;
+	}
+	catch (CArchiveException* e)
+	{
+		e->Delete();
+		ret = false;
+	}
+	catch (CFileException* e)
+	{
+		e->Delete();
+		ret = false;
+	}
+
+	mArc.Flush();
+	file.Close();
+
+	if (ret == false) {
+		DeleteFile(dlg.GetPathName());
+	}
+
 	return;
+
+
+
+
+
+
 
 	// ツリーデータの保存
 	if (dlg.GetFileExt().MakeLower() == _T("scl")) {

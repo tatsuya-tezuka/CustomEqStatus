@@ -68,7 +68,13 @@ protected:
 	CString createLeafText(CString item, CString unit, CString control)
 	{
 		CString str;
+#ifdef _NOPROC
+		int nRand = rand();
+		double dRand = (double)rand() * 360.0 / RAND_MAX;
+		str.Format(_T("%s\t%0.3f\t%s\t%s"), item, dRand, unit, control.IsEmpty() == false ? mCOntrolSignString : _T(""));
+#else
 		str.Format(_T("%s\t\t%s\t%s"), item, unit, control.IsEmpty() == false ? mCOntrolSignString : _T(""));
+#endif
 		return str;
 	}
 	void	resizeFit();

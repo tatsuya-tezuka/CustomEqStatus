@@ -14,6 +14,8 @@
 //------------------------------------------------------------------------------------ 
 //	グローバル定義
 //------------------------------------------------------------------------------------
+static const CString m_strAppName = _T("StationControl LayoutFile");		// 端末アプリ名の設定
+static const double m_nVersionCustom = 2.1;										// レイアウト対応アプリバージョンの設定
 enum eFileVersionMajor
 {
 	EN_FILE_VERSION_MAJOR = 100, /*1.00*/
@@ -254,6 +256,9 @@ public:
 	bool	SaveTreeNodeXml(CMarkup& xml);
 	bool	LoadTreeNodeXml(CMarkup& xml);
 
+	bool	SaveCustomLayout();
+	bool	LoadCustomLayout();
+
 	//bool operator==(CTreeNode* data);
 	bool Equal(CTreeNode* data);
 	bool Equal(stWindowInfo& data);
@@ -334,6 +339,27 @@ protected:
 	{
 		xml.AddElem(_T("X"), point.x);
 		xml.AddElem(_T("Y"), point.y);
+	}
+
+	// 矩形の設定
+	void setRectXml(CMarkup& xml, RECT& rect) const
+	{
+		xml.FindElem(_T("LEFT"));
+		xml.SetData(rect.left);
+		xml.FindElem(_T("TOP"));
+		xml.SetData(rect.top);
+		xml.FindElem(_T("RIGHT"));
+		xml.SetData(rect.right);
+		xml.FindElem(_T("BOTTOM"));
+		xml.SetData(rect.bottom);
+	}
+	// ポイントの設定
+	void setPointXml(CMarkup& xml, POINT& point) const
+	{
+		xml.FindElem(_T("X"));
+		xml.SetData(point.x);
+		xml.FindElem(_T("Y"));
+		xml.SetData(point.y);
 	}
 
 	/* ------------------------------------------------------------------------------------ */
@@ -551,7 +577,7 @@ public:
 	bool	SaveTreeData(CString strFile, CWnd* pTargetWnd = NULL);
 	bool	LoadTreeData(CString strFile, bool bClear);
 	bool	SaveTreeDataXml(CString strFile, CWnd* pTargetWnd = NULL);
-	CTreeNode* LoadTreeDataXml(CString strFile, UINT kind);
+	CTreeNode* LoadTreeDataXml(CString strFile, UINT kind=UINT_MAX);
 
 	/// Zオーダー設定
 	void	SetTreeZorder();
@@ -560,6 +586,9 @@ public:
 	/// ファイル管理
 	void	LoadEquipmentData(UINT typeLayout, CString strfile, bool bClear = true);
 	void	SaveEquipmentData(UINT typeLayout, CString strfile, CWnd* pTargetWnd = NULL);
+
+	bool	SaveCustomLayout(CArchive& ar);
+	bool	LoadCustomLayout(CArchive& ar);
 
 	/// 画面連結関連
 	UINT	GetMaxInnerNo(UINT group);

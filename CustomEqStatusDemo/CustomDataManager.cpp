@@ -761,6 +761,232 @@ bool CTreeNode::LoadTreeNode(CArchive& ar)
 	return true;
 }
 
+/*============================================================================*/
+/*! ツリーノード
+
+-# カスタマイズ画面のレイアウト保存
+
+@param		ar				CArchiveクラス
+
+@retval
+*/
+/*============================================================================*/
+bool CCustomDataManager::SaveCustomLayout(CArchive& ar)
+{
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveCustomLayout"), _T("Start"), _T(""), nLogEx::debug);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
+
+	// 端末アプリ名の設定
+	ar << m_strAppName;
+	// レイアウト対応アプリバージョンの設定
+	ar << m_nVersionCustom;
+
+	// 保存データ数の取得
+	UINT count = 0;
+	vector<CTreeNode*>::iterator itr;
+	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
+		if ((*itr)->GetWindowInfo().wnd == NULL) {
+			continue;
+		}
+		if ((*itr)->GetWindowInfo().wnd->IsWindowVisible() == FALSE) {
+			continue;
+		}
+
+		if ((*itr)->SaveCustomLayout() == false)
+			continue;
+
+		// ここまできたらXMLファイル名を保存する
+		count++;
+	}
+	// 保存データ数の設定
+	ar << count;
+
+	// 個々のデータを保存
+	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
+		if ((*itr)->GetWindowInfo().wnd == NULL) {
+			continue;
+		}
+		if ((*itr)->GetWindowInfo().wnd->IsWindowVisible() == FALSE) {
+			continue;
+		}
+
+		if ((*itr)->SaveCustomLayout() == false)
+			continue;
+
+		// ここまできたらXMLファイル名を保存する
+		ar << CString((*itr)->GetXmlFileName());
+	}
+
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveCustomLayout"), _T("Stop"), _T(""), nLogEx::debug);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
+
+	return true;
+}
+
+/*============================================================================*/
+/*! ツリーノード
+
+-# カスタマイズ画面のレイアウト保存
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+bool CTreeNode::SaveCustomLayout()
+{
+	if (CString(xmlfile).IsEmpty() == true)
+		return false;
+
+	// ウィンドウ位置情報の取得
+	memset(&wininfo.placement, 0, sizeof(WINDOWPLACEMENT));
+	wininfo.placement.length = sizeof(WINDOWPLACEMENT);
+	wininfo.wnd->GetWindowPlacement(&wininfo.placement);
+
+	CMarkup xml;
+	xml.Load(xmlfile);
+	xml.FindElem(_T("ROOT"));
+	xml.IntoElem();
+	xml.FindElem(_T("EQUIPMENT"));
+	xml.IntoElem();
+	xml.FindElem(_T("WINDOWINFO"));
+	xml.IntoElem();
+
+	xml.FindElem(_T("FLAGS"));
+	xml.SetData(wininfo.placement.flags);
+	xml.FindElem(_T("SHOWCMD"));
+	xml.SetData(wininfo.wnd->IsWindowVisible());
+	setPointXml(xml, wininfo.placement.ptMinPosition);
+	setPointXml(xml, wininfo.placement.ptMaxPosition);
+	setRectXml(xml, wininfo.placement.rcNormalPosition);
+
+	xml.Save(xmlfile);
+
+	return true;
+}
+
+/*============================================================================*/
+/*! ツリーノード
+
+-# カスタマイズ画面のレイアウト復元
+
+@param		ar				CArchiveクラス
+
+@retval
+*/
+/*============================================================================*/
+bool CCustomDataManager::LoadCustomLayout(CArchive& ar)
+{
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("LoadCustomLayout"), _T("Start"), _T(""), nLogEx::debug);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
+
+	// 現行のデータを削除する
+	//DeleteKindWnd(eTreeItemKind_User);
+	//DeleteKindNode(eTreeItemKind_User);
+	//DeleteAll();
+
+	CString strAppName;
+	double nVersion;
+	UINT count = 0;
+
+	// 端末アプリ名の設定
+	ar >> strAppName;
+	// レイアウト対応アプリバージョンの設定
+	ar >> nVersion;
+
+	// 保存データ数の設定
+	ar >> count;
+
+	// 個々のデータを保存
+	for (UINT i = 0; i < count; i++) {
+		CString xmlfile;
+		ar >> xmlfile;
+
+		vector<CTreeNode*>::iterator itr;
+		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
+			if (CString((*itr)->GetXmlFileName()).MakeLower() == xmlfile.MakeLower()) {
+				if ((*itr)->GetWindowInfo().wnd == NULL) {
+					CCustomDetail* pitem = theApp.GetCustomControl().CreateEquipment((*itr));
+					if (pitem == NULL)
+						return false;
+
+					// ウィンドウハンドルの設定
+					(*itr)->GetWindowInfo().wnd = pitem;
+				}
+				(*itr)->GetWindowInfo().wnd->ShowWindow(SW_SHOWNA);
+				(*itr)->GetWindowInfo().wnd->SetActiveWindow();
+				// 常に監視モードとする
+				(*itr)->GetWindowInfo().mode = eTreeItemMode_Monitor;
+				break;
+			}
+		}
+
+		//CTreeNode* pnode = LoadTreeDataXml(xmlfile);
+		//// 設備詳細画面を復元する
+		//CCustomDetail* pitem = theApp.GetCustomControl().CreateEquipment(pnode);
+		//pitem->ShowWindow(SW_SHOW);
+	}
+
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("LoadCustomLayout"), _T("Stop"), _T(""), nLogEx::debug);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
+
+	return true;
+}
+
+/*============================================================================*/
+/*! ツリーノード
+
+-# カスタマイズ画面のレイアウト保存
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+bool CTreeNode::LoadCustomLayout()
+{
+	if (CString(xmlfile).IsEmpty() == true)
+		return false;
+
+	// ウィンドウ位置情報の取得
+	memset(&wininfo.placement, 0, sizeof(WINDOWPLACEMENT));
+	wininfo.placement.length = sizeof(WINDOWPLACEMENT);
+	wininfo.wnd->GetWindowPlacement(&wininfo.placement);
+
+	CMarkup xml;
+	xml.Load(xmlfile);
+	xml.FindElem(_T("ROOT"));
+	xml.IntoElem();
+	xml.FindElem(_T("EQUIPMENT"));
+	xml.IntoElem();
+	xml.FindElem(_T("WINDOWINFO"));
+	xml.IntoElem();
+
+	xml.FindElem(_T("FLAGS"));
+	xml.SetData(wininfo.placement.flags);
+	xml.FindElem(_T("SHOWCMD"));
+	xml.SetData(wininfo.wnd->IsWindowVisible());
+	setPointXml(xml, wininfo.placement.ptMinPosition);
+	setPointXml(xml, wininfo.placement.ptMaxPosition);
+	setRectXml(xml, wininfo.placement.rcNormalPosition);
+
+	xml.Save(xmlfile);
+
+	return true;
+}
+
 
 /*============================================================================*/
 /*! カスタムデータ管理クラス
@@ -937,7 +1163,7 @@ bool CTreeNode::SaveTreeNodeXml(CMarkup& xml)
 @retval
 */
 /*============================================================================*/
-CTreeNode* CCustomDataManager::LoadTreeDataXml(CString strFile, UINT kind)
+CTreeNode* CCustomDataManager::LoadTreeDataXml(CString strFile, UINT kind/* = UINT_MAX*/)
 {
 	CMarkup xml;
 	CString str;
@@ -968,7 +1194,9 @@ CTreeNode* CCustomDataManager::LoadTreeDataXml(CString strFile, UINT kind)
 		}
 
 		swprintf_s(pnode->GetXmlFileName(), _MAX_PATH, _T("%s"), (LPCTSTR)strFile);
-		pnode->GetWindowInfo().kind = kind;
+		if (kind != UINT_MAX) {
+			pnode->GetWindowInfo().kind = kind;
+		}
 		mTreeNode.push_back(pnode);
 		xml.OutOfElem();
 	}
