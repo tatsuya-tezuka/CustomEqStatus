@@ -223,35 +223,6 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad()
 
 	mArc.Flush();
 	file.Close();
-
-	return;
-
-
-
-
-
-
-
-	bool bClear = false;
-	if (MessageBox(_T("設備詳細画面を全て削除しますか？"), _T(""), MB_YESNO) == IDYES)
-		bClear = true;
-
-	/*
-		SCLファイルについては、XMLファイル名を保持するように修正が必要
-	*/
-
-	// ツリーデータの読込
-	if (dlg.GetFileExt().MakeLower() == _T("scl")) {
-		theApp.GetCustomControl().GetDataManager().LoadEquipmentData((UINT)eLayoutFileType_SCL, dlg.GetPathName(), bClear);
-	}
-	else {
-		theApp.GetCustomControl().GetDataManager().LoadEquipmentData((UINT)eLayoutFileType_XML, dlg.GetPathName(), bClear);
-	}
-
-	// 復元処理を行う
-	if (theApp.GetCustomControl().GetCustomManager().GetSafeHwnd() != NULL) {
-		theApp.GetCustomControl().GetCustomManager().PostMessage(eUserMessage_Manager_Reset, 0, 1);
-	}
 }
 
 /*============================================================================*/
@@ -300,22 +271,6 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave()
 
 	if (ret == false) {
 		DeleteFile(dlg.GetPathName());
-	}
-
-	return;
-
-
-
-
-
-
-
-	// ツリーデータの保存
-	if (dlg.GetFileExt().MakeLower() == _T("scl")) {
-		theApp.GetCustomControl().GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_SCL, dlg.GetPathName());
-	}
-	else {
-		theApp.GetCustomControl().GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, dlg.GetPathName());
 	}
 }
 
