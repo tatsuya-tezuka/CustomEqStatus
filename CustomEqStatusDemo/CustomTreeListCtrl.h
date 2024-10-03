@@ -85,6 +85,7 @@ typedef BOOL(CALLBACK *DRAGCALLBACK)(CWnd* pwnd, UINT status, HTREEITEM hItem, L
 //=============================================================================
 // ◆CCustomTreeListCtrl
 //=============================================================================
+class CCustomDetail;
 class CCustomTreeListCtrl : public CTreeCtrl
 {
 public:
@@ -97,6 +98,7 @@ public:
 public:
 	enum eTreeIDs { eHeaderID = 1, eTreeID = 2 };
 	enum eStatus { eEnable = 1, eSelect = 2, eDrop = 3 };
+	enum { eItem, eValue, eUnit, eControl, eMax };
 protected:
 
 	/* ------------------------------------------------------------------------------------ */
@@ -124,6 +126,13 @@ protected:
 	CLICKCALLBACK		mClickCallback;
 
 	/// ドラッグ＆ドロップ
+	bool				mbDragDragging;
+	HTREEITEM			mhDragItemDrag;
+	HTREEITEM			mhDragItemDrop;
+	CImageList*			mpDragImagelist;
+	//CCustomDropTarget	mCustomDropTarget;
+	CTreeNode*			mDragNode;
+	//DRAGCALLBACK		mDragCallback;
 
 	/// ノード用フォント
 	CFont				mDefaultFont;
@@ -176,6 +185,10 @@ public:
 	BOOL	SwitchEditMode(HTREEITEM hItem, UINT col, CPoint point);
 
 	/// ドラッグ＆ドロップ
+	//void SetDragCallback(DRAGCALLBACK callback)
+	//{
+	//	mDragCallback = callback;
+	//}
 
 	void	UpdateColumns();
 	void	UpdateScroller();
@@ -215,6 +228,8 @@ protected:
 	CEdit*		editSubLabel(HTREEITEM hItem, int col);
 
 	/// ドラッグ＆ドロップ
+	bool		enableDragItem(HTREEITEM hItem);
+	bool		dropDragItem(HTREEITEM hItem, LPARAM lParam);
 	CImageList*	createDragImageEx(HTREEITEM hItem);
 	bool		isDropExecute(HTREEITEM hItemDrag, HTREEITEM hItemDrop);
 	bool		isChildNodeOf(HTREEITEM hItemDrop, HTREEITEM hItemDrag);

@@ -186,7 +186,31 @@ CTreeNode* CTreeNode::CreateTreeNode(HTREEITEM parent, HTREEITEM child, HTREEITE
 	else{
 		children.insert(children.begin(), childitem);
 	}
+
 	return childitem;
+}
+
+#include <algorithm>
+static bool procSort(CTreeNode* left, CTreeNode* right)
+{
+	return left->GetWindowInfo().sortno < right->GetWindowInfo().sortno;
+}
+/*============================================================================*/
+/*! ツリーノード
+
+-# ツリーノードのソート
+
+@param  parent			親ノード
+
+@retval
+*/
+/*============================================================================*/
+void CTreeNode::SortTreeNode(HTREEITEM parent)
+{
+	CTreeNode* pnode = SearchTreeNode(parent);
+
+	std::sort(pnode->GetChildren().begin(), pnode->GetChildren().end(), procSort);
+
 }
 
 /*============================================================================*/

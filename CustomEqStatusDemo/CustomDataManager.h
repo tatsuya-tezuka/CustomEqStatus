@@ -53,6 +53,7 @@ static const COLORREF mManagerHideColor = RGB(200, 200, 200);
 static const TCHAR* mCOntrolSignString = { _T("#CNTL#") };
 static const TCHAR* mCOntrolSignStringDisplay = { _T("制御") };
 static const TCHAR* mEditModeString = { _T("（編集中）") };
+static const UINT mSortRange = 20;
 
 /// メッセージ
 static const TCHAR* mMessage_DetailSaveDifferentData = { _T("設備詳細の変更内容を保存しますか？") };
@@ -85,8 +86,6 @@ enum eUserMessage{
 
 	eUserMessage_Detail_Mode,
 
-	eUserMessage_Drag_Select,
-	eUserMessage_Drag_DropTarget,
 	eUserMessage_Drag_GetIndex,
 
 	eUserMessage_TreeMonEventFirst = (WM_USER + 100),
@@ -159,6 +158,8 @@ typedef struct{
 	UINT			hwidth[mHeaderSize]; // 詳細画面ヘッダー幅
 	UINT			zorder;				// Zオーダー
 	UINT			monitor;			// モニタ識別
+	UINT			group;				// グループ番号
+	UINT			sortno;				// ソート番号
 } stWindowInfo;
 
 typedef struct{
@@ -178,6 +179,18 @@ typedef struct {
 	COLORREF		unit;				// 単位テキスト色
 	LOGFONT			font;				// 詳細画面フォント
 } stColorData;
+
+/* ------------------------------------------------------------------------------------ */
+/* ドラッグデータ                                                                       */
+/* ------------------------------------------------------------------------------------ */
+typedef struct {
+	UINT		type;				// 監視、制御、WFD
+	POINT		point;				// マウス位置情報
+	vector<int>	indexes;			// ドラッグアイテム
+	vector<TCHAR*> nodes;			// ドラッグアイテム
+} stDragData;
+enum { eFromType_None, eFromType_Mon, eFromType_Cntl, eFromType_Custom };
+
 
 //------------------------------------------------------------------------------------ 
 //	ツリー型データクラス
@@ -231,6 +244,8 @@ public:
 	// 指定した childID の子Nodeが存在しなければ、子Nodeを作成し子Nodeを返す
 	// 指定した childID の子Nodeが存在していれば、既に存在する子Nodeを返す
 	CTreeNode*	CreateTreeNode(HTREEITEM parent, HTREEITEM child, HTREEITEM hInsertAfter = TVI_FIRST);
+
+	void	SortTreeNode(HTREEITEM parent);
 
 	// ツリーノードの削除
 	bool DeleteTreeNode(HTREEITEM target);

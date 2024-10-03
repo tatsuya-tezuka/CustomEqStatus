@@ -1151,29 +1151,6 @@ void CCustomGroupListCtrl::OnLvnBegindrag(NMHDR* pNMHDR, LRESULT* pResult)
 
 void CCustomGroupListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 {
-#if 0
-	if (mpDragImage) {
-		CPoint ptDragImage(point);
-		ClientToScreen(&ptDragImage);
-		mpDragImage->DragMove(ptDragImage);
-
-		// ドロップウィンドウの確認
-		CWnd* pDropWnd = WindowFromPoint(ptDragImage);
-		mDragData.point.x = ptDragImage.x;
-		mDragData.point.y = ptDragImage.y;
-
-		BOOL bTarget = FALSE;
-		//if (mDragDropCallback != NULL) {
-		//	bTarget = mDragDropCallback(eUserMessage_Drag_Select, (LPARAM)pDropWnd, (LPARAM)&mDragData, 0);
-		//}
-		if (bTarget == TRUE) {
-			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
-		}
-		else {
-			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
-		}
-	}
-#else
 	if (mpDragImage) {
 		CPoint ptDragImage(point);
 		ClientToScreen(&ptDragImage);
@@ -1195,7 +1172,6 @@ void CCustomGroupListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 
 		SetRedraw(TRUE);
 	}
-#endif
 
 	CListCtrl::OnMouseMove(nFlags, point);
 }
