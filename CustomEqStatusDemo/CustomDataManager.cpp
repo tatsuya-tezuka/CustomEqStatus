@@ -259,6 +259,33 @@ bool CTreeNode::DeleteTreeNode(HTREEITEM target)
 /*============================================================================*/
 /*! ツリーノード
 
+-# 指定ノードの削除
+
+@param  target	削除対象ノード
+
+@retval
+*/
+/*============================================================================*/
+void CTreeNode::DeleteItemNode(CTreeNode* pnode)
+{
+	// 子ノードが存在するので削除する
+	vector<CTreeNode*>::iterator itr;
+	for (itr = children.begin(); itr != children.end(); itr++) {
+		if ((*itr) == pnode) {
+			deleteNode((*itr));
+			delete (*itr);
+			children.erase(itr);
+			break;
+		}
+		else {
+			(*itr)->DeleteItemNode(pnode);
+		}
+	}
+}
+
+/*============================================================================*/
+/*! ツリーノード
+
 -# ツリーノードの削除
 
 @param  target	削除対象ノード

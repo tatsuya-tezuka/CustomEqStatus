@@ -211,6 +211,8 @@ public:
 
 	vector<HTREEITEM>& GetSelectedItems() { return mSelectItems; }
 
+	void	ExpandAll(HTREEITEM hItem = NULL);
+
 protected:
 	int			getMaxColumnWidth(HTREEITEM hItem, int nColumn, int nDepth, BOOL bIgnoreCollapsed);
 	HTREEITEM	hitControl(CPoint point);

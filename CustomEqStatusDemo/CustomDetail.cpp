@@ -1477,7 +1477,7 @@ void CCustomDetail::DragDrop_GetDataName(UINT type, UINT pos, CString& strmon, C
 /*============================================================================*/
 /*! 設備詳細
 
--# ツリーアイテムの展開
+-# 画面間のドラッグ＆ドロップにおいて、ドロップ可能かを調べる
 
 @param  todrag	ドラッグ元（0:監視・制御 1:カスタム）
 @param  lParam	ドロップ情報（ドラッグ元によって異なる）
@@ -1489,44 +1489,8 @@ BOOL CCustomDetail::DragDrop_SetSelectTarget(UINT todrag, LPARAM lParam)
 {
 	BOOL ret = TRUE;
 	if (todrag == eFromType_Custom) {
-		// 他のカスタム画面からのドラッグ
-		CTreeNode* pnode = (CTreeNode*)lParam;
-
-		CPoint      pt;
-		GetCursorPos(&pt);
-		mTreeCtrl.ScreenToClient(&pt);
-		HTREEITEM hItem = mTreeCtrl.HitTest(pt);
-		if (hItem == NULL) {
-			mTreeCtrl.SelectDropTarget(NULL);
-			ret = FALSE;
-		}
-		else {
-			CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, hItem);
-			TRACE("=== Select Target Display : %s\n", CStringA(pnode->GetMonCtrl().display));
-			if (pnode == NULL) {
-				mTreeCtrl.SelectDropTarget(NULL);
-				ret = FALSE;
-			}
-			else {
-				UINT type = pnode->GetWindowInfo().type;
-				if (pnode == NULL) {
-					mTreeCtrl.SelectDropTarget(NULL);
-					ret = FALSE;
-				}
-				else {
-					switch (type) {
-					case	eTreeItemType_Sub:
-					case	eTreeItemType_Item:
-						mTreeCtrl.SelectDropTarget(hItem);
-						break;
-					default:
-						mTreeCtrl.SelectDropTarget(NULL);
-						ret = FALSE;
-					}
-					mTreeCtrl.Expand(hItem, TVE_EXPAND);
-				}
-			}
-		}
+		// カスタム画面からのドラッグ
+		ret = DragDrop_SetSelectCustom(todrag, lParam);
 	}
 	else {
 		// 監視・制御一覧からのドラッグ
@@ -1564,6 +1528,78 @@ BOOL CCustomDetail::DragDrop_SetSelectTarget(UINT todrag, LPARAM lParam)
 	}
 	return ret;
 }
+/*============================================================================*/
+/*! 設備詳細
+
+-# カスタム画面間のドラッグ＆ドロップにおいて、ドロップ可能かを調べる
+
+@param  todrag	ドラッグ元（0:監視・制御 1:カスタム）
+@param  lParam	ドロップ情報（ドラッグ元によって異なる）
+
+@retval なし
+*/
+/*============================================================================*/
+BOOL CCustomDetail::DragDrop_SetSelectCustom(UINT todrag, LPARAM lParam)
+{
+	CTreeNode* pnodeDrag = (CTreeNode*)lParam;
+	if (pnodeDrag == NULL) {
+		mTreeCtrl.SelectDropTarget(NULL);
+		return FALSE;
+	}
+
+	// カーソル位置からドロップ先のアイテムを取得する
+	CPoint pt;
+	GetCursorPos(&pt);
+	mTreeCtrl.ScreenToClient(&pt);
+	HTREEITEM hItem = mTreeCtrl.HitTest(pt);
+	if (hItem == NULL) {
+		mTreeCtrl.SelectDropTarget(NULL);
+		return FALSE;
+	}
+
+	CTreeNode* pnodeDrop = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, hItem);
+	TRACE("=== Select Target Display : %s\n", CStringA(pnodeDrop->GetMonCtrl().display));
+	if (pnodeDrop == NULL) {
+		mTreeCtrl.SelectDropTarget(NULL);
+		return FALSE;
+	}
+
+	if (DragDrop_IsDropExecute(pnodeDrag, pnodeDrop) == false) {
+		mTreeCtrl.SelectDropTarget(NULL);
+		return FALSE;
+
+	}
+	mTreeCtrl.Expand(hItem, TVE_EXPAND);
+
+	return TRUE;
+}
+/*============================================================================*/
+/*! 設備詳細
+
+-# ドロップ時のアイテム種別の関係性からドロップ可能かを調べる
+
+@param	pnodeDrag	ドラッグノード
+@param	hitemDrop	ドロップアイテム
+
+@retval
+*/
+/*============================================================================*/
+bool CCustomDetail::DragDrop_IsDropExecute(CTreeNode* pnodeDrag, CTreeNode* pnodeDrop)
+{
+	// ・ドラッグアイテム種別がeTreeItemType_Mainの場合はeTreeItemType_Titleにのみドロップ可能
+	// ・ドラッグアイテム種別がeTreeItemType_Subの場合はeTreeItemType_Mainにのみドロップ可能
+	// ・ドラッグアイテム種別がeTreeItemType_Itemの場合はeTreeItemType_Subにのみドロップ可能
+	bool bDropExecute = false;
+	if (pnodeDrag->GetWindowInfo().type == eTreeItemType_Main && pnodeDrop->GetWindowInfo().type == eTreeItemType_Title)
+		bDropExecute = true;
+	else if (pnodeDrag->GetWindowInfo().type == eTreeItemType_Sub && pnodeDrop->GetWindowInfo().type == eTreeItemType_Main)
+		bDropExecute = true;
+	else if (pnodeDrag->GetWindowInfo().type == eTreeItemType_Item && pnodeDrop->GetWindowInfo().type == eTreeItemType_Sub)
+		bDropExecute = true;
+
+	return bDropExecute;
+}
+
 /*============================================================================*/
 /*! 設備詳細
 
@@ -1750,7 +1786,7 @@ void CCustomDetail::DragDrop_Move(HTREEITEM hItem, LPARAM lParam)
 bool CCustomDetail::DragDrop_CopyItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* dropWnd, HTREEITEM dropItem, bool bSort)
 {
 	CString str;
-	HTREEITEM	hNewItem, hFirstChild;
+	HTREEITEM	hNewItem;
 
 	CTreeNode* pnodeDrag = theApp.GetCustomControl().GetDataManager().SearchItemNode(dragWnd, dragItem);
 	CTreeNode* pnodeDrop = theApp.GetCustomControl().GetDataManager().SearchItemNode(dropWnd, dropItem);
@@ -1771,8 +1807,9 @@ bool CCustomDetail::DragDrop_CopyItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 		pnode = pnodeParent->CreateTreeNode(parent, hNewItem);
 	}
 	else {
+		// メインノード、サブノードへのドロップ
 		str = generateTreeText(pnodeDrag);
-		hNewItem = dropTree->InsertItem(str, NULL, NULL, (bSort) ? dropTree->GetParentItem(dropItem) : dropItem, TVI_FIRST);
+		hNewItem = dropTree->InsertItem(str, NULL, NULL, dropItem, TVI_FIRST);
 		mTreeCtrl.SetItemData(hNewItem, (LPARAM)hNewItem);
 		pnode = pnodeDrop->CreateTreeNode(dropItem, hNewItem, TVI_FIRST);
 	}
@@ -1781,10 +1818,12 @@ bool CCustomDetail::DragDrop_CopyItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 	pnode->GetWindowInfo().wnd = dropWnd;
 	pnode->GetWindowInfo().tree = dropTree;
 
-	while ((hFirstChild = dragTree->GetChildItem(dragItem)) != NULL)
-	{
-		DragDrop_CopyItem(dragWnd, hFirstChild, dropWnd, hNewItem, bSort);
+	HTREEITEM hChildItem = dragTree->GetNextItem(dragItem, TVGN_CHILD);
+	while (hChildItem) {
+		DragDrop_CopyItem(dragWnd, hChildItem, dropWnd, hNewItem, bSort);
+		hChildItem = dragTree->GetNextItem(hChildItem, TVGN_NEXT);
 	}
+
 	dropTree->Expand(hNewItem, TVE_EXPAND);
 	dropTree->SelectDropTarget(NULL);
 
@@ -1802,6 +1841,7 @@ bool CCustomDetail::DragDrop_CopyItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 	}
 
 	UpdateSortNo(mTreeCtrl.GetRootItem());
+	dropTree->ExpandAll();
 
 	return true;
 }
@@ -1824,6 +1864,7 @@ bool CCustomDetail::DragDrop_MoveItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 	CString str;
 	HTREEITEM	hNewItem, hFirstChild;
 
+	CTreeNode* pnodeWnd = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 	CTreeNode* pnodeDrag = theApp.GetCustomControl().GetDataManager().SearchItemNode(dragWnd, dragItem);
 	CTreeNode* pnodeDrop = theApp.GetCustomControl().GetDataManager().SearchItemNode(dropWnd, dropItem);
 	CCustomTreeListCtrl* dragTree = (CCustomTreeListCtrl*)pnodeDrag->GetWindowInfo().tree;
@@ -1844,7 +1885,7 @@ bool CCustomDetail::DragDrop_MoveItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 	}
 	else {
 		str = generateTreeText(pnodeDrag);
-		hNewItem = dropTree->InsertItem(str, NULL, NULL, (bSort) ? dropTree->GetParentItem(dropItem) : dropItem, TVI_FIRST);
+		hNewItem = dropTree->InsertItem(str, NULL, NULL, dropItem, TVI_FIRST);
 		mTreeCtrl.SetItemData(hNewItem, (LPARAM)hNewItem);
 		pnode = pnodeDrop->CreateTreeNode(dropItem, hNewItem, TVI_FIRST);
 	}
@@ -1861,6 +1902,7 @@ bool CCustomDetail::DragDrop_MoveItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 	dropTree->SelectDropTarget(NULL);
 
 	dragTree->DeleteItem(dragItem);
+	pnodeWnd->DeleteItemNode(pnodeDrag);
 
 	if (bSort == true) {
 		pnode->GetWindowInfo().sortno = pnodeDrop->GetWindowInfo().sortno + 1;
@@ -1874,6 +1916,7 @@ bool CCustomDetail::DragDrop_MoveItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 	}
 
 	UpdateSortNo(mTreeCtrl.GetRootItem());
+	dropTree->ExpandAll();
 
 	return true;
 }

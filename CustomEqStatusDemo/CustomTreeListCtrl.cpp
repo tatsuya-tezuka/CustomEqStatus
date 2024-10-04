@@ -1218,12 +1218,12 @@ bool CCustomTreeListCtrl::enableDragItem(HTREEITEM hItem)
 		return TRUE;
 
 #ifdef _NOPROC
-#else
+//	return FALSE;
+#endif
 	if (pnode != NULL && pnode->GetWindowInfo().type == eTreeItemType_Main)
 		return TRUE;
 	if (pnode != NULL && pnode->GetWindowInfo().type == eTreeItemType_Sub)
 		return TRUE;
-#endif
 
 	return FALSE;
 }
@@ -1241,7 +1241,7 @@ bool CCustomTreeListCtrl::enableDragItem(HTREEITEM hItem)
 void CCustomTreeListCtrl::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	// イベントを無効にする
-	*pResult = 1;
+	*pResult = 0;
 }
 
 /*============================================================================*/
@@ -2381,5 +2381,29 @@ void CCustomTreeListCtrl::SetFontEx(UINT type, LOGFONT& lf)
 		mNodeLeafFont.DeleteObject();
 		mNodeLeafFont.CreateFontIndirect(&lf);
 		break;
+	}
+}
+/*============================================================================*/
+/*! ツリーリストコントロール
+
+	-# ツリー ビュー アイテムの全開
+
+	@param	hItem		ツリーアイテムハンドル
+
+	@retval
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::ExpandAll(HTREEITEM hItem/*=NULL*/)
+{
+	if (hItem == NULL){
+		hItem = GetRootItem();
+	}
+	Expand(hItem, TVE_EXPAND);
+	HTREEITEM hNextItem = GetChildItem(hItem);
+
+	while (hNextItem != NULL) {
+		Expand(hNextItem, TVE_EXPAND);
+		ExpandAll(hNextItem);
+		hNextItem = GetNextItem(hNextItem, TVGN_NEXT);
 	}
 }

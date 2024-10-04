@@ -250,6 +250,9 @@ public:
 	// ツリーノードの削除
 	bool DeleteTreeNode(HTREEITEM target);
 
+	// 指定ノードの削除
+	void DeleteItemNode(CTreeNode* pnode);
+
 	// ツリーノードの検索
 	CTreeNode* SearchTreeNode(HTREEITEM target);
 	CTreeNode* SearchTreeNodeType(UINT target);

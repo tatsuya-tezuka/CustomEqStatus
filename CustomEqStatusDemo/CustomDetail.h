@@ -56,11 +56,13 @@ public:
 	void	DragDrop_AddLeaf(HTREEITEM targetitem, CTreeNode* tagetnode, stDragData* pdata);
 	void	DragDrop_UpdateLeaf(HTREEITEM targetitem, CTreeNode* tagetnode, stDragData* pdata);
 	BOOL	DragDrop_SetSelectTarget(UINT todrag, LPARAM lParam);
+	BOOL	DragDrop_SetSelectCustom(UINT todrag, LPARAM lParam);
 	void	DragDrop_SetDropTarget(UINT todrag, LPARAM lParam, bool bMove =false);
 	void	DragDrop_Copy(HTREEITEM hItem, LPARAM lParam);
 	void	DragDrop_Move(HTREEITEM hItem, LPARAM lParam);
 	bool	DragDrop_CopyItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* dropWnd, HTREEITEM dropItem, bool bSort);
 	bool	DragDrop_MoveItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* dropWnd, HTREEITEM dropItem, bool bSort);
+	bool	DragDrop_IsDropExecute(CTreeNode* pnodeDrag, CTreeNode* pnodeDrop);
 
 	void	UpdateSortNo(HTREEITEM hItem);
 
