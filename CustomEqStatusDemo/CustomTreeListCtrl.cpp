@@ -505,42 +505,6 @@ void CCustomTreeListCtrl::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScroll
 /*============================================================================*/
 void CCustomTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 {
-#ifdef _ORG
-	//if (!(GetStyle() & TVS_EDITLABELS)){
-	//	if (nFlags & VK_CONTROL){
-	//		UINT col = 0;
-	//		HTREEITEM hItem = HitTestEx(point, col);
-	//		_SelectMultiItem(hItem, nFlags);
-	//		return;
-	//	}
-	//}
-
-	CTreeCtrl::OnLButtonDown(nFlags, point);
-
-	HTREEITEM hItem;
-	UINT col = 0;
-
-	hItem = HitTestEx(point, col);
-	if (hItem == NULL) {
-		SetFocus();
-		return;
-	}
-
-	// 先頭カラム以外のラベル編集
-	if (hItem != NULL && col != 0) {
-		//CString text = GetSubItemText(hItem, col);
-		if (mClickCallback != NULL && mClickCallback(mTreeParent, hItem, col, point) == TRUE) {
-			// 編集モードへ切り替え
-			SelectItem(hItem);
-			SwitchEditMode(hItem, col, point);
-			return;
-		}
-	}
-
-	SelectItem(hItem);
-	SetFocus();
-#else
-
 	{
 		// 値セルを押下された場合は選択状態にして何もしない
 		HTREEITEM hItem;
@@ -579,7 +543,7 @@ void CCustomTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 		// 先頭カラム以外のラベル編集
 		if (hItem != NULL && col != 0) {
 			//CString text = GetSubItemText(hItem, col);
-			if (mClickCallback != NULL && mClickCallback(mTreeParent, hItem, col, point) == TRUE) {
+			if (cellClick(hItem, col, point) == TRUE) {
 				// 編集モードへ切り替え
 				SelectItem(hItem);
 				SwitchEditMode(hItem, col, point);
@@ -633,7 +597,52 @@ void CCustomTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 			}
 		} while (false);
 	}
+}
+/*============================================================================*/
+/*! ツリーコントロール拡張機能
+
+-# 先頭セル以外のセルクリック時の処理
+
+@param		hItem		ツリーアイテム
+@param		nSubItem	ツリーサブアイテム
+@param		point		マウスカーソル位置
+@retval
+
+*/
+/*============================================================================*/
+BOOL CCustomTreeListCtrl::cellClick(HTREEITEM hItem, UINT nSubItem, CPoint point)
+{
+#ifdef _NOPROC
+	//return FALSE;
 #endif
+	CCustomDetail* p = (CCustomDetail*)mTreeParent;
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(p);
+
+	if (pnode->GetWindowInfo().mode != eTreeItemMode_Edit) {
+		return FALSE;
+	}
+
+
+	UINT mask = 1 << eTreeItemSubType_Item | 1 << eTreeItemSubType_Unit;
+	if ((1 << nSubItem) & mask)
+		return TRUE;
+
+	// 制御セルが押下されたかチェック
+	bool bControl = IsControl(point);
+	if (bControl == false) {
+		return FALSE;
+	}
+
+	CString strText = GetSubItemText(hItem, eTreeItemSubType_Control);
+	// 制御文字列の場合は制御コマンド実行
+	if (strText.IsEmpty() == false && strText == CString(mCOntrolSignString)) {
+		// 制御コマンドを送信
+		pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(p, hItem);
+		CString strCntl = pnode->GetMonCtrl().cname;
+		p->MessageBox(_T("（仮）制御コマンドを送信します\n") + strCntl);
+		return FALSE;
+	}
+	return TRUE;
 }
 /*============================================================================*/
 /*! ツリーコントロール拡張機能
@@ -1039,6 +1048,10 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 /*============================================================================*/
 void CCustomTreeListCtrl::OnTvnBeginlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 {
+#ifdef _NOPROC
+	*pResult = 1;
+	return;
+#endif
 	LPNMTVDISPINFO pTVDispInfo = reinterpret_cast<LPNMTVDISPINFO>(pNMHDR);
 
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, pTVDispInfo->item.hItem);
@@ -1546,6 +1559,10 @@ int CCustomTreeListCtrl::GetHeaderWidth(int col/*=-1*/)
 /*============================================================================*/
 BOOL CCustomTreeListCtrl::SwitchEditMode(HTREEITEM hItem, UINT col, CPoint point)
 {
+#ifdef _NOPROC
+		SetFocus();
+		return FALSE;
+#endif
 	if (hItem == NULL)
 		return FALSE;
 
@@ -1894,34 +1911,6 @@ CImageList* CCustomTreeListCtrl::createDragImageEx(HTREEITEM hItem)
 	pImageList->Add(&bitmap, RGB(0, 255, 0));
 
 	return pImageList;
-}
-/*============================================================================*/
-/*! ツリーコントロール拡張機能
-
--# ドロップ時のアイテム種別の関係性からドロップ可能かを調べる
-
-@param	hitemDrag	ドラッグアイテム
-@param	hitemDrop	ドロップアイテム
-
-@retval
-*/
-/*============================================================================*/
-bool CCustomTreeListCtrl::isDropExecute(HTREEITEM hItemDrag, HTREEITEM hItemDrop)
-{
-#ifdef _NOPROC
-	return false;
-#else
-	if (mDragCallback == NULL)
-		return false;
-	if (hItemDrop == NULL)
-		return false;
-
-	// ドロップ有効チェック
-	if (mDragCallback(mTreeParent, eSelect, mhItemDrag, (LPARAM)mhItemDrop, 0, 0) == FALSE){
-		return false;
-	}
-	return true;
-#endif
 }
 /*============================================================================*/
 /*! ツリーリストコントロール

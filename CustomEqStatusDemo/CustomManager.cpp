@@ -43,14 +43,9 @@ BEGIN_MESSAGE_MAP(CCustomManager, CCustomDialogBase)
 	ON_NOTIFY(NM_DBLCLK, IDC_LIST_MANAGER, &CCustomManager::OnNMDblclkListManager)
 	ON_COMMAND(ID_MANAGER_NEW, &CCustomManager::OnManagerNew)
 	ON_COMMAND(ID_MANAGER_DELETE, &CCustomManager::OnManagerDelete)
-	ON_COMMAND(ID_MANAGER_MONITOR, &CCustomManager::OnManagerMonitor)
-	ON_COMMAND(ID_MANAGER_EDIT, &CCustomManager::OnManagerEdit)
 	ON_COMMAND(ID_MANAGER_SHOW, &CCustomManager::OnManagerShow)
-	ON_COMMAND(ID_MANAGER_HIDE, &CCustomManager::OnManagerHide)
 	ON_COMMAND(ID_MANAGER_CREATE, &CCustomManager::OnManagerCreate)
 	ON_COMMAND(ID_MANAGER_CANCEL, &CCustomManager::OnManagerCancel)
-	ON_COMMAND(ID_MANAGER_LOAD, &CCustomManager::OnManagerLoad)
-	ON_COMMAND(ID_MANAGER_SAVE, &CCustomManager::OnManagerSave)
 	ON_WM_CONTEXTMENU()
 	ON_WM_SHOWWINDOW()
 	ON_WM_LBUTTONDOWN()
@@ -247,7 +242,7 @@ void CCustomManager::OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult)
 	if (nItem < 0)
 		return;
 
-	showCustomDetail(nItem);
+	showCustomDetail(nItem, true);
 
 	*pResult = 0;
 }
@@ -279,52 +274,24 @@ void CCustomManager::OnManagerNew()
 /*============================================================================*/
 void CCustomManager::OnManagerDelete()
 {
-	// TODO: ここにコマンド ハンドラー コードを追加します。
-}
-/*============================================================================*/
-/*! 設備詳細管理
-
--# ポップアップメニュー「モード-監視」イベント
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-void CCustomManager::OnManagerMonitor()
-{
-	// 選択されているアイテムを対象とする
+#ifdef _NOPROC
+	return;
+#endif
 	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
 	while (pos) {
 		int nItem = mManagerList.GetNextSelectedItem(pos);
 		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
-		if (pnode == NULL || pnode->GetWindowInfo().wnd == NULL)
+		if (pnode == NULL)
 			continue;
-		pnode->GetWindowInfo().mode = eTreeItemMode_Monitor;
-		pnode->GetWindowInfo().wnd->PostMessageW(eUserMessage_Detail_Mode, 0, (LPARAM)eTreeItemMode_Monitor);
-	}
-}
-/*============================================================================*/
-/*! 設備詳細管理
 
--# ポップアップメニュー「モード-編集」イベント
+		// 設備制御画面の削除
+		CString xmlfile = CString(pnode->GetXmlFileName());
+		theApp.GetCustomControl().GetDataManager().DeleteItemWnd(pnode->GetWindowInfo().wnd);
+		theApp.GetCustomControl().GetDataManager().DeleteItemNode(pnode);
+		DeleteFile(xmlfile);
 
-@param
-
-@retval
-*/
-/*============================================================================*/
-void CCustomManager::OnManagerEdit()
-{
-	// 選択されているアイテムを対象とする
-	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
-	while (pos) {
-		int nItem = mManagerList.GetNextSelectedItem(pos);
-		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
-		if (pnode == NULL || pnode->GetWindowInfo().wnd == NULL)
-			continue;
-		pnode->GetWindowInfo().mode = eTreeItemMode_Edit;
-		pnode->GetWindowInfo().wnd->PostMessageW(eUserMessage_Detail_Mode, 0, (LPARAM)eTreeItemMode_Edit);
+		mManagerList.DeleteItem(nItem);
+		pos = mManagerList.GetFirstSelectedItemPosition();
 	}
 }
 /*============================================================================*/
@@ -339,31 +306,13 @@ void CCustomManager::OnManagerEdit()
 /*============================================================================*/
 void CCustomManager::OnManagerShow()
 {
+#ifdef _NOPROC
+	return;
+#endif
 	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
 	while (pos) {
 		int nItem = mManagerList.GetNextSelectedItem(pos);
-		showCustomDetail(nItem);
-	}
-}
-/*============================================================================*/
-/*! 設備詳細管理
-
--# ポップアップメニュー「表示-非表示」イベント
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-void CCustomManager::OnManagerHide()
-{
-	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
-	while (pos) {
-		int nItem = mManagerList.GetNextSelectedItem(pos);
-		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
-		if (pnode == NULL || pnode->GetWindowInfo().wnd == NULL)
-			continue;
-		pnode->GetWindowInfo().wnd->ShowWindow(SW_HIDE);
+		showCustomDetail(nItem, false);
 	}
 }
 /*============================================================================*/
@@ -393,57 +342,6 @@ void CCustomManager::OnManagerCreate()
 void CCustomManager::OnManagerCancel()
 {
 	// TODO: ここにコマンド ハンドラー コードを追加します。
-}
-/*============================================================================*/
-/*! 設備詳細管理
-
--# ポップアップメニュー「呼出」イベント
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-void CCustomManager::OnManagerLoad()
-{
-	const TCHAR BASED_CODE szFilter[] = _T("Custom File(*.xml)|*.xml|");
-	CFileDialog dlg(TRUE, _T("xml"), NULL, OFN_OVERWRITEPROMPT | OFN_LONGNAMES | OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY, szFilter);
-	if (dlg.DoModal() != IDOK)
-		return;
-
-	// ツリーデータの読込
-	theApp.GetCustomControl().GetDataManager().LoadEquipmentData((UINT)eLayoutFileType_XML, dlg.GetPathName(), false);
-
-	// 復元処理を行う
-	createItem((int)eSelectUser);
-}
-/*============================================================================*/
-/*! 設備詳細管理
-
--# ポップアップメニュー「保存」イベント
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-void CCustomManager::OnManagerSave()
-{
-	// とりあえず最初の選択アイテムを保存する
-	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
-	if (!pos)
-		return;
-
-	const TCHAR BASED_CODE szFilter[] = _T("Custom File(*.xml)|*.xml||");
-	CFileDialog dlg(FALSE, _T("xml"), NULL, OFN_OVERWRITEPROMPT | OFN_LONGNAMES | OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY, szFilter);
-	if (dlg.DoModal() != IDOK)
-		return;
-
-	int nItem = mManagerList.GetNextSelectedItem(pos);
-	CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
-
-	// ツリーデータの保存
-	theApp.GetCustomControl().GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, dlg.GetPathName(), pnode->GetWindowInfo().wnd);
 }
 
 /*============================================================================*/
@@ -770,12 +668,13 @@ void CCustomManager::updateXmlFile()
 
 -# 指定アイテムの設備詳細を開く
 
-@param
+@param	nItem		アイテム番号
+@param	bDblClick	ダブルクリックフラグ
 
 @retval
 */
 /*============================================================================*/
-void CCustomManager::showCustomDetail(int nItem)
+void CCustomManager::showCustomDetail(int nItem, bool bDblClick)
 {
 	CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
 	if (pnode != NULL) {
@@ -783,9 +682,12 @@ void CCustomManager::showCustomDetail(int nItem)
 			CCustomDetail* pitem = theApp.GetCustomControl().CreateEquipment(pnode);
 			if (pitem == NULL)
 				return;
-			CPoint point = theApp.GetCustomControl().GetCascadePoint();
-			if (pnode->GetWindowInfo().wnd != NULL) {
-				pnode->GetWindowInfo().wnd->SetWindowPos(NULL, point.x, point.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+			if (bDblClick == true) {
+				// ダブルクリック時はカスケード表示
+				CPoint point = theApp.GetCustomControl().GetCascadePoint();
+				if (pnode->GetWindowInfo().wnd != NULL) {
+					pnode->GetWindowInfo().wnd->SetWindowPos(NULL, point.x, point.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+				}
 			}
 		}
 		pnode->GetWindowInfo().wnd->ShowWindow(SW_SHOWNA);

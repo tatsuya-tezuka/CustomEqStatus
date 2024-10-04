@@ -35,7 +35,6 @@ protected:
 	/* ÉÅÉìÉoïœêî                                                                           */
 	/* ------------------------------------------------------------------------------------ */
 public:
-	UINT		mMode;
 
 protected:
 	bool		mRestore;
@@ -67,8 +66,6 @@ public:
 
 protected:
 	void	createTreeControl();
-	static BOOL CALLBACK messageClick(CWnd* pwnd, HTREEITEM hItem, UINT nSubItem, CPoint point);
-	static BOOL CALLBACK messageDrag(CWnd* pwnd, UINT status, HTREEITEM hItem, LPARAM lParam1, LPARAM lParam2, LPARAM lParam3);
 	void	createRoot();
 	void	createMainNode(HTREEITEM parentitem, CTreeNode* parentnode);
 	void	createSubNode(HTREEITEM parentitem, CTreeNode* parentnode);

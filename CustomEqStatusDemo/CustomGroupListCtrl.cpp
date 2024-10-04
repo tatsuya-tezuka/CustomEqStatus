@@ -932,6 +932,10 @@ void CCustomGroupListCtrl::OnHdnBegintrack(NMHDR *pNMHDR, LRESULT *pResult)
 /*============================================================================*/
 void CCustomGroupListCtrl::OnHdnDividerdblclick(NMHDR *pNMHDR, LRESULT *pResult)
 {
+#ifdef _NOPROC
+	* pResult = 1;
+	return;
+#endif
 	LPNMHEADER phdr = reinterpret_cast<LPNMHEADER>(pNMHDR);
 
 	int nCol = (int)phdr->iItem;

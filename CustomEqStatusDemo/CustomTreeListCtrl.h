@@ -123,7 +123,6 @@ protected:
 	///ラベル編集
 	CEdit*				mpEdit;
 	BOOL				mbInplace;
-	CLICKCALLBACK		mClickCallback;
 
 	/// ドラッグ＆ドロップ
 	bool				mbDragDragging;
@@ -175,20 +174,12 @@ public:
 	int		GetHeaderWidth(int col = -1);
 
 	/// ラベル編集
-	void SetClickCallback(CLICKCALLBACK callback)
-	{
-		mClickCallback = callback;
-	}
 	CString	GetSubItemText(HTREEITEM hItem, int col);
 	void	SetSubItemText(HTREEITEM hItem, int col, CString strText);
 	bool	IsControl(CPoint point);
 	BOOL	SwitchEditMode(HTREEITEM hItem, UINT col, CPoint point);
 
 	/// ドラッグ＆ドロップ
-	//void SetDragCallback(DRAGCALLBACK callback)
-	//{
-	//	mDragCallback = callback;
-	//}
 
 	void	UpdateColumns();
 	void	UpdateScroller();
@@ -231,7 +222,6 @@ protected:
 	bool		enableDragItem(HTREEITEM hItem);
 	bool		dropDragItem(HTREEITEM hItem, LPARAM lParam);
 	CImageList*	createDragImageEx(HTREEITEM hItem);
-	bool		isDropExecute(HTREEITEM hItemDrag, HTREEITEM hItemDrop);
 	bool		isChildNodeOf(HTREEITEM hItemDrop, HTREEITEM hItemDrag);
 
 	BOOL		ptInRectPointCell(CPoint point);
@@ -268,6 +258,8 @@ protected:
 	void	clearSelection();
 
 	CString	createDragString(HTREEITEM hDragItem);
+
+	BOOL	cellClick(HTREEITEM hItem, UINT nSubItem, CPoint point);
 
 	/* ------------------------------------------------------------------------------------ */
 

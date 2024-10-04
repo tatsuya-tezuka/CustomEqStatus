@@ -126,7 +126,7 @@ protected:
 	void	updateMenuItemStatus(CMenu* pMenu);
 	void	updateItemData(LPARAM lParam);
 	void	updateXmlFile();
-	void	showCustomDetail(int nItem);
+	void	showCustomDetail(int nItem, bool bDblClick);
 
 	/* ------------------------------------------------------------------------------------ */
 
@@ -144,14 +144,9 @@ public:
 	afx_msg void OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnManagerNew();
 	afx_msg void OnManagerDelete();
-	afx_msg void OnManagerMonitor();
-	afx_msg void OnManagerEdit();
 	afx_msg void OnManagerShow();
-	afx_msg void OnManagerHide();
 	afx_msg void OnManagerCreate();
 	afx_msg void OnManagerCancel();
-	afx_msg void OnManagerLoad();
-	afx_msg void OnManagerSave();
 	afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
 	afx_msg void OnShowWindow(BOOL bShow, UINT nStatus);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);

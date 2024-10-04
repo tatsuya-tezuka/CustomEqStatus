@@ -32,7 +32,6 @@ CCustomDetail::CCustomDetail(CWnd* pParent /*=NULL*/, bool bRestore/* = false*/)
 	mTreeLogFont.lfHeight = -mTreeFontHeight;
 	mTreeLogFont.lfWeight = FW_NORMAL;
 	temp.DeleteObject();
-	mMode = eTreeItemMode_Monitor;
 	mBackupNode = NULL;
 }
 
@@ -105,6 +104,10 @@ void CCustomDetail::OnHeaderItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
 /*============================================================================*/
 void CCustomDetail::OnHeaderDividerdblclick(NMHDR *pNMHDR, LRESULT *pResult)
 {
+#ifdef _NOPROC
+	*pResult = 1;
+	return;
+#endif
 	LPNMHEADER phdr = reinterpret_cast<LPNMHEADER>(pNMHDR);
 	
 	mTreeCtrl.DividerDblClick(phdr->iItem);
@@ -206,7 +209,16 @@ void CCustomDetail::OnNMRClickTreeCtrl(NMHDR *pNMHDR, LRESULT *pResult)
 		pMenu->EnableMenuItem(ID_DETAIL_MONCTRL, MF_BYCOMMAND | MF_GRAYED);
 		break;
 	case	eTreeItemType_Item:
+		pMenu->EnableMenuItem(ID_DETAIL_ADD, MF_BYCOMMAND | MF_GRAYED);
 		break;
+	}
+
+	pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
+	if (pnode->GetWindowInfo().mode == eTreeItemMode_Monitor) {
+		pMenu->EnableMenuItem(ID_DETAIL_ADD, MF_BYCOMMAND | MF_GRAYED);
+		pMenu->EnableMenuItem(ID_DETAIL_DELETE, MF_BYCOMMAND | MF_GRAYED);
+		pMenu->EnableMenuItem(ID_DETAIL_RENAME, MF_BYCOMMAND | MF_GRAYED);
+		pMenu->EnableMenuItem(ID_DETAIL_MONCTRL, MF_BYCOMMAND | MF_GRAYED);
 	}
 
 	mTreeCtrl.ClientToScreen(&pos);
@@ -522,10 +534,6 @@ void CCustomDetail::createTreeControl()
 	//mTreeCtrl.SetIndent(5);
 	mTreeCtrl.SetIndent(7);
 
-	// コールバック関数の登録
-	mTreeCtrl.SetClickCallback(messageClick);
-	//mTreeCtrl.SetDragCallback(messageDrag);
-
 	mTreeCtrl.ModifyStyle(TVS_EDITLABELS, 0);
 
 	if (mRestore == true){
@@ -540,115 +548,6 @@ void CCustomDetail::createTreeControl()
 	UpdateSortNo(mTreeCtrl.GetRootItem());
 
 	SetControlInfo(IDC_TREE_CTRL, ANCHORE_LEFTTOP | RESIZE_BOTH);
-}
-/*============================================================================*/
-/*! 設備詳細
-
--# コールバック関数
-
-@param		hItem		ツリーアイテム
-@param		nSubItem	ツリーサブアイテム
-@param		point		マウスカーソル位置
-@retval
-
-*/
-/*============================================================================*/
-BOOL CALLBACK CCustomDetail::messageClick(CWnd* pwnd, HTREEITEM hItem, UINT nSubItem, CPoint point)
-{
-#ifdef _NOPROC
-	//return FALSE;
-#endif
-	//CCustomDetail* p = CCustomDetail::Instance();
-	CCustomDetail* p = (CCustomDetail*)pwnd;
-
-	if (p->mMode != eTreeItemMode_Edit) {
-		return FALSE;
-	}
-
-
-	UINT mask = 1 << eTreeItemSubType_Item | 1 << eTreeItemSubType_Unit;
-	if ((1 << nSubItem) & mask)
-		return TRUE;
-
-	// 制御セルが押下されたかチェック
-	bool bControl = p->mTreeCtrl.IsControl(point);
-	if (bControl == false){
-		return FALSE;
-	}
-
-	CString strText = p->mTreeCtrl.GetSubItemText(hItem, eTreeItemSubType_Control);
-	// 制御文字列の場合は制御コマンド実行
-	if (strText.IsEmpty() == false && strText == CString(mCOntrolSignString)){
-		// 制御コマンドを送信
-		CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(p, hItem);
-		CString strCntl = pnode->GetMonCtrl().cname;
-		p->MessageBox(_T("（仮）制御コマンドを送信します\n") + strCntl);
-		return FALSE;
-	}
-	return TRUE;
-}
-/*============================================================================*/
-/*! 設備詳細
-
--# コールバック関数
-
-@param		status		種別
-@param		hItem		ツリーアイテム
-@param		lParam1		パラメタ１
-@param		lParam2		パラメタ２
-@param		lParam3		パラメタ３
-@retval
-
-*/
-/*============================================================================*/
-BOOL CALLBACK CCustomDetail::messageDrag(CWnd* pwnd, UINT status, HTREEITEM hItem, LPARAM lParam1, LPARAM lParam2, LPARAM lParam3)
-{
-#ifdef _NOPROC
-	return FALSE;
-#else
-	//CCustomDetail* p = CCustomDetail::Instance();
-	CCustomDetail* p = (CCustomDetail*)pwnd;
-
-	CTreeNode* pnode;
-	CTreeNode* pnodeDrop;
-	BOOL bDropExecute = FALSE;
-
-	switch (status){
-	case	CTreeListCtrl::eEnable:
-		pnode = theApp.GetDataManager().SearchItemNode(p, hItem);
-		//if (pnode != NULL && pnode->getWindowInfo().type != eTreeItemType_Title)
-		//	return TRUE;
-		if (pnode != NULL && pnode->GetWindowInfo().type == eTreeItemType_Item)
-			return TRUE;
-		break;
-	case	CTreeListCtrl::eSelect:
-		// ・ドラッグアイテム種別がeTreeItemType_Mainの場合はeTreeItemType_Titleにのみドロップ可能
-		// ・ドラッグアイテム種別がeTreeItemType_Subの場合はeTreeItemType_Mainにのみドロップ可能
-		// ・ドラッグアイテム種別がeTreeItemType_Itemの場合はeTreeItemType_Subにのみドロップ可能
-		pnode = theApp.GetDataManager().SearchItemNode(p, hItem);
-		pnodeDrop = theApp.GetDataManager().SearchItemNode(p, (HTREEITEM)lParam1);
-		if (pnode == NULL || pnodeDrop == NULL)
-			return FALSE;
-		if (pnode->GetWindowInfo().type == eTreeItemType_Main && pnodeDrop->GetWindowInfo().type == eTreeItemType_Title)
-			bDropExecute = TRUE;
-		else if (pnode->GetWindowInfo().type == eTreeItemType_Sub && pnodeDrop->GetWindowInfo().type == eTreeItemType_Main)
-			bDropExecute = TRUE;
-		else if (pnode->GetWindowInfo().type == eTreeItemType_Item && pnodeDrop->GetWindowInfo().type == eTreeItemType_Sub)
-			bDropExecute = TRUE;
-
-		return bDropExecute;
-		break;
-	case	CTreeListCtrl::eDrop:
-		// 削除するノードの親ノードを取得（DropMoveItemを呼び出す前に取得）
-		pnode = theApp.GetDataManager().SearchItemNode(p, p->mTreeCtrl.GetParentItem(hItem));
-		// ドラッグノードをドロップする
-		p->DropMoveItem(hItem, (HTREEITEM)lParam1);
-		// ドラッグノードの親の子リストから削除する
-		pnode->DeleteTreeNode(hItem);
-		break;
-	}
-	return FALSE;
-#endif
 }
 /*============================================================================*/
 /*! 設備詳細
@@ -1266,11 +1165,9 @@ void CCustomDetail::updateMode()
 {
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 	CString title = pnode->GetWindowInfo().title;
-	mMode = eTreeItemMode_Monitor;
 	mTreeCtrl.ModifyStyle(TVS_EDITLABELS, 0);
 	if (pnode->GetWindowInfo().mode == eTreeItemMode_Edit) {
 		title += CString(mEditModeString);
-		mMode = eTreeItemMode_Edit;
 		mTreeCtrl.ModifyStyle(0, TVS_EDITLABELS);
 	}
 
