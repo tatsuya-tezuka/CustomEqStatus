@@ -1783,7 +1783,7 @@ void CCustomDetail::DragDrop_Move(HTREEITEM hItem, LPARAM lParam)
 @retval
 */
 /*============================================================================*/
-bool CCustomDetail::DragDrop_CopyItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* dropWnd, HTREEITEM dropItem, bool bSort)
+bool CCustomDetail::DragDrop_CopyItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* dropWnd, HTREEITEM dropItem, bool bSort, HTREEITEM hInsertAfter/* = TVI_FIRST*/)
 {
 	CString str;
 	HTREEITEM	hNewItem;
@@ -1809,9 +1809,9 @@ bool CCustomDetail::DragDrop_CopyItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 	else {
 		// メインノード、サブノードへのドロップ
 		str = generateTreeText(pnodeDrag);
-		hNewItem = dropTree->InsertItem(str, NULL, NULL, dropItem, TVI_FIRST);
+		hNewItem = dropTree->InsertItem(str, NULL, NULL, dropItem, hInsertAfter);
 		mTreeCtrl.SetItemData(hNewItem, (LPARAM)hNewItem);
-		pnode = pnodeDrop->CreateTreeNode(dropItem, hNewItem, TVI_FIRST);
+		pnode = pnodeDrop->CreateTreeNode(dropItem, hNewItem, hInsertAfter);
 	}
 
 	pnode->CopyItem(pnodeDrag);
@@ -1820,7 +1820,7 @@ bool CCustomDetail::DragDrop_CopyItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 
 	HTREEITEM hChildItem = dragTree->GetNextItem(dragItem, TVGN_CHILD);
 	while (hChildItem) {
-		DragDrop_CopyItem(dragWnd, hChildItem, dropWnd, hNewItem, bSort);
+		DragDrop_CopyItem(dragWnd, hChildItem, dropWnd, hNewItem, bSort, TVI_LAST);
 		hChildItem = dragTree->GetNextItem(hChildItem, TVGN_NEXT);
 	}
 
@@ -1859,7 +1859,7 @@ bool CCustomDetail::DragDrop_CopyItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 @retval
 */
 /*============================================================================*/
-bool CCustomDetail::DragDrop_MoveItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* dropWnd, HTREEITEM dropItem, bool bSort)
+bool CCustomDetail::DragDrop_MoveItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* dropWnd, HTREEITEM dropItem, bool bSort, HTREEITEM hInsertAfter/* = TVI_FIRST*/)
 {
 	CString str;
 	HTREEITEM	hNewItem, hFirstChild;
@@ -1885,9 +1885,9 @@ bool CCustomDetail::DragDrop_MoveItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 	}
 	else {
 		str = generateTreeText(pnodeDrag);
-		hNewItem = dropTree->InsertItem(str, NULL, NULL, dropItem, TVI_FIRST);
+		hNewItem = dropTree->InsertItem(str, NULL, NULL, dropItem, hInsertAfter);
 		mTreeCtrl.SetItemData(hNewItem, (LPARAM)hNewItem);
-		pnode = pnodeDrop->CreateTreeNode(dropItem, hNewItem, TVI_FIRST);
+		pnode = pnodeDrop->CreateTreeNode(dropItem, hNewItem, hInsertAfter);
 	}
 
 	pnode->CopyItem(pnodeDrag);
@@ -1896,7 +1896,7 @@ bool CCustomDetail::DragDrop_MoveItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 
 	while ((hFirstChild = dragTree->GetChildItem(dragItem)) != NULL)
 	{
-		DragDrop_MoveItem(dragWnd, hFirstChild, dropWnd, hNewItem, bSort);
+		DragDrop_MoveItem(dragWnd, hFirstChild, dropWnd, hNewItem, bSort, TVI_LAST);
 	}
 	dropTree->Expand(hNewItem, TVE_EXPAND);
 	dropTree->SelectDropTarget(NULL);
