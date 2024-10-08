@@ -100,8 +100,10 @@ BOOL CCustomEqStatusDemoDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 大きいアイコンの設定
 	SetIcon(m_hIcon, FALSE);		// 小さいアイコンの設定
 
+#ifdef _NOPROC
 	// カスタマイズ機能画面の作成
-	createCustomControl();
+	//createCustomControl();
+#endif
 
 	CenterWindow();
 	CRect rect;
@@ -158,26 +160,6 @@ void CCustomEqStatusDemoDlg::OnPaint()
 HCURSOR CCustomEqStatusDemoDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
-}
-
-
-/*============================================================================*/
-/*! メイン画面
-
--# カスタマイズ機能画面の作成
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-void CCustomEqStatusDemoDlg::createCustomControl()
-{
-	// カスタム管理画面の作成
-	if (theApp.GetCustomControl().GetCustomManager().GetSafeHwnd() == NULL) {
-		theApp.GetCustomControl().GetCustomManager().Create(IDD_DIALOG_MANAGER, this);
-	}
-	theApp.GetCustomControl().GetCustomManager().ShowWindow(SW_SHOW);
 }
 
 /*============================================================================*/
@@ -274,7 +256,36 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave()
 	}
 }
 
+/*============================================================================*/
+/*! メイン画面
+
+-# カスタム管理画面の呼出
+
+@param
+
+@retval
+*/
+/*============================================================================*/
 void CCustomEqStatusDemoDlg::OnBnClickedMfcbutton()
 {
 	createCustomControl();
+}
+
+/*============================================================================*/
+/*! メイン画面
+
+-# カスタマイズ機能画面の作成
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomEqStatusDemoDlg::createCustomControl()
+{
+	// カスタム管理画面の作成
+	if (theApp.GetCustomControl().GetCustomManager().GetSafeHwnd() == NULL) {
+		theApp.GetCustomControl().GetCustomManager().Create(IDD_DIALOG_MANAGER, this);
+	}
+	theApp.GetCustomControl().GetCustomManager().ShowWindow(SW_SHOW);
 }

@@ -22,6 +22,7 @@ static LPCWSTR mMsgCustomOK = L"実行";				// OKボタンの文字
 static LPCWSTR mMsgCustomYes = L"保存";	// キャンセルボタンの文字
 static LPCWSTR mMsgCustomNo = L"保存しない";	// キャンセルボタンの文字
 static LPCWSTR mMsgCustomCancel = L"キャンセル";	// キャンセルボタンの文字
+static BOOL    mMsgCustomSaveEnable=TRUE;
 // プロトタイプ宣言
 static LRESULT CALLBACK CustomSaveDifferentMsgBoxHookProc(int nCode, WPARAM wParam, LPARAM lParam);
 
@@ -37,9 +38,10 @@ static LRESULT CALLBACK CustomSaveDifferentMsgBoxHookProc(int nCode, WPARAM wPar
 			SetDlgItemText((HWND)wParam, IDYES, mMsgCustomYes);
 			SetDlgItemText((HWND)wParam, IDNO, mMsgCustomNo);
 			SetDlgItemText((HWND)wParam, IDCANCEL, mMsgCustomCancel);
-			BOOL ret;
+			EnableWindow(GetDlgItem((HWND)wParam, IDYES), mMsgCustomSaveEnable);
+
 			// フック関数をアンインストール(フック解除！）
-			ret = UnhookWindowsHookEx(CustomHookHandle);
+			BOOL ret = UnhookWindowsHookEx(CustomHookHandle);
 
 		}
 	}
@@ -48,8 +50,9 @@ static LRESULT CALLBACK CustomSaveDifferentMsgBoxHookProc(int nCode, WPARAM wPar
 }
 /////////////////////////////////////////////////////////////////////
 //	編集処理後のメッセージボックス（保存、保存しない、キャンセル）
-static int CustomSaveDifferentMessageBoxHooked(HWND handle, LPCTSTR message, LPCTSTR title, UINT nType)
+static int CustomSaveDifferentMessageBoxHooked(HWND handle, LPCTSTR message, LPCTSTR title, UINT nType, BOOL bSaveEnable)
 {
+	mMsgCustomSaveEnable = bSaveEnable;
 	// フック関数(MsgBoxHookProc)をインストールする SetWindowHookEx
 	CustomHookHandle = SetWindowsHookEx(WH_CBT, CustomSaveDifferentMsgBoxHookProc, NULL, GetCurrentThreadId());
 	return (MessageBox(handle, message, title, nType));

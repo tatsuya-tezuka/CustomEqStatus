@@ -700,6 +700,8 @@ void CCustomTreeListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 		vector<CTreeNode*>::iterator itr;
 		for (itr = theApp.GetCustomControl().GetDataManager().GetTreeNode().begin(); itr != theApp.GetCustomControl().GetDataManager().GetTreeNode().end(); itr++) {
 			if ((*itr)->GetWindowInfo().tree == pDropWnd) {
+				if ((*itr)->GetWindowInfo().wnd == NULL)
+					break;
 				bTarget = ((CCustomDetail*)((*itr)->GetWindowInfo().wnd))->DragDrop_SetSelectTarget(eFromType_Custom, (LPARAM)mDragNode);
 				break;
 			}
@@ -782,6 +784,8 @@ void CCustomTreeListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 		vector<CTreeNode*>::iterator itr;
 		for (itr = theApp.GetCustomControl().GetDataManager().GetTreeNode().begin(); itr != theApp.GetCustomControl().GetDataManager().GetTreeNode().end(); itr++) {
 			if ((*itr)->GetWindowInfo().tree == pDropWnd) {
+				if ((*itr)->GetWindowInfo().wnd == NULL)
+					break;
 				bTarget = ((CCustomDetail*)((*itr)->GetWindowInfo().wnd))->DragDrop_SetSelectTarget(eFromType_Custom, (LPARAM)mDragNode);
 				break;
 			}
@@ -792,6 +796,8 @@ void CCustomTreeListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 			vector<CTreeNode*>::iterator itr;
 			for (itr = theApp.GetCustomControl().GetDataManager().GetTreeNode().begin(); itr != theApp.GetCustomControl().GetDataManager().GetTreeNode().end(); itr++) {
 				if ((*itr)->GetWindowInfo().tree == pDropWnd) {
+					if ((*itr)->GetWindowInfo().wnd == NULL)
+						break;
 					((CCustomDetail*)((*itr)->GetWindowInfo().wnd))->DragDrop_SetDropTarget(eFromType_Custom, (LPARAM)mDragNode, bMove);
 					break;
 				}
@@ -1241,7 +1247,7 @@ bool CCustomTreeListCtrl::enableDragItem(HTREEITEM hItem)
 void CCustomTreeListCtrl::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	// イベントを無効にする
-	*pResult = 0;
+	*pResult = 1; // ツリーの開閉を有効にするのには０を設定する
 }
 
 /*============================================================================*/

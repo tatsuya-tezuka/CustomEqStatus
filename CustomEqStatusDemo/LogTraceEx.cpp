@@ -749,7 +749,7 @@ void CLogTraceEx::_writetext(CStdioFile& file, const CString& buf)
 {
 	try
 	{
-		//_wsetlocale(LC_ALL,_T("japanese")); 
+		_wsetlocale(LC_ALL,_T("japanese")); 
 		CString conv = buf;
 		conv.Replace(_T("\r\n"), _T("\n"));
 		file.WriteString(conv);

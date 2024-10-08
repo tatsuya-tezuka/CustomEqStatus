@@ -153,4 +153,5 @@ public:
 	virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
 	afx_msg void OnMove(int x, int y);
 	afx_msg void OnClose();
+	afx_msg void OnMenumanagerClose();
 };

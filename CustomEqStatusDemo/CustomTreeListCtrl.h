@@ -74,12 +74,6 @@ protected:
 	DECLARE_MESSAGE_MAP()
 };
 
-
-// マウスクリック（ラベル編集）用コールバック関数定義
-typedef BOOL(CALLBACK *CLICKCALLBACK)(CWnd* pwnd, HTREEITEM hItem, UINT nSubItem, CPoint point);
-// ドラッグ＆ドロップ用コールバック関数定義
-typedef BOOL(CALLBACK *DRAGCALLBACK)(CWnd* pwnd, UINT status, HTREEITEM hItem, LPARAM lParam1, LPARAM lParam2, LPARAM lParam3);
-
 #define abs(x)		((x) < 0 ? (-(x)) : (x))
 
 //=============================================================================
@@ -131,7 +125,6 @@ protected:
 	CImageList*			mpDragImagelist;
 	//CCustomDropTarget	mCustomDropTarget;
 	CTreeNode*			mDragNode;
-	//DRAGCALLBACK		mDragCallback;
 
 	/// ノード用フォント
 	CFont				mDefaultFont;

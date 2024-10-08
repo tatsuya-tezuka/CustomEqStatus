@@ -51,6 +51,7 @@ BEGIN_MESSAGE_MAP(CCustomManager, CCustomDialogBase)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_MOVE()
 	ON_WM_CLOSE()
+	ON_COMMAND(ID_MENUMANAGER_CLOSE, &CCustomManager::OnMenumanagerClose)
 END_MESSAGE_MAP()
 
 // CCustomManager メッセージ ハンドラー
@@ -72,9 +73,6 @@ BOOL CCustomManager::OnInitDialog()
 	mManagerList.CreateGroupControl(this);
 	SetControlInfo(IDC_LIST_MANAGER, ANCHORE_LEFTTOP | RESIZE_BOTH);
 
-	// 登録されているカスタム画面の作成
-	//createEquipment();
-
 	// リストに登録
 	if (theApp.GetCustomControl().GetDataManager().GetTreeNode().size() != 0){
 		createItem((int)eSelectUser);
@@ -82,7 +80,7 @@ BOOL CCustomManager::OnInitDialog()
 
 	UpdateGroup();
 
-	CenterWindow();
+	CenterWindow(GetDesktopWindow());
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
@@ -483,11 +481,6 @@ void CCustomManager::createEqDetail(CTreeNode* node/*=NULL*/)
 
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(pitem);
 	createItem((int)mSelectType);
-	//int count = mManagerList.GetItemCount();
-	//mManagerList.AddItem(count, 0, mDefaultCustomTitle, (LPARAM)node);
-	//mManagerList.AddItem(count, 1, _T(""));
-	//mManagerList.AddItem(count, 2, _T("0"));
-	//mManagerList.SetItemData(count, (LPARAM)pnode);
 }
 /*============================================================================*/
 /*! 設備詳細管理
@@ -562,6 +555,7 @@ void CCustomManager::OnLButtonDown(UINT nFlags, CPoint point)
 /*============================================================================*/
 LRESULT CCustomManager::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
+	CTreeNode* pnode;
 	switch (message) {
 	case	eUserMessage_Manager_Update:
 		updateItemData(lParam);
@@ -574,7 +568,12 @@ LRESULT CCustomManager::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 		UpdateGroup();
 		break;
 	case	eUserMessage_Manager_Delete:
+		pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode((CWnd*)lParam);
 		theApp.GetCustomControl().GetDataManager().DeleteItemWnd((CWnd*)lParam);
+		if (wParam == 1) {
+			theApp.GetCustomControl().GetDataManager().DeleteItemNode(pnode);
+			createItem(mSelectType);
+		}
 		break;
 	default:
 		return CCustomDialogBase::WindowProc(message, wParam, lParam);
@@ -614,9 +613,7 @@ void CCustomManager::updateItemData(LPARAM lParam)
 /*============================================================================*/
 void CCustomManager::OnClose()
 {
-	updateXmlFile();
-
-	CCustomDialogBase::OnClose();
+	OnMenumanagerClose();
 }
 
 /*============================================================================*/
@@ -677,11 +674,19 @@ void CCustomManager::updateXmlFile()
 void CCustomManager::showCustomDetail(int nItem, bool bDblClick)
 {
 	CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomManager"), _T("showCustomDetail"), CString(pnode->GetWindowInfo().title), _T(""), nLogEx::info);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
 	if (pnode != NULL) {
 		if (pnode->GetWindowInfo().wnd == NULL) {
 			CCustomDetail* pitem = theApp.GetCustomControl().CreateEquipment(pnode);
 			if (pitem == NULL)
 				return;
+
+			pnode->GetWindowInfo().wnd = pitem;
+
 			if (bDblClick == true) {
 				// ダブルクリック時はカスケード表示
 				CPoint point = theApp.GetCustomControl().GetCascadePoint();
@@ -696,4 +701,11 @@ void CCustomManager::showCustomDetail(int nItem, bool bDblClick)
 		pnode->GetWindowInfo().mode = eTreeItemMode_Edit;
 		pnode->GetWindowInfo().wnd->PostMessageW(eUserMessage_Detail_Mode, 0, (LPARAM)eTreeItemMode_Edit);
 	}
+}
+
+void CCustomManager::OnMenumanagerClose()
+{
+	updateXmlFile();
+
+	CCustomDialogBase::OnClose();
 }

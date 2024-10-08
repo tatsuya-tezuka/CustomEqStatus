@@ -138,7 +138,7 @@ BOOL CCustomCsvToXmlDlg::OnInitDialog()
 	DWORD flag = 6UL | OFN_OVERWRITEPROMPT;
 	mCSV.EnableFileBrowseButton(NULL, fileFilter);
 
-	OnBnClickedRadioScl();
+	OnBnClickedRadioXml();
 
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
@@ -215,6 +215,8 @@ void CCustomCsvToXmlDlg::OnBnClickedButtonConv()
 		while (AfxExtractSubString(str, cbuf, pos++, '\t')) {
 			switch (pos) {
 			case	1:
+				if (str.IsEmpty() == true)
+					break;
 				if (title.IsEmpty() == false && title != str) {
 					CreateXML(mSavePath, root);
 					delete root;
@@ -397,6 +399,7 @@ bool CCustomCsvToXmlDlg::SaveNodeXml(CMarkup& xml, CNode* cur)
 	xml.AddElem(_T("TYPE"), cur->getLevel());
 	if (cur->getLevel() == 1) {
 		xml.AddElem(_T("TITLE"), cur->getName());
+		xml.AddElem(_T("MEMO"), _T(""));
 		xml.AddElem(_T("GROUP"), _T("0"));
 		xml.AddElem(_T("GROUPNO"), 0);
 		xml.AddElem(_T("MONITOR"), 0);

@@ -262,8 +262,7 @@ void CCustomDetail::OnMenudetailClose()
 		TRACE("Different Data\n");
 	}
 
-
-	int retmsg = CustomSaveDifferentMessageBoxHooked(m_hWnd, mMessage_DetailSaveDifferentData, pnode->GetWindowInfo().title, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1);
+	int retmsg = CustomSaveDifferentMessageBoxHooked(m_hWnd, mMessage_DetailSaveDifferentData, pnode->GetWindowInfo().title, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1, CString(pnode->GetXmlFileName()).IsEmpty()?false:true);
 
 	if (retmsg == IDCANCEL)
 		return;
@@ -281,7 +280,7 @@ void CCustomDetail::OnMenudetailClose()
 		//pnode->CopyTreeNode(mBackupNode);
 	}
 
-	theApp.GetCustomControl().GetCustomManager().PostMessageW(eUserMessage_Manager_Delete, 0, (LPARAM)this);
+	theApp.GetCustomControl().GetCustomManager().PostMessageW(eUserMessage_Manager_Delete, CString(pnode->GetXmlFileName()).IsEmpty() == true?1:0, (LPARAM)this);
 
 	CCustomDialogBase::OnClose();
 }
@@ -299,6 +298,10 @@ void CCustomDetail::OnMenudetailClose()
 void CCustomDetail::OnMenudetailSave()
 {
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
+
+	if (CString(pnode->GetXmlFileName()).IsEmpty() == true) {
+		return;
+	}
 
 	// ツリーデータの保存
 	saveHeaderWidth();
@@ -1241,6 +1244,9 @@ bool CCustomDetail::updateMenuItem(MENUITEMINFO* pMenuItemInfo)
 	case ID_MENUDETAIL_MONITOR:
 		pMenuItemInfo->fState = pnode->GetWindowInfo().mode == eTreeItemMode_Monitor ? MFS_CHECKED : MFS_UNCHECKED;
 		return true;
+	case ID_MENUDETAIL_SAVE:
+		pMenuItemInfo->fState = CString(pnode->GetXmlFileName()).IsEmpty() == true ? MFS_GRAYED : MF_ENABLED;
+		return true;
 	}
 	return false;
 }
@@ -1569,7 +1575,9 @@ BOOL CCustomDetail::DragDrop_SetSelectCustom(UINT todrag, LPARAM lParam)
 		return FALSE;
 
 	}
+
 	mTreeCtrl.Expand(hItem, TVE_EXPAND);
+	mTreeCtrl.SelectDropTarget(hItem);
 
 	return TRUE;
 }
@@ -1797,6 +1805,13 @@ bool CCustomDetail::DragDrop_CopyItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 	CTreeNode* pnodeParent = NULL;
 	HTREEITEM parent=NULL;
 	if (bSort == true) {
+		//=====================================================//
+		//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+		CString msg;
+		msg.Format(_T("[Drag]%s -> [Drop]%s"), pnodeDrag->GetMonCtrl().display, pnodeDrop->GetMonCtrl().display);
+		CLogTraceEx::Write(_T("***"), _T("CCustomDetail"), _T("DragDrop_CopyItem"), _T("Leaf"), msg, nLogEx::info);
+		//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+		//=====================================================//
 		// リーフからリーフ
 		// ドロップアイテムの親を取得する
 		parent = dropTree->GetParentItem(dropItem);
@@ -1807,6 +1822,13 @@ bool CCustomDetail::DragDrop_CopyItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 		pnode = pnodeParent->CreateTreeNode(parent, hNewItem);
 	}
 	else {
+		//=====================================================//
+		//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+		CString msg;
+		msg.Format(_T("[Drag]%s -> [Drop]%s"), pnodeDrag->GetMonCtrl().display, pnodeDrop->GetMonCtrl().display);
+		CLogTraceEx::Write(_T("***"), _T("CCustomDetail"), _T("DragDrop_CopyItem"), _T("Node"), msg, nLogEx::info);
+		//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+		//=====================================================//
 		// メインノード、サブノードへのドロップ
 		str = generateTreeText(pnodeDrag);
 		hNewItem = dropTree->InsertItem(str, NULL, NULL, dropItem, hInsertAfter);
@@ -1874,6 +1896,13 @@ bool CCustomDetail::DragDrop_MoveItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 	CTreeNode* pnodeParent = NULL;
 	HTREEITEM parent = NULL;
 	if (bSort == true) {
+		//=====================================================//
+		//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+		CString msg;
+		msg.Format(_T("[Drag]%s -> [Drop]%s"), pnodeDrag->GetMonCtrl().display, pnodeDrop->GetMonCtrl().display);
+		CLogTraceEx::Write(_T("***"), _T("CCustomDetail"), _T("DragDrop_MoveItem"), _T("Leaf"), msg, nLogEx::info);
+		//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+		//=====================================================//
 		// リーフからリーフ
 		// ドロップアイテムの親を取得する
 		parent = dropTree->GetParentItem(dropItem);
@@ -1884,6 +1913,13 @@ bool CCustomDetail::DragDrop_MoveItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 		pnode = pnodeParent->CreateTreeNode(parent, hNewItem);
 	}
 	else {
+		//=====================================================//
+		//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+		CString msg;
+		msg.Format(_T("[Drag]%s -> [Drop]%s"), pnodeDrag->GetMonCtrl().display, pnodeDrop->GetMonCtrl().display);
+		CLogTraceEx::Write(_T("***"), _T("CCustomDetail"), _T("DragDrop_MoveItem"), _T("Node"), msg, nLogEx::info);
+		//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+		//=====================================================//
 		str = generateTreeText(pnodeDrag);
 		hNewItem = dropTree->InsertItem(str, NULL, NULL, dropItem, hInsertAfter);
 		mTreeCtrl.SetItemData(hNewItem, (LPARAM)hNewItem);
@@ -1923,7 +1959,7 @@ bool CCustomDetail::DragDrop_MoveItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 /*============================================================================*/
 /*! 設備詳細
 
--# ツリーコントロールのソートを行うコールバック関数
+-# ツリーコントロールのソート処理（リーフのみ）
 
 @param
 
@@ -1978,6 +2014,11 @@ int CALLBACK CCustomDetail::DragDrop_Compare(LPARAM lParam1, LPARAM lParam2, LPA
 /*============================================================================*/
 void CCustomDetail::DragDrop_UpdateSortNo(HTREEITEM item)
 {
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomDetail"), _T("DragDrop_UpdateSortNo"), _T(""), _T(""), nLogEx::info);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
 	CTreeNode* pSubNode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, item);
 	if (pSubNode->GetWindowInfo().type != eTreeItemType_Sub)
 		return;
