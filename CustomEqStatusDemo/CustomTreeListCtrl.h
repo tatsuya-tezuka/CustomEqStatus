@@ -215,9 +215,7 @@ protected:
 
 	/// ドラッグ＆ドロップ
 	bool		enableDragItem(HTREEITEM hItem);
-	bool		dropDragItem(HTREEITEM hItem, LPARAM lParam);
 	CImageList*	createDragImageEx(HTREEITEM hItem);
-	bool		isChildNodeOf(HTREEITEM hItemDrop, HTREEITEM hItemDrag);
 
 	BOOL		ptInRectPointCell(CPoint point);
 	bool		getColumnsRect(HTREEITEM hItem, UINT col, CRect& rect);

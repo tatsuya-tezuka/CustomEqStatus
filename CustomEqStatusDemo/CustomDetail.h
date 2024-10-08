@@ -50,9 +50,6 @@ protected:
 	/* ------------------------------------------------------------------------------------ */
 public:
 	/// ドラッグ＆ドロップ
-	bool	DropMoveItem(HTREEITEM hItemDrag, HTREEITEM hItemDrop);
-	bool	DropCopyItem(CTreeNode* pnodeDrag, HTREEITEM hItemDrop);
-
 	void	DragDrop_AddLeaf(HTREEITEM targetitem, CTreeNode* tagetnode, stDragData* pdata);
 	void	DragDrop_UpdateLeaf(HTREEITEM targetitem, CTreeNode* tagetnode, stDragData* pdata);
 	BOOL	DragDrop_SetSelectTarget(UINT todrag, LPARAM lParam);

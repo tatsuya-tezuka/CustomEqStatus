@@ -810,27 +810,6 @@ void CCustomTreeListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 	}
 	CTreeCtrl::OnLButtonUp(nFlags, point);
 }
-/*============================================================================*/
-/*! 設備詳細
-
--# コールバック関数
-
-@param		hItem		ツリーアイテム
-@param		lParam		パラメタ
-@retval
-
-*/
-/*============================================================================*/
-bool CCustomTreeListCtrl::dropDragItem(HTREEITEM hItem, LPARAM lParam)
-{
-	// 削除するノードの親ノードを取得（DropMoveItemを呼び出す前に取得）
-	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, GetParentItem(hItem));
-	// ドラッグノードをドロップする
-	((CCustomDetail*)mTreeParent)->DropMoveItem(hItem, (HTREEITEM)lParam);
-	// ドラッグノードの親の子リストから削除する
-	//pnode->DeleteTreeNode(hItem);
-	return true;
-}
 
 /*============================================================================*/
 /*! ツリーリストコントロール
@@ -2041,28 +2020,6 @@ bool CCustomTreeListCtrl::getColumnsRect(HTREEITEM hItem, UINT col, CRect& rect)
 		rect.left += colwidth;
 	}
 	return false;
-}
-/*============================================================================*/
-/*! ツリーリストコントロール
-
--# ドロップ先がドロップアイテムの子アイテムかをチェックする
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-bool CCustomTreeListCtrl::isChildNodeOf(HTREEITEM hItemDrop, HTREEITEM hItemDrag)
-{
-	// ドロップ先アイテムの親を探してドラッグアイテムと同じかを確認する
-	do
-	{
-		// ドロップ先が同じなら終了
-		if (hItemDrop == hItemDrag)
-			break;
-	} while ((hItemDrop = GetParentItem(hItemDrop)) != NULL);
-
-	return (hItemDrop != NULL) ? true : false;
 }
 
 /*============================================================================*/
