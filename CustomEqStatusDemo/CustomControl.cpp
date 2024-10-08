@@ -95,6 +95,11 @@ void CCustomControl::createMasterEquipment()
 	getMasterEquipmentFiles(filelist);
 	vector<CString>::iterator itrmaster;
 	for (itrmaster = filelist.begin(); itrmaster != filelist.end(); itrmaster++) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CCustomControl"), _T("createMasterEquipment"), (*itrmaster), _T(""), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================//
 		GetDataManager().LoadTreeDataXml((*itrmaster), eTreeItemKind_Master);
 	}
 }
@@ -117,6 +122,11 @@ void CCustomControl::createUserEquipment()
 	getUserEquipmentFiles(filelist);
 	vector<CString>::iterator itruser;
 	for (itruser = filelist.begin(); itruser != filelist.end(); itruser++) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CCustomControl"), _T("createUserEquipment"), (*itruser), _T(""), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================//
 		GetDataManager().LoadTreeDataXml((*itruser), eTreeItemKind_User);
 	}
 }

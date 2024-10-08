@@ -882,7 +882,29 @@ void CCustomDetail::resizeFit()
 /*============================================================================*/
 void CCustomDetail::OnDetailAdd()
 {
-	// TODO: ここにコマンド ハンドラー コードを追加します。
+#ifdef _NOPROC
+	return;
+#endif
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, mMenuItem);
+	switch (pnode->GetWindowInfo().type) {
+	case	eTreeItemType_Title:
+		// メインノードアイテムの設定
+		createMainNode(mMenuItem, pnode);
+		mTreeCtrl.Expand(mMenuItem, TVE_EXPAND);
+		break;
+	case	eTreeItemType_Main:
+		// サブノードアイテムの設定
+		createSubNode(mMenuItem, pnode);
+		mTreeCtrl.Expand(mMenuItem, TVE_EXPAND);
+		break;
+	case	eTreeItemType_Sub:
+		// アイテムノードアイテムの設定
+		createLeaf(mMenuItem, pnode);
+		mTreeCtrl.Expand(mMenuItem, TVE_EXPAND);
+		break;
+	case	eTreeItemType_Item:
+		break;
+	}
 }
 
 /*============================================================================*/
@@ -897,7 +919,21 @@ void CCustomDetail::OnDetailAdd()
 /*============================================================================*/
 void CCustomDetail::OnDetailDelete()
 {
-	// TODO: ここにコマンド ハンドラー コードを追加します。
+#ifdef _NOPROC
+	return;
+#endif
+	mTreeCtrl.SetRedraw(false);
+	CTreeNode* pparent = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, mTreeCtrl.GetParentItem(mMenuItem));
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, mMenuItem);
+	switch (pnode->GetWindowInfo().type) {
+	case	eTreeItemType_Main:
+	case	eTreeItemType_Sub:
+	case	eTreeItemType_Item:
+		pparent->DeleteTreeNode(mMenuItem);
+		mTreeCtrl.DeleteItem(mMenuItem);
+		break;
+	}
+	mTreeCtrl.SetRedraw(true);
 }
 
 /*============================================================================*/
@@ -912,7 +948,25 @@ void CCustomDetail::OnDetailDelete()
 /*============================================================================*/
 void CCustomDetail::OnDetailRename()
 {
-	// TODO: ここにコマンド ハンドラー コードを追加します。
+#ifdef _NOPROC
+	return;
+#endif
+	CPoint point;
+	GetCursorPos(&point);
+	ScreenToClient(&point);
+
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, mMenuItem);
+	switch (pnode->GetWindowInfo().type) {
+	case	eTreeItemType_Title:
+	case	eTreeItemType_Main:
+	case	eTreeItemType_Sub:
+		mTreeCtrl.SelectItem(mMenuItem);
+		mTreeCtrl.EditLabel(mMenuItem);
+		break;
+	case	eTreeItemType_Item:
+		mTreeCtrl.SwitchEditMode(mMenuItem, CCustomTreeListCtrl::eItem, point);
+		break;
+	}
 }
 
 /*============================================================================*/
@@ -927,6 +981,9 @@ void CCustomDetail::OnDetailRename()
 /*============================================================================*/
 void CCustomDetail::OnDetailMonctrl()
 {
+#ifdef _NOPROC
+	//return;
+#endif
 	// TODO: ここにコマンド ハンドラー コードを追加します。
 }
 
@@ -1067,11 +1124,6 @@ void CCustomDetail::OnDetailConfig()
 	}
 
 	mTreeCtrl.Invalidate();
-
-	//pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
-	//if (pnode->GetWindowInfo().manager->GetSafeHwnd()) {
-	//	pnode->GetWindowInfo().manager->SendMessage(eUserMessage_Manager_Update, 0, (LPARAM)this);
-	//}
 }
 
 /*============================================================================*/
