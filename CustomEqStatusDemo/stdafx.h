@@ -62,4 +62,11 @@ using namespace std;
 
 
 #define _NOPROC		1
+/*
+	  0:未実装
+	  1:初期のデモバージョン
+
+	100:リリースバージョン
+*/
+#define	_DEMO_PHASE		1
 

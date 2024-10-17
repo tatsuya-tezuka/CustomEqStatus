@@ -272,7 +272,7 @@ void CCustomManager::OnManagerNew()
 /*============================================================================*/
 void CCustomManager::OnManagerDelete()
 {
-#ifdef _NOPROC
+#if _DEMO_PHASE < 100
 	return;
 #endif
 	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
@@ -281,6 +281,12 @@ void CCustomManager::OnManagerDelete()
 		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
 		if (pnode == NULL)
 			continue;
+
+		CString msg;
+		msg.Format(mMessage_DetailDelete, pnode->GetWindowInfo().title);
+		if (MessageBox(msg, mMessage_Title_CustomManager, MB_YESNO | MB_ICONQUESTION) == IDNO) {
+			continue;
+		}
 
 		// Ý”õ§Œä‰æ–Ê‚Ìíœ
 		CString xmlfile = CString(pnode->GetXmlFileName());
@@ -304,7 +310,7 @@ void CCustomManager::OnManagerDelete()
 /*============================================================================*/
 void CCustomManager::OnManagerShow()
 {
-#ifdef _NOPROC
+#if _DEMO_PHASE < 100
 	return;
 #endif
 	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
@@ -508,7 +514,7 @@ void CCustomManager::updateMenuItemStatus(CMenu* pMenu)
 			pMenu->EnableMenuItem(ID_MANAGER_NEW, MF_BYCOMMAND | (bKind) ? MF_ENABLED : MF_GRAYED);
 			pMenu->EnableMenuItem(ID_MANAGER_DELETE, MF_BYCOMMAND | (bKind) && (bSelect || bMultiSelect) ? MF_ENABLED : MF_GRAYED);
 			pMenu->EnableMenuItem(ID_MANAGER_SHOW, MF_BYCOMMAND | (bSelect || bMultiSelect) ? MF_ENABLED : MF_GRAYED);
-			pMenu->EnableMenuItem(ID_MANAGER_CREATE, MF_BYCOMMAND | (bKind) && (bSelect || bMultiSelect) ? MF_ENABLED : MF_GRAYED);
+			pMenu->EnableMenuItem(ID_MANAGER_CREATE, MF_BYCOMMAND | (bKind) && (bMultiSelect) ? MF_ENABLED : MF_GRAYED);
 		}
 	}
 }
@@ -628,7 +634,7 @@ void CCustomManager::OnClose()
 /*============================================================================*/
 void CCustomManager::updateXmlFile()
 {
-#ifdef _NOPROC
+#if _DEMO_PHASE < 100
 	return;
 #endif
 	int count = mManagerList.GetItemCount();

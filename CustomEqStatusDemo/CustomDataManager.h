@@ -55,8 +55,13 @@ static const TCHAR* mCOntrolSignStringDisplay = { _T("制御") };
 static const TCHAR* mEditModeString = { _T("（編集中）") };
 static const UINT mSortRange = 20;
 
+/// タイトル
+static const TCHAR* mMessage_Title_CustomManager = { _T("カスタム管理画面") };
+static const TCHAR* mMessage_Title_CustomDetail = { _T("カスタム画面") };
+
 /// メッセージ
 static const TCHAR* mMessage_DetailSaveDifferentData = { _T("設備詳細の変更内容を保存しますか？") };
+static const TCHAR* mMessage_DetailDelete = { _T("%sを削除します。\nよろしいですか？") };
 
 static const int mMonMax = 5000;			// 監視の最大数
 static const int mCtrlMax = 5000;			// 制御の最大数

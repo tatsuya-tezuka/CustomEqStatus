@@ -104,10 +104,11 @@ void CCustomDetail::OnHeaderItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
 /*============================================================================*/
 void CCustomDetail::OnHeaderDividerdblclick(NMHDR *pNMHDR, LRESULT *pResult)
 {
-#ifdef _NOPROC
-	*pResult = 1;
+#if _DEMO_PHASE < 100
+	* pResult = 1;
 	return;
 #endif
+
 	LPNMHEADER phdr = reinterpret_cast<LPNMHEADER>(pNMHDR);
 	
 	mTreeCtrl.DividerDblClick(phdr->iItem);
@@ -146,8 +147,6 @@ BOOL CCustomDetail::OnInitDialog()
 
 	// ノード情報のクローン
 	mBackupNode = theApp.GetCustomControl().GetDataManager().CloneItemNode(pnode, mBackupNode);
-	//mBackupNode = new CTreeNode(0, NULL, NULL);
-	//mBackupNode->CopyTreeNode(pnode);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
@@ -199,7 +198,6 @@ void CCustomDetail::OnNMRClickTreeCtrl(NMHDR *pNMHDR, LRESULT *pResult)
 	switch (pnode->GetWindowInfo().type) {
 	case	eTreeItemType_Title:
 		pMenu->EnableMenuItem(ID_DETAIL_DELETE, MF_BYCOMMAND | MF_GRAYED);
-		pMenu->EnableMenuItem(ID_DETAIL_RENAME, MF_BYCOMMAND | MF_GRAYED);
 		pMenu->EnableMenuItem(ID_DETAIL_MONCTRL, MF_BYCOMMAND | MF_GRAYED);
 		break;
 	case	eTreeItemType_Main:
@@ -380,7 +378,7 @@ void CCustomDetail::saveHeaderWidth()
 /*============================================================================*/
 void CCustomDetail::OnMenudetailEdit()
 {
-#ifdef _NOPROC
+#if _DEMO_PHASE < 100
 	return;
 #endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
@@ -402,7 +400,7 @@ void CCustomDetail::OnMenudetailEdit()
 /*============================================================================*/
 void CCustomDetail::OnMenudetailMonitor()
 {
-#ifdef _NOPROC
+#if _DEMO_PHASE < 100
 	return;
 #endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
@@ -882,7 +880,7 @@ void CCustomDetail::resizeFit()
 /*============================================================================*/
 void CCustomDetail::OnDetailAdd()
 {
-#ifdef _NOPROC
+#if _DEMO_PHASE < 100
 	return;
 #endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, mMenuItem);
@@ -919,19 +917,24 @@ void CCustomDetail::OnDetailAdd()
 /*============================================================================*/
 void CCustomDetail::OnDetailDelete()
 {
-#ifdef _NOPROC
+#if _DEMO_PHASE < 100
 	return;
 #endif
 	mTreeCtrl.SetRedraw(false);
 	CTreeNode* pparent = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, mTreeCtrl.GetParentItem(mMenuItem));
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, mMenuItem);
-	switch (pnode->GetWindowInfo().type) {
-	case	eTreeItemType_Main:
-	case	eTreeItemType_Sub:
-	case	eTreeItemType_Item:
-		pparent->DeleteTreeNode(mMenuItem);
-		mTreeCtrl.DeleteItem(mMenuItem);
-		break;
+
+	CString msg;
+	msg.Format(mMessage_DetailDelete, pparent->GetMonCtrl().display);
+	if (MessageBox(msg, mMessage_Title_CustomDetail, MB_YESNO | MB_ICONQUESTION) == IDYES) {
+		switch (pnode->GetWindowInfo().type) {
+		case	eTreeItemType_Main:
+		case	eTreeItemType_Sub:
+		case	eTreeItemType_Item:
+			pparent->DeleteTreeNode(mMenuItem);
+			mTreeCtrl.DeleteItem(mMenuItem);
+			break;
+		}
 	}
 	mTreeCtrl.SetRedraw(true);
 }
@@ -948,7 +951,7 @@ void CCustomDetail::OnDetailDelete()
 /*============================================================================*/
 void CCustomDetail::OnDetailRename()
 {
-#ifdef _NOPROC
+#if _DEMO_PHASE < 100
 	return;
 #endif
 	CPoint point;
@@ -960,8 +963,9 @@ void CCustomDetail::OnDetailRename()
 	case	eTreeItemType_Title:
 	case	eTreeItemType_Main:
 	case	eTreeItemType_Sub:
-		mTreeCtrl.SelectItem(mMenuItem);
-		mTreeCtrl.EditLabel(mMenuItem);
+		mTreeCtrl.SwitchEditMode(mMenuItem, CCustomTreeListCtrl::eItem, point);
+		//mTreeCtrl.SelectItem(mMenuItem);
+		//mTreeCtrl.EditLabel(mMenuItem);
 		break;
 	case	eTreeItemType_Item:
 		mTreeCtrl.SwitchEditMode(mMenuItem, CCustomTreeListCtrl::eItem, point);
@@ -981,8 +985,8 @@ void CCustomDetail::OnDetailRename()
 /*============================================================================*/
 void CCustomDetail::OnDetailMonctrl()
 {
-#ifdef _NOPROC
-	//return;
+#if _DEMO_PHASE < 100
+	return;
 #endif
 	// TODO: ここにコマンド ハンドラー コードを追加します。
 }
@@ -1050,7 +1054,7 @@ void CCustomDetail::OnDetailConfig()
 		return;
 	}
 
-#ifdef _NOPROC
+#if _DEMO_PHASE < 100
 	return;
 #endif
 

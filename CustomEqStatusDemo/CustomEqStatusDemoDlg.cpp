@@ -100,9 +100,9 @@ BOOL CCustomEqStatusDemoDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 大きいアイコンの設定
 	SetIcon(m_hIcon, FALSE);		// 小さいアイコンの設定
 
-#ifdef _NOPROC
+#if _DEMO_PHASE < 100
 	// カスタマイズ機能画面の作成
-	//createCustomControl();
+	createCustomControl();
 #endif
 
 	CenterWindow();

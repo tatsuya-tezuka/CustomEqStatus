@@ -521,10 +521,13 @@ void CCustomTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 		}
 	}
 
+#ifdef _ORG
 	// Controlキーを押下している場合は、複数選択
 	// Controlキーを押下していない場合は、単数選択あるいは名称変更
 	if (!(MK_CONTROL & nFlags)/* && !(MK_SHIFT & nFlags)*/) {
 		// Controlキーは押下状態ではない
+
+		TRACE("*** OnLButtonDown\n");
 
 		CTreeCtrl::OnLButtonDown(nFlags, point);
 
@@ -546,10 +549,14 @@ void CCustomTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 			if (cellClick(hItem, col, point) == TRUE) {
 				// 編集モードへ切り替え
 				SelectItem(hItem);
-				SwitchEditMode(hItem, col, point);
-				return;
+				//SwitchEditMode(hItem, col, point);
+				//return;
 			}
 		}
+		//if (hItem != NULL && col == 0) {
+		//	SelectItem(hItem);
+		//	return;
+		//}
 
 		clearSelection();
 		SelectItem(hItem);
@@ -562,18 +569,18 @@ void CCustomTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 			HTREEITEM hItem;
 			UINT col = 0;
 			hItem = HitTestEx(point, col);
-			if (hItem == NULL){
+			if (hItem == NULL) {
 				break;
 			}
 			if (ItemHasChildren(hItem)) {
 				break;
 			}
-			if (GetParentItem(hItem) == NULL){
+			if (GetParentItem(hItem) == NULL) {
 				break;
 			}
 			unsigned short shKeyState = GetKeyState(VK_CONTROL);
 			shKeyState >>= 15;
-			if (shKeyState == 1){
+			if (shKeyState == 1) {
 				procControlKeyPress(hItem);
 				HTREEITEM hSelectedItem = GetSelectedItem();
 				if (ItemHasChildren(hSelectedItem)) {
@@ -581,8 +588,8 @@ void CCustomTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 				}
 				break;
 			}
-			else{
-				if (mSelectItems.size() == 0){
+			else {
+				if (mSelectItems.size() == 0) {
 					SetItemState(hItem, TVIS_SELECTED, TVIS_SELECTED);
 					mSelectItems.push_back(hItem);
 					break;
@@ -597,6 +604,32 @@ void CCustomTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 			}
 		} while (false);
 	}
+#else
+	TRACE("*** OnLButtonDown\n");
+
+	CTreeCtrl::OnLButtonDown(nFlags, point);
+
+	HTREEITEM hItem;
+	UINT col = 0;
+	hItem = HitTestEx(point, col);
+	if (hItem == NULL) {
+		SetFocus();
+		return;
+	}
+	if (col == eTreeItemSubType_Value) {
+		SetFocus();
+		return;
+	}
+
+	// 先頭カラム以外のラベル編集
+	if (hItem != NULL) {
+		// 制御イベントかをチェック
+		if (cellClick(hItem, col, point) == TRUE) {
+		}
+		SelectItem(hItem);
+		SetFocus();
+	}
+#endif
 }
 /*============================================================================*/
 /*! ツリーコントロール拡張機能
@@ -612,8 +645,8 @@ void CCustomTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 /*============================================================================*/
 BOOL CCustomTreeListCtrl::cellClick(HTREEITEM hItem, UINT nSubItem, CPoint point)
 {
-#ifdef _NOPROC
-	//return FALSE;
+#if _DEMO_PHASE < 100
+	return FALSE;
 #endif
 	CCustomDetail* p = (CCustomDetail*)mTreeParent;
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(p);
@@ -621,7 +654,6 @@ BOOL CCustomTreeListCtrl::cellClick(HTREEITEM hItem, UINT nSubItem, CPoint point
 	if (pnode->GetWindowInfo().mode != eTreeItemMode_Edit) {
 		return FALSE;
 	}
-
 
 	UINT mask = 1 << eTreeItemSubType_Item | 1 << eTreeItemSubType_Unit;
 	if ((1 << nSubItem) & mask)
@@ -657,6 +689,34 @@ BOOL CCustomTreeListCtrl::cellClick(HTREEITEM hItem, UINT nSubItem, CPoint point
 void CCustomTreeListCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
 	CTreeCtrl::OnLButtonDblClk(nFlags, point);
+
+	TRACE("*** OnLButtonDblClk\n");
+	if (!(MK_CONTROL & nFlags)/* && !(MK_SHIFT & nFlags)*/) {
+		// Controlキーは押下状態ではない
+
+		HTREEITEM hItem;
+		UINT col = 0;
+		hItem = HitTestEx(point, col);
+		if (hItem == NULL) {
+			SetFocus();
+			return;
+		}
+		UINT mask = 1 << eTreeItemSubType_Item | 1 << eTreeItemSubType_Unit;
+		if ((1 << col) & mask) {
+			if (hItem != NULL /*&& col != 0*/) {
+				//CString text = GetSubItemText(hItem, col);
+				//if (cellClick(hItem, col, point) == TRUE)
+				{
+					// 編集モードへ切り替え
+					SelectItem(hItem);
+					SwitchEditMode(hItem, col, point);
+					return;
+				}
+			}
+		}
+		SelectItem(hItem);
+		SetFocus();
+	}
 }
 /*============================================================================*/
 /*! ツリーリストコントロール
@@ -675,8 +735,9 @@ void CCustomTreeListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 	CPoint		pt = point;
 	ClientToScreen(&pt);
 
-#ifdef _NOPROC
+#if _DEMO_PHASE < 100
 #endif
+
 	if (mbDragDragging){
 		// ドラッグ中
 		// ドラッグ アンド ドロップ操作中にドラッグされているイメージを移動
@@ -740,7 +801,7 @@ void CCustomTreeListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 /*============================================================================*/
 void CCustomTreeListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 {
-#ifdef _NOPROC
+#if _DEMO_PHASE < 100
 #endif
 
 	if (!(MK_CONTROL & nFlags)/* && !(MK_SHIFT & nFlags)*/){
@@ -1033,10 +1094,11 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 /*============================================================================*/
 void CCustomTreeListCtrl::OnTvnBeginlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 {
-#ifdef _NOPROC
+#if _DEMO_PHASE < 100
 	*pResult = 1;
 	return;
 #endif
+
 	LPNMTVDISPINFO pTVDispInfo = reinterpret_cast<LPNMTVDISPINFO>(pNMHDR);
 
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, pTVDispInfo->item.hItem);
@@ -1081,51 +1143,74 @@ void CCustomTreeListCtrl::OnTvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, pTVDispInfo->item.hItem);
 	if (pnode == NULL){
+		if (mpEdit != NULL) {
+			delete mpEdit;
+			mpEdit = NULL;
+		}
 		*pResult = 0;
 		return;
 	}
 
 	UINT type = pnode->GetWindowInfo().type;
 
-	if (pTVDispInfo->item.mask & TVIF_TEXT){
-		// 先頭アイテムの場合
-		if (type == eTreeItemType_Item)
-		{
-			if (pTVDispInfo->item.pszText != NULL){
-				CString str = pTVDispInfo->item.pszText;
-				SetSubItemText(pTVDispInfo->item.hItem, ((CCustomTreeEdit*)mpEdit)->GetSubItem(), str);
-				switch (((CCustomTreeEdit*)mpEdit)->GetSubItem()){
-				case	eDetailItem:
-					swprintf_s(pnode->GetMonCtrl().display, mNameSize, _T("%s"), (LPCTSTR)GetSubItemText(pTVDispInfo->item.hItem, eDetailItem));
-					break;
-				case	eDetailUnit:
-					swprintf_s(pnode->GetMonCtrl().unit, mUnitSize, _T("%s"), (LPCTSTR)GetSubItemText(pTVDispInfo->item.hItem, eDetailUnit));
-					break;
-				}
-			}
-			if (mpEdit != NULL){
-				delete mpEdit;
-				mpEdit = NULL;
-			}
-			SelectItem(pTVDispInfo->item.hItem);
-			SetFocus();
-			*pResult = 0;
-			return;
+	if (!(pTVDispInfo->item.mask & TVIF_TEXT)) {
+		if (mpEdit != NULL) {
+			delete mpEdit;
+			mpEdit = NULL;
 		}
+		*pResult = 0;
+		return;
+	}
+	if (pTVDispInfo->item.pszText == NULL) {
+		if (mpEdit != NULL) {
+			delete mpEdit;
+			mpEdit = NULL;
+		}
+		SelectItem(pTVDispInfo->item.hItem);
+		SetFocus();
+		*pResult = 0;
+		return;
+	}
 
-		// 先頭アイテム以外の場合
-		swprintf_s(pnode->GetMonCtrl().display, mNameSize, _T("%s"), pTVDispInfo->item.pszText);
-		SetItemText(pTVDispInfo->item.hItem, pTVDispInfo->item.pszText);
-		Invalidate(FALSE);
-		if (type == eTreeItemType_Title)
-		{
-			if (mTreeParent != NULL){
-				mTreeParent->SendMessage(eUserMessage_Manager_Update, 0, (LPARAM)pTVDispInfo->item.hItem);
-				//pnode = theApp.GetDataManager().SearchWndNode(mTreeParent);
-				//pnode->getWindowInfo().manager->SendMessage(eUserMessage_Manager_Update, 0, (LPARAM)mTreeParent);
-			}
+	// 先頭アイテムの場合
+	if (type == eTreeItemType_Item)
+	{
+		CString str = pTVDispInfo->item.pszText;
+		SetSubItemText(pTVDispInfo->item.hItem, ((CCustomTreeEdit*)mpEdit)->GetSubItem(), str);
+		switch (((CCustomTreeEdit*)mpEdit)->GetSubItem()){
+		case	eDetailItem:
+			swprintf_s(pnode->GetMonCtrl().display, mNameSize, _T("%s"), (LPCTSTR)GetSubItemText(pTVDispInfo->item.hItem, eDetailItem));
+			break;
+		case	eDetailUnit:
+			swprintf_s(pnode->GetMonCtrl().unit, mUnitSize, _T("%s"), (LPCTSTR)GetSubItemText(pTVDispInfo->item.hItem, eDetailUnit));
+			break;
+		}
+		if (mpEdit != NULL){
+			delete mpEdit;
+			mpEdit = NULL;
+		}
+		SelectItem(pTVDispInfo->item.hItem);
+		SetFocus();
+		*pResult = 0;
+		return;
+	}
+
+	// 先頭アイテム以外の場合
+	swprintf_s(pnode->GetMonCtrl().display, mNameSize, _T("%s"), pTVDispInfo->item.pszText);
+	SetItemText(pTVDispInfo->item.hItem, pTVDispInfo->item.pszText);
+	Invalidate(FALSE);
+	if (type == eTreeItemType_Title)
+	{
+		if (mTreeParent != NULL) {
+			mTreeParent->SendMessage(eUserMessage_Manager_Update, 0, (LPARAM)pTVDispInfo->item.hItem);
 		}
 	}
+	if (mpEdit != NULL) {
+		delete mpEdit;
+		mpEdit = NULL;
+	}
+	SelectItem(pTVDispInfo->item.hItem);
+	SetFocus();
 	*pResult = 0;
 }
 /*============================================================================*/
@@ -1143,7 +1228,7 @@ void CCustomTreeListCtrl::OnTvnBegindrag(NMHDR *pNMHDR, LRESULT *pResult)
 	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
 	*pResult = 0;
 
-#ifdef _NOPROC
+#if _DEMO_PHASE < 100
 #endif
 
 	CPoint      ptAction;
@@ -1202,9 +1287,10 @@ bool CCustomTreeListCtrl::enableDragItem(HTREEITEM hItem)
 	if (pnode != NULL && pnode->GetWindowInfo().type == eTreeItemType_Item)
 		return TRUE;
 
-#ifdef _NOPROC
-//	return FALSE;
+#if _DEMO_PHASE < 100
+	return FALSE;
 #endif
+
 	if (pnode != NULL && pnode->GetWindowInfo().type == eTreeItemType_Main)
 		return TRUE;
 	if (pnode != NULL && pnode->GetWindowInfo().type == eTreeItemType_Sub)
@@ -1225,6 +1311,7 @@ bool CCustomTreeListCtrl::enableDragItem(HTREEITEM hItem)
 /*============================================================================*/
 void CCustomTreeListCtrl::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
 {
+	TRACE("*** OnNMDblclk\n");
 	// イベントを無効にする
 	*pResult = 1; // ツリーの開閉を有効にするのには０を設定する
 }
@@ -1544,26 +1631,18 @@ int CCustomTreeListCtrl::GetHeaderWidth(int col/*=-1*/)
 /*============================================================================*/
 BOOL CCustomTreeListCtrl::SwitchEditMode(HTREEITEM hItem, UINT col, CPoint point)
 {
-#ifdef _NOPROC
-		SetFocus();
-		return FALSE;
+#if _DEMO_PHASE < 100
+	SetFocus();
+	return FALSE;
 #endif
 	if (hItem == NULL)
 		return FALSE;
 
-	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hItem);
-	UINT type = pnode->GetWindowInfo().type;
-	if (type != eTreeItemType_Item) {
-		SetFocus();
-		return FALSE;
-	}
-
 	CEdit* pedit = editSubLabel(hItem, col);
 	if (pedit == NULL){
 		SetFocus();
+		return FALSE;
 	}
-	//CString text;
-	//pedit->GetWindowText(text);
 
 	return TRUE;
 }
@@ -2079,7 +2158,7 @@ int CCustomTreeListCtrl::getMaxColumnWidth(HTREEITEM hItem, int nColumn, int nDe
 	return nMaxWidth;
 }
 
-#ifndef _NOPROC
+#if _DEMO_PHASE >= 100
 /*============================================================================*/
 /*! 設備詳細
 

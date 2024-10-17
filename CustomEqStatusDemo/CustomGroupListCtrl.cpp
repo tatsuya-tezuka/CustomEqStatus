@@ -932,7 +932,7 @@ void CCustomGroupListCtrl::OnHdnBegintrack(NMHDR *pNMHDR, LRESULT *pResult)
 /*============================================================================*/
 void CCustomGroupListCtrl::OnHdnDividerdblclick(NMHDR *pNMHDR, LRESULT *pResult)
 {
-#ifdef _NOPROC
+#if _DEMO_PHASE < 100
 	* pResult = 1;
 	return;
 #endif
@@ -993,7 +993,7 @@ void CCustomGroupListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 /*============================================================================*/
 bool CCustomGroupListCtrl::EditExecute(int item, int colnum)
 {
-#ifdef _NOPROC
+#if _DEMO_PHASE < 100
 	return false;
 #else
 	// ‘I‘ð•¶Žš—ñ‚ÌŽæ“¾
@@ -1109,6 +1109,11 @@ void CCustomGroupListCtrl::OnLvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 void CCustomGroupListCtrl::OnLvnBegindrag(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
+
+#if _DEMO_PHASE < 100
+	* pResult = 0;
+	return;
+#endif
 
 	if (pNMLV) {
 		mDragData.indexes.clear();
