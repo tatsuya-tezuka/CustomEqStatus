@@ -115,6 +115,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -129,6 +130,9 @@
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -188,7 +192,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CustomControl.h" />
+    <ClInclude Include="CustomDBAccess.h" />
     <ClInclude Include="CustomDetailConfig.h" />
+    <ClInclude Include="CustomMonCntl.h" />
+    <ClInclude Include="CustomMonCntlListCtrl.h" />
     <ClInclude Include="CustomSelectSaveFile.h" />
     <ClInclude Include="CustomSynchroWindow.h" />
     <ClInclude Include="CustomDataManager.h" />
@@ -208,7 +215,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CustomControl.cpp" />
+    <ClCompile Include="CustomDBAccess.cpp" />
     <ClCompile Include="CustomDetailConfig.cpp" />
+    <ClCompile Include="CustomMonCntl.cpp" />
+    <ClCompile Include="CustomMonCntlListCtrl.cpp" />
     <ClCompile Include="CustomSelectSaveFile.cpp" />
     <ClCompile Include="CustomSynchroWindow.cpp" />
     <ClCompile Include="CustomDataManager.cpp" />
@@ -233,6 +243,7 @@
     <ResourceCompile Include="CustomEqStatusDemo.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ClassDiagram.cd" />
     <None Include="res\CustomEqStatusDemo.rc2" />
   </ItemGroup>
   <ItemGroup>

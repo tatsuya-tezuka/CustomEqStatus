@@ -234,6 +234,10 @@ void CCustomManager::OnNMRClickListManager(NMHDR *pNMHDR, LRESULT *pResult)
 /*============================================================================*/
 void CCustomManager::OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult)
 {
+#if _DEMO_PHASE < 100
+	return;
+#endif
+
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
 
 	int nItem = pNMItemActivate->iItem;
@@ -272,6 +276,12 @@ void CCustomManager::OnManagerNew()
 /*============================================================================*/
 void CCustomManager::OnManagerDelete()
 {
+	CString msg;
+	msg.Format(mMessage_ManagerDelete);
+	if (MessageBox(msg, mMessage_Title_CustomDetail, MB_YESNO | MB_ICONQUESTION) == IDNO) {
+		return;
+	}
+
 #if _DEMO_PHASE < 100
 	return;
 #endif

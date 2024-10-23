@@ -59,4 +59,6 @@ public:
 	afx_msg void OnBnClickedMfcbuttonLoad();
 	afx_msg void OnBnClickedMfcbuttonSave();
 	afx_msg void OnBnClickedMfcbutton();
+	afx_msg void OnBnClickedButtonMoncntl();
+	afx_msg void OnBnClickedButtonCustom();
 };

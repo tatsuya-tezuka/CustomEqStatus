@@ -66,6 +66,8 @@ BEGIN_MESSAGE_MAP(CCustomEqStatusDemoDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_MFCBUTTON_LOAD, &CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad)
 	ON_BN_CLICKED(IDC_MFCBUTTON__SAVE, &CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave)
 	ON_BN_CLICKED(IDC_MFCBUTTON__MANAGER, &CCustomEqStatusDemoDlg::OnBnClickedMfcbutton)
+	ON_BN_CLICKED(IDC_BUTTON_MONCNTL, &CCustomEqStatusDemoDlg::OnBnClickedButtonMoncntl)
+	ON_BN_CLICKED(IDC_BUTTON_CUSTOM, &CCustomEqStatusDemoDlg::OnBnClickedButtonCustom)
 END_MESSAGE_MAP()
 
 
@@ -100,15 +102,19 @@ BOOL CCustomEqStatusDemoDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 大きいアイコンの設定
 	SetIcon(m_hIcon, FALSE);		// 小さいアイコンの設定
 
-#if _DEMO_PHASE < 100
-	// カスタマイズ機能画面の作成
-	createCustomControl();
-#endif
-
+#if _DEMO_PHASE < 5
 	CenterWindow();
 	CRect rect;
 	GetWindowRect(rect);
 	::SetWindowPos(m_hWnd, HWND_TOP, rect.left, 0, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
+#else
+	// カスタマイズ機能画面の作成
+	createCustomControl();
+	CenterWindow();
+	CRect rect;
+	GetWindowRect(rect);
+	::SetWindowPos(m_hWnd, HWND_TOP, rect.left, 0, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
+#endif
 
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
@@ -179,6 +185,10 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad()
 	if (dlg.DoModal() != IDOK)
 		return;
 
+#if _DEMO_PHASE < 5
+	return;
+#endif
+
 	CFile file;
 	if (file.Open(dlg.GetPathName(), CFile::modeRead | CFile::typeBinary) == NULL) {
 		return;
@@ -224,6 +234,10 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave()
 	if (dlg.DoModal() != IDOK)
 		return;
 
+#if _DEMO_PHASE < 5
+	return;
+#endif
+
 	CFile file;
 	if (file.Open(dlg.GetPathName(), CFile::modeCreate | CFile::modeWrite | CFile::typeBinary) == NULL) {
 		return;
@@ -268,6 +282,9 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave()
 /*============================================================================*/
 void CCustomEqStatusDemoDlg::OnBnClickedMfcbutton()
 {
+#if _DEMO_PHASE < 5
+	return;
+#endif
 	createCustomControl();
 }
 
@@ -288,4 +305,22 @@ void CCustomEqStatusDemoDlg::createCustomControl()
 		theApp.GetCustomControl().GetCustomManager().Create(IDD_DIALOG_MANAGER, this);
 	}
 	theApp.GetCustomControl().GetCustomManager().ShowWindow(SW_SHOW);
+}
+
+
+#include "CustomMonCntl.h"
+void CCustomEqStatusDemoDlg::OnBnClickedButtonMoncntl()
+{
+#if _DEMO_PHASE < 100
+	return;
+#endif
+
+	CCustomMonCntl dlg;
+	dlg.DoModal();
+}
+
+
+void CCustomEqStatusDemoDlg::OnBnClickedButtonCustom()
+{
+	// TODO: ここにコントロール通知ハンドラー コードを追加します。
 }

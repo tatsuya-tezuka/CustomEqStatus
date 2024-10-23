@@ -65,9 +65,9 @@ BEGIN_MESSAGE_MAP(CCustomDetail, CCustomDialogBase)
 	ON_COMMAND(ID_MENUDETAIL_CLOSE, &CCustomDetail::OnMenudetailClose)
 	ON_COMMAND(ID_MENUDETAIL_EDIT, &CCustomDetail::OnMenudetailEdit)
 	ON_COMMAND(ID_MENUDETAIL_MONITOR, &CCustomDetail::OnMenudetailMonitor)
-	ON_WM_INITMENUPOPUP()
 	ON_COMMAND(ID_MENUDETAIL_SAVE, &CCustomDetail::OnMenudetailSave)
 	ON_COMMAND(ID_MENUDETAIL_SAVEAS, &CCustomDetail::OnMenudetailSaveas)
+	ON_WM_INITMENUPOPUP()
 END_MESSAGE_MAP()
 
 
@@ -1003,6 +1003,10 @@ void CCustomDetail::OnDetailMonctrl()
 /*============================================================================*/
 void CCustomDetail::OnDetailConfig()
 {
+#if _DEMO_PHASE < 100
+	return;
+#endif
+
 	if (mMenuItem == NULL)
 		return;
 

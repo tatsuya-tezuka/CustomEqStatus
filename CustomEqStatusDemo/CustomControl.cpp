@@ -32,6 +32,9 @@ void CCustomControl::Initialize(CString appPath)
 	/// デモ用データ格納パス
 	mAppUserDataPath = appPath + _T("\\") + mAppDataUserPath;
 
+	/// データベースパス
+	mAppDataBasePath = appPath + _T("\\") + _T("db");
+
 	/// 全てのウィンドウハンドル、ノードの削除
 	GetDataManager().DeleteAll();
 
@@ -40,6 +43,18 @@ void CCustomControl::Initialize(CString appPath)
 
 	/// ユーザ設備詳細データを読み込む
 	createUserEquipment();
+
+	// ◆データベース取得
+	const CString mpDBName[] = {
+		_T("eqmon.db.obj"),
+		_T("eqctl.db.obj"),
+	};
+	// 監視DB取得
+	CString str = mAppDataBasePath + _T("\\") + mpDBName[0];
+	GetDataManager().GetDataMonitor().eq_db_read(str);
+	// 制御DB取得
+	str = mAppDataBasePath + _T("\\") + mpDBName[1];
+	GetDataManager().GetDataControl().eq_db_read(str);
 }
 
 /*============================================================================*/

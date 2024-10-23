@@ -18,6 +18,7 @@
 
 // フックハンドル用の変数をグローバルで宣言する。
 static HHOOK CustomHookHandle;	// フックハンドル変数
+static HHOOK CustomMsgHookHandle;	// フックハンドル変数
 static LPCWSTR mMsgCustomOK = L"実行";				// OKボタンの文字
 static LPCWSTR mMsgCustomYes = L"保存";	// キャンセルボタンの文字
 static LPCWSTR mMsgCustomNo = L"保存しない";	// キャンセルボタンの文字
@@ -25,6 +26,7 @@ static LPCWSTR mMsgCustomCancel = L"キャンセル";	// キャンセルボタンの文字
 static BOOL    mMsgCustomSaveEnable=TRUE;
 // プロトタイプ宣言
 static LRESULT CALLBACK CustomSaveDifferentMsgBoxHookProc(int nCode, WPARAM wParam, LPARAM lParam);
+static LRESULT CALLBACK CustomMessageBoxHooked(int nCode, WPARAM wParam, LPARAM lParam);
 
 /////////////////////////////////////////////////////////////////////
 //	編集処理後のメッセージボックス（保存、保存しない、キャンセル）
@@ -58,6 +60,38 @@ static int CustomSaveDifferentMessageBoxHooked(HWND handle, LPCTSTR message, LPC
 	return (MessageBox(handle, message, title, nType));
 }
 
+/////////////////////////////////////////////////////////////////////
+//	ダイアログの終了時のメッセージボックス（実行、キャンセル）
+static LRESULT CALLBACK CustomMsgBoxHookProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	// コード判断
+	if (nCode >= 0)
+	{
+		if (nCode == HCBT_ACTIVATE)
+		{
+			// OKボタン(IDOK)の内容を書き換える
+			SetDlgItemText((HWND)wParam, IDOK, mMsgCustomOK);
+			// キャンセルボタン(IDCANCEL)の内容を書き換える
+			SetDlgItemText((HWND)wParam, IDCANCEL, mMsgCustomCancel);
+			BOOL ret;
+			// フック関数をアンインストール(フック解除！）
+			ret = UnhookWindowsHookEx(CustomMsgHookHandle);
+
+		}
+	}
+	// 次のフックに渡す
+	return CallNextHookEx(CustomMsgHookHandle, nCode, wParam, lParam);
+}
+
+/////////////////////////////////////////////////////////////////////
+//	ダイアログの終了時のメッセージボックス（実行、キャンセル）
+static int CustomMessageBoxHooked(HWND handle, LPCTSTR message, LPCTSTR title, UINT nType)
+{
+	// フック関数(MsgBoxHookProc)をインストールする SetWindowHookEx
+	CustomMsgHookHandle = SetWindowsHookEx(WH_CBT, CustomMsgBoxHookProc, NULL, GetCurrentThreadId());
+	return (MessageBox(handle, message, title, nType));
+}
+
 
 class CCustomControl
 {
@@ -83,6 +117,8 @@ protected:
 	CString					mAppMasterDataPath;
 	/// ユーザデータ格納パス
 	CString					mAppUserDataPath;
+	/// データベースパス
+	CString					mAppDataBasePath;
 	/// カスタムデータ管理関連 
 	CCustomDataManager		mDataManager;
 	/// カスタマイズ管理
