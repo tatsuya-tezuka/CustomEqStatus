@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "afxdialogex.h"
 #include "CustomDialogBase.h"
+#include "CustomMonCntlListCtrl.h"
 
 
 // CCustomMonCntl ダイアログ
@@ -39,7 +40,6 @@ protected:
 	/* メンバ関数                                                                           */
 	/* ------------------------------------------------------------------------------------ */
 public:
-	static CCustomMonCntl* Instance(void);
 
 protected:
 	void	createControl();
@@ -137,7 +137,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CTreeCtrl mTreeData;
-	CListCtrl mListData;
+	CCustomMonCntlListCtrl mListData;
 	CEdit mEditSearch;
 	CString mSearchText;
 	virtual BOOL OnInitDialog();

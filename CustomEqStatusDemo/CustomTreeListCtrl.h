@@ -8,6 +8,7 @@
 #pragma once
 
 #include "afxcmn.h"
+#include "CustomDropTarget.h"
 
 //=============================================================================
 // ◆CCustomTreeEdit
@@ -118,14 +119,6 @@ protected:
 	CEdit*				mpEdit;
 	BOOL				mbInplace;
 
-	/// ドラッグ＆ドロップ
-	bool				mbDragDragging;
-	HTREEITEM			mhDragItemDrag;
-	HTREEITEM			mhDragItemDrop;
-	CImageList*			mpDragImagelist;
-	//CCustomDropTarget	mCustomDropTarget;
-	CTreeNode*			mDragNode;
-
 	/// ノード用フォント
 	CFont				mDefaultFont;
 	CFont				mNodeTitleFont;
@@ -172,7 +165,25 @@ public:
 	bool	IsControl(CPoint point);
 	BOOL	SwitchEditMode(HTREEITEM hItem, UINT col, CPoint point);
 
-	/// ドラッグ＆ドロップ
+	UINT GetChildCount(HTREEITEM hCurItem)
+	{
+		UINT Count = 0;
+		if (hCurItem == NULL)
+			hCurItem = GetSelectedItem();
+		if (ItemHasChildren(hCurItem)) {
+			hCurItem = GetNextItem(hCurItem, TVGN_CHILD);
+			while (hCurItem) {
+				Count++;
+				hCurItem = GetNextItem(hCurItem, TVGN_NEXT);
+			}
+		}
+		return Count;
+	}
+	void	SortItem(HTREEITEM item);
+	static int CALLBACK CustomCompare(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
+	void	UpdateSortNo(HTREEITEM item);
+	void	ExpandAllItems(HTREEITEM item);
+
 
 	void	UpdateColumns();
 	void	UpdateScroller();
@@ -213,10 +224,6 @@ protected:
 	/// ラベル編集
 	CEdit*		editSubLabel(HTREEITEM hItem, int col);
 
-	/// ドラッグ＆ドロップ
-	bool		enableDragItem(HTREEITEM hItem);
-	CImageList*	createDragImageEx(HTREEITEM hItem);
-
 	BOOL		ptInRectPointCell(CPoint point);
 	bool		getColumnsRect(HTREEITEM hItem, UINT col, CRect& rect);
 
@@ -244,15 +251,91 @@ protected:
 			return (COLORREF)(color ^ 0xFFFFFF);
 	}
 
-	void	procControlKeyPress(HTREEITEM hCurItem);
-	void	procShiftKeyPress(HTREEITEM hCurItem);
-	bool	isSameLevel(HTREEITEM hItem);
 	void	removeFromSelectList(HTREEITEM hItem);
 	void	clearSelection();
 
 	CString	createDragString(HTREEITEM hDragItem);
 
 	BOOL	cellClick(HTREEITEM hItem, UINT nSubItem, CPoint point);
+
+#if _DEMO_PHASE >= 50
+	///
+	/// ドラッグ＆ドロップ関連
+	///
+	/* ------------------------------------------------------------------------------------ */
+	/* 定義                                                                                 */
+	/* ------------------------------------------------------------------------------------ */
+public:
+	const COLORREF	mDragImageMaskColor = RGB(255, 0, 255);
+	const DWORD MAKEDATA(UINT type, UINT sort)
+	{
+		DWORD dw = 0;
+		dw = (WORD)sort & 0xffff | (((BYTE)type & 0xff) << 24);
+		return dw;
+	}
+	const DWORD TYPEDATA(DWORD dw)
+	{
+		DWORD type = 0;
+		type = (dw >> 24) & 0xff;
+		return type;
+	}
+	const DWORD SORTDATA(DWORD dw)
+	{
+		DWORD sort = 0;
+		sort = dw & 0xffffff;
+		return sort;
+	}
+protected:
+	/* ------------------------------------------------------------------------------------ */
+	/* メンバ変数                                                                           */
+	/* ------------------------------------------------------------------------------------ */
+public:
+protected:
+	UINT			mDragFormat;
+	UINT			mDropFormat;
+	CImageList*		mpDragImage;
+	COLORREF		mcDragBackColor;
+	COLORREF		mcDragTextColor;
+
+	/* ------------------------------------------------------------------------------------ */
+	/* メンバ関数                                                                           */
+	/* ------------------------------------------------------------------------------------ */
+public:
+	void	DragDrop_Initialize(CWnd* parent);
+	void	SetDragFormat(UINT format) { mDragFormat = format; }
+	UINT	GetDragFormat() { return mDragFormat; }
+	void	SetDropFormat(UINT format) { mDropFormat = format; }
+	UINT	GetDropFormat() { return mDropFormat; }
+	BOOL	IsDropTarget(HTREEITEM hItem, CCustomDropObject* pDataObject);
+	void	ClearDropTarget(HTREEITEM hRoot = NULL);
+	BOOL	DataObjectToList(HTREEITEM hDropItem, CCustomDropObject* pDataObject);
+
+protected:
+	bool	IsDragEnable();
+	HTREEITEM GetFirstSelectedItem() const {
+		for (HTREEITEM hItem = GetRootItem(); hItem; hItem = GetNextVisibleItem(hItem))
+			if (GetItemState(hItem, UINT(TVIS_SELECTED)) & TVIS_SELECTED)
+				return hItem;
+		return 0;
+	}
+	HTREEITEM GetNextSelectedItem(HTREEITEM hItem) const {
+		if (hItem)
+			for (hItem = GetNextVisibleItem(hItem); hItem; hItem = GetNextVisibleItem(hItem))
+				if (GetItemState(hItem, UINT(TVIS_SELECTED)) & TVIS_SELECTED)
+					return hItem;
+		return 0;
+	}
+	CImageList* CreateDragImageMulti(HTREEITEM hItem, LPPOINT lpPoint);
+
+	static DROPEFFECT CALLBACK Callback_Detail_DragOver(CWnd* pWnd, void* pDataObject, UINT dwKeyState, CPoint point);
+	static BOOL CALLBACK Callback_Detail_DragDrop(CWnd* pWnd, void* pDataObject, UINT dwKeyState, CPoint point);
+	static void CALLBACK Callback_Detail_DragLeave(CWnd* pWnd);
+
+	BOOL	PrepareItemBuff(CNode* root);
+	void	PrepareChildItem(HTREEITEM hItem, CNode* root);
+	void	CreateTreeNode(CNode* node, HTREEITEM hItem, UINT object);
+
+#endif
 
 	/* ------------------------------------------------------------------------------------ */
 

@@ -1,18 +1,11 @@
 #include "stdafx.h"
+#include "CustomEqStatusDemo.h"
 #include "CustomMonCntlListCtrl.h"
 
 CCustomMonCntlListCtrl::CCustomMonCntlListCtrl()
 {
-#if _DEMO_PHASE >= 100
-	mDragData.indexes.clear();
-	mpDragImage = NULL;
 	mcDragBackColor = GetSysColor(COLOR_WINDOW);
 	mcDragTextColor = GetSysColor(COLOR_WINDOWTEXT);
-	mDragDropCallback = NULL;
-	mDragEnabled = false;
-
-	mListTarget = eFromType_None;
-#endif
 }
 
 CCustomMonCntlListCtrl::~CCustomMonCntlListCtrl()
@@ -20,15 +13,187 @@ CCustomMonCntlListCtrl::~CCustomMonCntlListCtrl()
 }
 
 BEGIN_MESSAGE_MAP(CCustomMonCntlListCtrl, CListCtrl)
-#if _DEMO_PHASE >= 100
+#if _DEMO_PHASE >= 50
 	ON_NOTIFY_REFLECT(LVN_BEGINDRAG, &CCustomMonCntlListCtrl::OnLvnBegindrag)
 	ON_WM_MOUSEMOVE()
 	ON_WM_LBUTTONUP()
 #endif
 END_MESSAGE_MAP()
 
+#if _DEMO_PHASE >= 50
+/*============================================================================*/
+/*! リストコントロール
 
-#if _DEMO_PHASE >= 100
+-# コールバック関数：ドラッグオーバー処理
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+DROPEFFECT CALLBACK CCustomMonCntlListCtrl::Callback_MonCntl_DragOver(CWnd* pWnd, void* pDataObject, UINT dwKeyState, CPoint point)
+{
+	CCustomMonCntlListCtrl* plist = (CCustomMonCntlListCtrl*)pWnd;
+	CCustomDropObject* pdata = (CCustomDropObject*)pDataObject;
+
+	if (!(pdata->mFormat & plist->GetDropFormat())) {
+		return DROPEFFECT_NONE;
+	}
+
+	TRACE("DragOver\n");
+
+	plist->SetDropTarget(point);
+
+	DROPEFFECT de = DROPEFFECT_NONE;
+
+	if (dwKeyState & MK_SHIFT) {
+		de = DROPEFFECT_MOVE;
+	}
+	else {
+		de = DROPEFFECT_COPY;
+	}
+
+	return de;
+}
+
+/*============================================================================*/
+/*! リストコントロール
+
+-# コールバック関数：ドラッグドロップ処理
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+BOOL CALLBACK CCustomMonCntlListCtrl::Callback_MonCntl_DragDrop(CWnd* pWnd, void* pDataObject, UINT dropEffect, CPoint point)
+{
+	CCustomMonCntlListCtrl* plist = (CCustomMonCntlListCtrl*)pWnd;
+	CCustomDropObject* pdata = (CCustomDropObject*)pDataObject;
+
+	if (!(pdata->mFormat & plist->GetDropFormat())) {
+		return DROPEFFECT_NONE;
+	}
+
+	TRACE("DragDrop\n");
+
+	BOOL bRet = plist->DataObjectToList(pdata);
+	if (dropEffect == CCustomDropObject::DE_MOVE) {
+		// 移動時の削除はドラッグ側で行う
+	}
+	plist->ClearDropTarget();
+	return dropEffect;
+}
+/*============================================================================*/
+/*! リストコントロール
+
+-# コールバック関数：ドラッグリーブ処理
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CALLBACK CCustomMonCntlListCtrl::Callback_MonCntl_DragLeave(CWnd* pWnd)
+{
+	CCustomMonCntlListCtrl* plist = (CCustomMonCntlListCtrl*)pWnd;
+	// ドラッグ アンド ドロップ ターゲットとして強調表示クリア
+	plist->ClearDropTarget();
+}
+
+/*============================================================================*/
+/*! リストコントロール
+
+-# ドロップ状態のクリア
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomMonCntlListCtrl::ClearDropTarget()
+{
+	int count = GetItemCount();
+	// ドラッグ アンド ドロップ ターゲットとして強調表示クリア
+	for (int i = 0; i < count; i++) {
+		SetItemState(i, 0, LVIS_DROPHILITED);
+	}
+	RedrawItems(0, count);
+}
+
+/*============================================================================*/
+/*! リストコントロール
+
+-# ドロップ状態の設定
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomMonCntlListCtrl::SetDropTarget(CPoint point)
+{
+	int count = GetItemCount();
+
+	// ドラッグ アンド ドロップ ターゲットとして強調表示クリア
+	ClearDropTarget();
+
+	LVHITTESTINFO Info;
+	ScreenToClient(&point);
+	Info.pt = point;
+	Info.flags = LVHT_ONITEMLABEL;
+	if (-1 != SubItemHitTest(&Info))
+	{
+		SetItemState(Info.iItem, LVIS_DROPHILITED, LVIS_DROPHILITED);
+		RedrawItems(Info.iItem, Info.iItem);
+	}
+}
+/*============================================================================*/
+/*! リストコントロール
+
+-# ドロップされたデータをリストへ登録
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+BOOL CCustomMonCntlListCtrl::DataObjectToList(CCustomDropObject* pDataObject)
+{
+	int count = GetItemCount();
+	int targetItem = -1;
+	for (int i = 0; i < count; i++) {
+		if (GetItemState(i, LVIS_DROPHILITED) == LVIS_DROPHILITED) {
+			targetItem = i + 1;
+			break;
+		}
+	}
+
+	if (targetItem < 0)
+		return FALSE;
+
+	TCHAR* pbuf = (TCHAR*)pDataObject->GetBuffer();
+	if (pbuf == NULL)
+		return FALSE;
+
+	CString str, sItem, strItems = CString(pbuf);
+	UINT index = 0;
+	while (AfxExtractSubString(sItem, strItems, index++, ';')) {
+		if (sItem.IsEmpty())
+			continue;
+		UINT item = 0;
+		while (AfxExtractSubString(str, sItem, item, '\t')) {
+			if (str.IsEmpty())
+				continue;
+			AddItem(targetItem, item, str);
+			item++;
+		}
+		targetItem++;
+	}
+
+	return TRUE;
+}
+
 /*============================================================================*/
 /*! リストコントロール
 
@@ -48,26 +213,64 @@ void CCustomMonCntlListCtrl::OnLvnBegindrag(NMHDR* pNMHDR, LRESULT* pResult)
 		*pResult = 0;
 		return;
 	}
-
-	mDragData.indexes.clear();
-	if (mDragDropCallback != NULL) {
-		mDragDropCallback(eUserMessage_Drag_GetIndex, (LPARAM)mListTarget, (LPARAM)&mDragData.indexes, 0);
+	if (GetSelectedCount() == 0) {
+		*pResult = 0;
+		return;
 	}
-	mDragData.type = mListTarget;
 
-	if (mDragData.indexes.size() > 0) {
-		if (mpDragImage != NULL)
-			delete mpDragImage;
-		CPoint ptDragItem;
-		mpDragImage = CreateDragImageEx(&ptDragItem);
-		if (mpDragImage) {
-			mpDragImage->BeginDrag(0, ptDragItem);
-			mpDragImage->DragEnter(CWnd::GetDesktopWindow(), pNMLV->ptAction);
-			SetCapture();
+	theApp.GetCustomControl().GetCustomDragTarget().Register(this, mDragFormat);
+	theApp.GetCustomControl().GetCustomDragTarget().SetCallbackDragOver(this, Callback_MonCntl_DragOver);
+	theApp.GetCustomControl().GetCustomDragTarget().SetCallbackDragDrop(this, Callback_MonCntl_DragDrop);
+	theApp.GetCustomControl().GetCustomDragTarget().SetCallbackDragLeave(this, Callback_MonCntl_DragLeave);
+
+	if (mpDragImage != NULL)
+		delete mpDragImage;
+	CPoint ptDragItem;
+	mpDragImage = CreateDragImageEx(&ptDragItem);
+	if (mpDragImage) {
+		CStringArray list;
+		if (PrepareItemBuff(ptDragItem, list) == FALSE) {
+			ASSERT(0);
+			*pResult = 0;
+			return;
 		}
+		theApp.GetCustomControl().GetCustomDragTarget().OnDragBegin(list, mDragFormat, CCustomDropObject::DT_TCHAR);
+		mpDragImage->BeginDrag(0, ptDragItem);
+		mpDragImage->DragEnter(CWnd::GetDesktopWindow(), pNMLV->ptAction);
+		SetCapture();
 	}
 
 	*pResult = 0;
+}
+/*============================================================================*/
+/*! リストコントロール
+
+-# ドラッグアイテムの作成
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+BOOL CCustomMonCntlListCtrl::PrepareItemBuff(POINT point, CStringArray& list)
+{
+	POSITION pos = GetFirstSelectedItemPosition();
+
+	if (pos == NULL) {
+		return FALSE;
+	}
+
+	list.RemoveAll();
+	CString str;
+	while (pos) {
+		int index = GetNextSelectedItem(pos);
+		// 監視・制御一覧は先頭カラムのみとする
+		// [;]は複数アイテム時のセパレータ
+		str.Format(_T("%s;"), (LPCTSTR)GetItemText(index, 0));
+		list.Add(str);
+	}
+
+	return TRUE;
 }
 
 /*============================================================================*/
@@ -89,18 +292,19 @@ void CCustomMonCntlListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 
 		// ドロップウィンドウの確認
 		CWnd* pDropWnd = WindowFromPoint(ptDragImage);
-		mDragData.point.x = ptDragImage.x;
-		mDragData.point.y = ptDragImage.y;
 
 		BOOL bTarget = FALSE;
-		if (mDragDropCallback != NULL) {
-			bTarget = mDragDropCallback(eUserMessage_Drag_Select, (LPARAM)pDropWnd, (LPARAM)&mDragData, 0);
+		UINT ret = theApp.GetCustomControl().GetCustomDragTarget().OnDragMove(this, nFlags, ptDragImage);
+		// 監視・制御一覧の場合はコピーしかない
+		if (ret == CCustomDropObject::DE_COPY) {
+			SetCursor(AfxGetApp()->LoadCursor(IDC_CURSOR_DRAGCOPY));
 		}
-		if (bTarget == TRUE) {
-			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+		else if (ret == CCustomDropObject::DE_MOVE) {
+			//SetCursor(AfxGetApp()->LoadCursor(IDC_CURSOR_DRAGMOVE));
+			SetCursor(AfxGetApp()->LoadCursor(IDC_CURSOR_DRAGCOPY));
 		}
 		else {
-			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
+			SetCursor(theApp.LoadCursor(IDC_CURSOR_DRAGERROR));
 		}
 	}
 
@@ -122,41 +326,31 @@ void CCustomMonCntlListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 {
 	if (mpDragImage) {
 		::ReleaseCapture();
-		mpDragImage->DragLeave(CWnd::GetDesktopWindow());
+		mpDragImage->DragLeave(NULL/*CWnd::GetDesktopWindow()*/);
 		mpDragImage->EndDrag();
+		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
 
 		delete mpDragImage;
 		mpDragImage = NULL;
-		DropItem(point, (nFlags & MK_CONTROL) ? true : false);
+
+		CPoint ptDragImage(point);
+		ClientToScreen(&ptDragImage);
+		// 監視・制御一覧の場合はコピーしかない
+		//UINT ret = theApp.GetCustomControl().GetCustomDragTarget().OnDragDrop(this, (nFlags & MK_SHIFT) ? CCustomDropObject::DE_MOVE : CCustomDropObject::DE_COPY, ptDragImage);
+		UINT ret = theApp.GetCustomControl().GetCustomDragTarget().OnDragDrop(this, CCustomDropObject::DE_COPY, ptDragImage);
+		TRACE("Drop Result(%d)\n", ret);
+		if (ret == CCustomDropObject::DE_COPY) {
+			// コピー（＋CTRL）の場合;
+		}
+		else if (ret == CCustomDropObject::DE_MOVE) {
+			// 移動の場合
+		}
+		else {
+			TRACE("DROPEFFECT_NONE\n");
+		}
 	}
 
 	CListCtrl::OnLButtonUp(nFlags, point);
-}
-
-/*============================================================================*/
-/*! グループリスト
-
--# ドロップ対象項目を対象ツリーコントロールに通知する
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-void CCustomMonCntlListCtrl::DropItem(CPoint point, bool bCtrl)
-{
-	CPoint pt(point);
-	ClientToScreen(&pt);
-	CWnd* pDropWnd = WindowFromPoint(pt);
-	if (pDropWnd == NULL)
-		return;
-
-	mDragData.point.x = pt.x;
-	mDragData.point.y = pt.y;
-
-	if (mDragDropCallback != NULL) {
-		mDragDropCallback(eUserMessage_Drag_DropTarget, (LPARAM)pDropWnd, (LPARAM)&mDragData, 0);
-	}
 }
 
 /*============================================================================*/
@@ -274,7 +468,6 @@ CImageList* CCustomMonCntlListCtrl::CreateDragImageEx(LPPOINT lpPoint)
 
 	return pCompleteImageList;
 }
-
 
 BOOL CCustomMonCntlListCtrl::PreTranslateMessage(MSG* pMsg)
 {

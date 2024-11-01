@@ -52,8 +52,10 @@ BOOL CCustomDetailConfig::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
+	COLORREF col;
 	for (int i = 0; i < sizeof(mColorConfig) / sizeof(mColorConfig[0]); i++) {
 		((CMFCColorButton*)GetDlgItem(mColorConfig[i].id))->SetColor(mColor[mColorConfig[i].color]);
+		col = ((CMFCColorButton*)GetDlgItem(mColorConfig[i].id))->GetColor();
 	}
 
 	return TRUE;  // return TRUE unless you set the focus to a control

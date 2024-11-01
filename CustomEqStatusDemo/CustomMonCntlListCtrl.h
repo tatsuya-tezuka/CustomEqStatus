@@ -13,7 +13,7 @@ public:
 	/* ------------------------------------------------------------------------------------ */
 public:
 protected:
-#if _DEMO_PHASE >= 100
+#if _DEMO_PHASE >= 50
 	const COLORREF	mDragImageMaskColor = RGB(255, 0, 255);
 #endif
 	/* ------------------------------------------------------------------------------------ */
@@ -21,23 +21,23 @@ protected:
 	/* ------------------------------------------------------------------------------------ */
 public:
 protected:
-#if _DEMO_PHASE >= 100
+#if _DEMO_PHASE >= 50
 	/// ドラッグ＆ドロップ関連
+	UINT					mDragFormat;
+	UINT					mDropFormat;
+
 	stDragData				mDragData;
-	CImageList* mpDragImage;
+	CImageList*				mpDragImage;
 	COLORREF				mcDragBackColor;
 	COLORREF				mcDragTextColor;
 	bool					mDragEnabled;
-	DRAGDROPCALLBACK		mDragDropCallback;
-	CBaseDropSource			mDragSource;
-
-	UINT					mListTarget;
 #endif
 
 	/* ------------------------------------------------------------------------------------ */
 	/* メンバ関数                                                                           */
 	/* ------------------------------------------------------------------------------------ */
 public:
+
 #if _DEMO_PHASE >= 100
 	BOOL	GroupByColumn(int nCol);
 	void	SetListTarget(UINT val) { mListTarget = val; }
@@ -83,25 +83,31 @@ public:
 		return SetItem(&lv);
 	}
 
-#if _DEMO_PHASE >= 100
+#if _DEMO_PHASE >= 50
 	/// ドラッグ＆ドロップ関連
-	void SetDragDropEnable(bool bEnable, DRAGDROPCALLBACK callback)
-	{
-		mDragEnabled = bEnable;
-		mDragDropCallback = callback;
-	}
+	void	SetDragFormat(UINT format) { mDragFormat = format; }
+	UINT	GetDragFormat() { return mDragFormat; }
+	void	SetDropFormat(UINT format) { mDropFormat = format; }
+	UINT	GetDropFormat() { return mDropFormat; }
+	void	ClearDropTarget();
+	void	SetDropTarget(CPoint point);
+	BOOL	DataObjectToList(CCustomDropObject* pDataObject);
+	BOOL	PrepareItemBuff(POINT point, CStringArray& list);
+
+	static DROPEFFECT CALLBACK Callback_MonCntl_DragOver(CWnd* pWnd, void* pDataObject, UINT dwKeyState, CPoint point);
+	static BOOL CALLBACK Callback_MonCntl_DragDrop(CWnd* pWnd, void* pDataObject, UINT dwKeyState, CPoint point);
+	static void CALLBACK Callback_MonCntl_DragLeave(CWnd* pWnd);
 #endif
 
 protected:
 
 	CImageList* CreateDragImageEx(LPPOINT lpPoint);
-	void		DropItem(CPoint point, bool bCtrl);
 
 	/* ------------------------------------------------------------------------------------ */
 
 	DECLARE_MESSAGE_MAP()
 
-#if _DEMO_PHASE >= 100
+#if _DEMO_PHASE >= 50
 	afx_msg void OnLvnBegindrag(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);

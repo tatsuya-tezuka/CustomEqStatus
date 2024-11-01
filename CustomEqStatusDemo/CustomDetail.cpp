@@ -104,7 +104,7 @@ void CCustomDetail::OnHeaderItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
 /*============================================================================*/
 void CCustomDetail::OnHeaderDividerdblclick(NMHDR *pNMHDR, LRESULT *pResult)
 {
-#if _DEMO_PHASE < 100
+#if _DEMO_PHASE < 50
 	* pResult = 1;
 	return;
 #endif
@@ -278,9 +278,9 @@ void CCustomDetail::OnMenudetailClose()
 		//pnode->CopyTreeNode(mBackupNode);
 	}
 
-	theApp.GetCustomControl().GetCustomManager().PostMessageW(eUserMessage_Manager_Delete, CString(pnode->GetXmlFileName()).IsEmpty() == true?1:0, (LPARAM)this);
-
 	CCustomDialogBase::OnClose();
+
+	theApp.GetCustomControl().GetCustomManager().SendMessage(eUserMessage_Manager_Delete, CString(pnode->GetXmlFileName()).IsEmpty() == true ? 1 : 0, (LPARAM)this);
 }
 
 /*============================================================================*/
@@ -378,7 +378,7 @@ void CCustomDetail::saveHeaderWidth()
 /*============================================================================*/
 void CCustomDetail::OnMenudetailEdit()
 {
-#if _DEMO_PHASE < 100
+#if _DEMO_PHASE < 50
 	return;
 #endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
@@ -400,7 +400,7 @@ void CCustomDetail::OnMenudetailEdit()
 /*============================================================================*/
 void CCustomDetail::OnMenudetailMonitor()
 {
-#if _DEMO_PHASE < 100
+#if _DEMO_PHASE < 50
 	return;
 #endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
@@ -565,7 +565,8 @@ void CCustomDetail::createRoot()
 	SetWindowText(mDefaultCustomTitle);
 	// ルートアイテムの設定
 	HTREEITEM rootItem = mTreeCtrl.InsertItem(mDefaultCustomTitle, NULL, NULL, TVI_ROOT);
-	mTreeCtrl.SetItemData(rootItem, (LPARAM)rootItem);
+	mTreeCtrl.SetItemData(rootItem, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_TITLE, 0));
+
 	CTreeNode* tn_root = new CTreeNode(rootItem, this, &mTreeCtrl);
 	setNodeWindowInfo(tn_root, eTreeItemType_Title, (LPWSTR)mDefaultCustomTitle, NULL);
 	// デフォルトフォントの設定
@@ -573,7 +574,11 @@ void CCustomDetail::createRoot()
 	// 論理フォントの取得
 	mTreeCtrl.GetFontEx(eTreeItemType_Window).GetLogFont(&tn_root->GetColor().font);
 
+	tn_root->GetWindowInfo().mode = eTreeItemMode_Edit;
+
 	theApp.GetCustomControl().GetDataManager().AddTreeNode(tn_root);
+
+	updateMode();
 }
 /*============================================================================*/
 /*! 設備詳細
@@ -591,7 +596,8 @@ void CCustomDetail::createMainNode(HTREEITEM parentitem, CTreeNode* parentnode)
 	CString str;
 	str.Format(_T("%s"), mDefaultCustomMainText);
 	HTREEITEM item = mTreeCtrl.InsertItem(str, NULL, NULL, parentitem);
-	mTreeCtrl.SetItemData(item, (LPARAM)item);
+	mTreeCtrl.SetItemData(item, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_MAINNODE, 0));
+
 	CTreeNode* item_node = parentnode->CreateTreeNode(parentitem, item);
 	CTreeNode* pcopyitem = theApp.GetCustomControl().GetDataManager().SearchItemNodeType(this, eTreeItemType_Main);
 	if (pcopyitem != NULL)
@@ -620,7 +626,8 @@ void CCustomDetail::createSubNode(HTREEITEM parentitem, CTreeNode* parentnode)
 	CString str;
 	str.Format(_T("%s"), mDefaultCustomSubText);
 	HTREEITEM item = mTreeCtrl.InsertItem(str, NULL, NULL, parentitem);
-	mTreeCtrl.SetItemData(item, (LPARAM)item);
+	mTreeCtrl.SetItemData(item, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_SUBNODE, 0));
+
 	CTreeNode* item_node = parentnode->CreateTreeNode(parentitem, item);
 	CTreeNode* pcopyitem = theApp.GetCustomControl().GetDataManager().SearchItemNodeType(this, eTreeItemType_Sub);
 	if (pcopyitem != NULL)
@@ -649,7 +656,8 @@ void CCustomDetail::createLeaf(HTREEITEM parentitem, CTreeNode* parentnode)
 	CString str;
 	str = createLeafText(mDefaultCustomItemText, _T(""), _T(""));
 	HTREEITEM item = mTreeCtrl.InsertItem(str, NULL, NULL, parentitem);
-	mTreeCtrl.SetItemData(item, (LPARAM)item);
+	mTreeCtrl.SetItemData(item, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_LEAF, 0));
+
 	CTreeNode* item_node = parentnode->CreateTreeNode(parentitem, item);
 	CTreeNode* pcopyitem = theApp.GetCustomControl().GetDataManager().SearchItemNodeType(this, eTreeItemType_Item);
 	if (pcopyitem != NULL)
@@ -723,7 +731,8 @@ void CCustomDetail::restoreRoot()
 
 	// ルート復元
 	HTREEITEM rootItem = mTreeCtrl.InsertItem(pnode->GetWindowInfo().title, NULL, NULL, TVI_ROOT);
-	mTreeCtrl.SetItemData(rootItem, (LPARAM)rootItem);
+	mTreeCtrl.SetItemData(rootItem, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_TITLE, 0));
+
 	pnode->SetTreeItem(rootItem);
 	if (abs(mTreeLogFont.lfHeight) < abs(pnode->GetColor().font.lfHeight))
 		mTreeLogFont.lfHeight = pnode->GetColor().font.lfHeight;
@@ -766,15 +775,27 @@ void CCustomDetail::restoreRoot()
 void CCustomDetail::restoreNode(CTreeNode* pnode, HTREEITEM ptree)
 {
 	vector<CTreeNode*>::iterator itr;
+	UINT sortno = 0;
 	for (itr = pnode->GetChildren().begin(); itr != pnode->GetChildren().end(); itr++){
 		CString str;
 		str = generateTreeText((*itr));
 		HTREEITEM item = mTreeCtrl.InsertItem(str, NULL, NULL, ptree);
+		switch ((*itr)->GetWindowInfo().type) {
+		case	eTreeItemType_Main:
+			mTreeCtrl.SetItemData(item, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_MAINNODE, 0));
+			break;
+		case	eTreeItemType_Sub:
+			mTreeCtrl.SetItemData(item, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_SUBNODE, 0));
+			break;
+		case	eTreeItemType_Item:
+			mTreeCtrl.SetItemData(item, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_LEAF, sortno * mSortRange));
+			sortno++;
+			break;
+		}
 		if (abs(mTreeLogFont.lfHeight) < abs(pnode->GetColor().font.lfHeight))
 			mTreeLogFont.lfHeight = pnode->GetColor().font.lfHeight;
 		// フォントの設定
 		mTreeCtrl.SetFontEx((*itr)->GetWindowInfo().type, (*itr)->GetColor().font);
-		mTreeCtrl.SetItemData(item, (LPARAM)item);
 		(*itr)->SetTreeItem(item);
 		(*itr)->GetWindowInfo().tree = &mTreeCtrl;
 		(*itr)->GetWindowInfo().wnd = this;
@@ -880,7 +901,7 @@ void CCustomDetail::resizeFit()
 /*============================================================================*/
 void CCustomDetail::OnDetailAdd()
 {
-#if _DEMO_PHASE < 100
+#if _DEMO_PHASE < 50
 	return;
 #endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, mMenuItem);
@@ -917,7 +938,7 @@ void CCustomDetail::OnDetailAdd()
 /*============================================================================*/
 void CCustomDetail::OnDetailDelete()
 {
-#if _DEMO_PHASE < 100
+#if _DEMO_PHASE < 50
 	return;
 #endif
 	mTreeCtrl.SetRedraw(false);
@@ -951,7 +972,7 @@ void CCustomDetail::OnDetailDelete()
 /*============================================================================*/
 void CCustomDetail::OnDetailRename()
 {
-#if _DEMO_PHASE < 100
+#if _DEMO_PHASE < 50
 	return;
 #endif
 	CPoint point;
@@ -985,10 +1006,11 @@ void CCustomDetail::OnDetailRename()
 /*============================================================================*/
 void CCustomDetail::OnDetailMonctrl()
 {
-#if _DEMO_PHASE < 100
+#if _DEMO_PHASE < 50
 	return;
 #endif
-	// TODO: ここにコマンド ハンドラー コードを追加します。
+	// 監視・制御一覧画面の呼出
+	theApp.GetCustomControl().GetCustomMonCntl().ShowWindow(SW_SHOW);
 }
 
 /*============================================================================*/
@@ -1003,7 +1025,7 @@ void CCustomDetail::OnDetailMonctrl()
 /*============================================================================*/
 void CCustomDetail::OnDetailConfig()
 {
-#if _DEMO_PHASE < 100
+#if _DEMO_PHASE < 50
 	return;
 #endif
 
@@ -1058,7 +1080,7 @@ void CCustomDetail::OnDetailConfig()
 		return;
 	}
 
-#if _DEMO_PHASE < 100
+#if _DEMO_PHASE < 50
 	return;
 #endif
 
@@ -1124,7 +1146,8 @@ void CCustomDetail::OnDetailConfig()
 				color.font = config.mFont[eTreeItemType_Item];
 				break;
 			}
-			if (mColorConfig[i].type != eTreeItemType_Window) {
+			//if (mColorConfig[i].type != eTreeItemType_Window)
+			{
 				theApp.GetCustomControl().GetDataManager().SetNodeColor(this, mColorConfig[i].type, color);
 				mTreeCtrl.SetFontEx(mColorConfig[i].type, color.font);
 			}
@@ -1311,6 +1334,7 @@ bool CCustomDetail::updateMenuItem(MENUITEMINFO* pMenuItemInfo)
 	return false;
 }
 
+#ifdef _DRAGDROP
 /*============================================================================*/
 /*! 設備詳細
 
@@ -1332,7 +1356,17 @@ void CCustomDetail::DragDrop_AddLeaf(HTREEITEM targetitem, CTreeNode* targetnode
 	for (itr = pdata->indexes.begin(); itr != pdata->indexes.end(); itr++) {
 		// 仮アイテムの作成
 		HTREEITEM item = mTreeCtrl.InsertItem(str, NULL, NULL, targetitem);
-		mTreeCtrl.SetItemData(item, (LPARAM)item);
+		switch (targetnode->GetWindowInfo().type) {
+		case	eTreeItemType_Main:
+			mTreeCtrl.SetItemData(item, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_MAINNODE, 0));
+			break;
+		case	eTreeItemType_Sub:
+			mTreeCtrl.SetItemData(item, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_SUBNODE, 0));
+			break;
+		case	eTreeItemType_Item:
+			mTreeCtrl.SetItemData(item, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_LEAF, 0));
+			break;
+		}
 
 		// 仮アイテムからノードを作成する
 		CTreeNode* item_node = targetnode->CreateTreeNode(targetitem, item);
@@ -1984,6 +2018,7 @@ void CCustomDetail::DragDrop_UpdateSortNo(HTREEITEM item)
 		pos++;
 	}
 }
+#endif
 
 /*============================================================================*/
 /*! 設備詳細

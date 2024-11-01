@@ -194,6 +194,7 @@
     <ClInclude Include="CustomControl.h" />
     <ClInclude Include="CustomDBAccess.h" />
     <ClInclude Include="CustomDetailConfig.h" />
+    <ClInclude Include="CustomDropTarget.h" />
     <ClInclude Include="CustomMonCntl.h" />
     <ClInclude Include="CustomMonCntlListCtrl.h" />
     <ClInclude Include="CustomSelectSaveFile.h" />
@@ -217,6 +218,7 @@
     <ClCompile Include="CustomControl.cpp" />
     <ClCompile Include="CustomDBAccess.cpp" />
     <ClCompile Include="CustomDetailConfig.cpp" />
+    <ClCompile Include="CustomDropTarget.cpp" />
     <ClCompile Include="CustomMonCntl.cpp" />
     <ClCompile Include="CustomMonCntlListCtrl.cpp" />
     <ClCompile Include="CustomSelectSaveFile.cpp" />
@@ -245,6 +247,9 @@
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="res\CustomEqStatusDemo.rc2" />
+    <None Include="res\dragcopy.cur" />
+    <None Include="res\dragerror.cur" />
+    <None Include="res\dragmove.cur" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\CustomEqStatusDemo.ico" />

@@ -234,7 +234,7 @@ void CCustomManager::OnNMRClickListManager(NMHDR *pNMHDR, LRESULT *pResult)
 /*============================================================================*/
 void CCustomManager::OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult)
 {
-#if _DEMO_PHASE < 100
+#if _DEMO_PHASE < 50
 	return;
 #endif
 
@@ -282,7 +282,7 @@ void CCustomManager::OnManagerDelete()
 		return;
 	}
 
-#if _DEMO_PHASE < 100
+#if _DEMO_PHASE < 50
 	return;
 #endif
 	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
@@ -320,13 +320,13 @@ void CCustomManager::OnManagerDelete()
 /*============================================================================*/
 void CCustomManager::OnManagerShow()
 {
-#if _DEMO_PHASE < 100
+#if _DEMO_PHASE < 50
 	return;
 #endif
 	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
 	while (pos) {
 		int nItem = mManagerList.GetNextSelectedItem(pos);
-		showCustomDetail(nItem, false);
+		showCustomDetail(nItem, true);
 	}
 }
 /*============================================================================*/
@@ -493,10 +493,15 @@ void CCustomManager::createEquipment()
 void CCustomManager::createEqDetail(CTreeNode* node/*=NULL*/)
 {
 	// ê›îıè⁄ç◊âÊñ ÇÃçÏê¨
-	CCustomDetail* pitem = theApp.GetCustomControl().CreateEquipment(NULL);
+	CCustomDetail* pitem = theApp.GetCustomControl().CreateEquipment(NULL, eTreeItemMode_Edit);
 
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(pitem);
+	// createItemÇé¿çsÇ∑ÇÈÇ±Ç∆Ç≈ä«óùâÊñ Ç…ï\é¶Ç≥ÇÍÇÈ
 	createItem((int)mSelectType);
+	if (pnode->GetWindowInfo().wnd != NULL) {
+		CPoint point = theApp.GetCustomControl().GetCascadePoint();
+		pnode->GetWindowInfo().wnd->SetWindowPos(NULL, point.x, point.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+	}
 }
 /*============================================================================*/
 /*! ê›îıè⁄ç◊ä«óù
@@ -644,7 +649,7 @@ void CCustomManager::OnClose()
 /*============================================================================*/
 void CCustomManager::updateXmlFile()
 {
-#if _DEMO_PHASE < 100
+#if _DEMO_PHASE < 50
 	return;
 #endif
 	int count = mManagerList.GetItemCount();

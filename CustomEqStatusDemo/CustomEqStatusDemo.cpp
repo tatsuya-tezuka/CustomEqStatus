@@ -78,11 +78,11 @@ BOOL CCustomEqStatusDemoApp::InitInstance()
 
 	InitializeApp();
 
-	/// カスタムコントロールの初期化
-	GetCustomControl().Initialize(mAppPath);
-
 	CCustomEqStatusDemoDlg dlg;
 	m_pMainWnd = &dlg;
+
+	/// カスタムコントロールの初期化
+	GetCustomControl().Initialize(m_pMainWnd, mAppPath);
 
 	INT_PTR nResponse = dlg.DoModal();
 	if (nResponse == IDOK)

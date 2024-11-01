@@ -69,5 +69,5 @@ using namespace std;
 
 	100:リリースバージョン
 */
-#define	_DEMO_PHASE		1
+#define	_DEMO_PHASE		50
 

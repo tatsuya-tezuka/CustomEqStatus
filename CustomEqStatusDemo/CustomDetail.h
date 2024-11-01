@@ -49,6 +49,7 @@ protected:
 	/* メンバ関数                                                                           */
 	/* ------------------------------------------------------------------------------------ */
 public:
+#ifdef _DRAGDROP
 	/// ドラッグ＆ドロップ
 	void	DragDrop_AddLeaf(HTREEITEM targetitem, CTreeNode* tagetnode, stDragData* pdata);
 	void	DragDrop_UpdateLeaf(HTREEITEM targetitem, CTreeNode* tagetnode, stDragData* pdata);
@@ -60,6 +61,7 @@ public:
 	bool	DragDrop_CopyItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* dropWnd, HTREEITEM dropItem, bool bSort, HTREEITEM hInsertAfter = TVI_FIRST);
 	bool	DragDrop_MoveItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* dropWnd, HTREEITEM dropItem, bool bSort, HTREEITEM hInsertAfter = TVI_FIRST);
 	bool	DragDrop_IsDropExecute(CTreeNode* pnodeDrag, CTreeNode* pnodeDrop);
+#endif
 
 	void	UpdateSortNo(HTREEITEM hItem);
 
@@ -70,10 +72,12 @@ protected:
 	void	createSubNode(HTREEITEM parentitem, CTreeNode* parentnode);
 	void	createLeaf(HTREEITEM parentitem, CTreeNode* parentnode);
 
+#ifdef _DRAGDROP
 	void	DragDrop_SortItem(HTREEITEM item);
 	static int CALLBACK DragDrop_Compare(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 	void	DragDrop_UpdateSortNo(HTREEITEM item);
 	void	DragDrop_GetDataName(UINT type, UINT pos, CString& strmon, CString& strcon);
+#endif
 
 	void	restoreRoot();
 	void	restoreNode(CTreeNode* pnode, HTREEITEM ptree);
@@ -86,9 +90,9 @@ protected:
 #if _DEMO_PHASE < 100
 		int nRand = rand();
 		double dRand = (double)rand() * 360.0 / RAND_MAX;
-		str.Format(_T("%s\t%0.3f\t%s\t%s"), item, dRand, unit, control.IsEmpty() == false ? mCOntrolSignString : _T(""));
+		str.Format(_T("%s\t%0.3f\t%s\t%s"), (LPCTSTR)item, dRand, (LPCTSTR)unit, control.IsEmpty() == false ? mCOntrolSignString : _T(""));
 #else
-		str.Format(_T("%s\t\t%s\t%s"), item, unit, control.IsEmpty() == false ? mCOntrolSignString : _T(""));
+		str.Format(_T("%s\t\t%s\t%s"), (LPCTSTR)item, (LPCTSTR)unit, control.IsEmpty() == false ? mCOntrolSignString : _T(""));
 #endif
 		return str;
 	}

@@ -19,13 +19,16 @@ CCustomControl::~CCustomControl()
 
 -# カスタムコントロールの初期化
 
+@param	pParent		メインウィンドウハンドル
 @param	appPath		アプリケーションパス
 @retval
 
 */
 /*============================================================================*/
-void CCustomControl::Initialize(CString appPath)
+void CCustomControl::Initialize(CWnd* pParent, CString appPath)
 {
+	mMainWnd = pParent;
+
 	/// マスタ用データ格納パス
 	mAppMasterDataPath = appPath + _T("\\") + mAppDataMasterPath;
 
@@ -67,7 +70,7 @@ void CCustomControl::Initialize(CString appPath)
 
 */
 /*============================================================================*/
-CCustomDetail* CCustomControl::CreateEquipment(CTreeNode* pnode)
+CCustomDetail* CCustomControl::CreateEquipment(CTreeNode* pnode, UINT mode/* = eTreeItemMode_Monitor*/)
 {
 	// 設備詳細画面の作成
 	CCustomDetail* pitem = new CCustomDetail(theApp.GetMainWnd(), (pnode == NULL) ? false : true);
@@ -86,7 +89,7 @@ CCustomDetail* CCustomControl::CreateEquipment(CTreeNode* pnode)
 		pnodeitem->GetWindowInfo().manager = &mCustomManager;
 		swprintf_s(pnodeitem->GetWindowInfo().groupname, mNameSize, _T("%s"), (LPCTSTR)_T("0"));
 		pnodeitem->GetWindowInfo().groupno = 0;
-		pnodeitem->GetWindowInfo().mode = eTreeItemMode_Monitor;
+		pnodeitem->GetWindowInfo().mode = mode;
 		pnodeitem->GetWindowInfo().kind = eTreeItemKind_User;
 	}
 	return pitem;

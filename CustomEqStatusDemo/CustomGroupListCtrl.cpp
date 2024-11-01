@@ -318,6 +318,7 @@ BEGIN_MESSAGE_MAP(CCustomGroupListCtrl, CListCtrl)
 	ON_WM_MOUSEMOVE()
 	ON_WM_LBUTTONUP()
 	ON_WM_RBUTTONDOWN()
+	ON_WM_LBUTTONDBLCLK()
 END_MESSAGE_MAP()
 
 
@@ -932,7 +933,7 @@ void CCustomGroupListCtrl::OnHdnBegintrack(NMHDR *pNMHDR, LRESULT *pResult)
 /*============================================================================*/
 void CCustomGroupListCtrl::OnHdnDividerdblclick(NMHDR *pNMHDR, LRESULT *pResult)
 {
-#if _DEMO_PHASE < 100
+#if _DEMO_PHASE < 50
 	* pResult = 1;
 	return;
 #endif
@@ -965,21 +966,53 @@ void CCustomGroupListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	CListCtrl::OnLButtonDown(nFlags, point);
 
+	//int pos = 0, index;
+	//int colnum, strpos = 0;
+	//CString str;
+	//if ((index = HitTestEx(point, &colnum)) != -1 && colnum != 0){
+	//	UINT flag = LVIS_SELECTED;
+	//	if ((GetItemState(index, flag) & flag) == flag){
+	//		if (EditExecute(index, colnum) == false){
+	//			SetItemState(index, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+	//		}
+	//	}
+	//	else{
+	//		SetItemState(index, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+	//	}
+	//}
+}
+
+/*============================================================================*/
+/*! グループリスト
+
+-# マウス左ボタンダブルクリック
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+void CCustomGroupListCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
+{
 	int pos = 0, index;
 	int colnum, strpos = 0;
 	CString str;
-	if ((index = HitTestEx(point, &colnum)) != -1 && colnum != 0){
+	if ((index = HitTestEx(point, &colnum)) != -1 && colnum != 0) {
 		UINT flag = LVIS_SELECTED;
-		if ((GetItemState(index, flag) & flag) == flag){
-			if (EditExecute(index, colnum) == false){
+		if ((GetItemState(index, flag) & flag) == flag) {
+			if (EditExecute(index, colnum) == false) {
 				SetItemState(index, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 			}
 		}
-		else{
+		else {
 			SetItemState(index, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 		}
+		return;
 	}
+
+	CListCtrl::OnLButtonDblClk(nFlags, point);
 }
+
 /*============================================================================*/
 /*! グループリスト
 
@@ -993,7 +1026,7 @@ void CCustomGroupListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 /*============================================================================*/
 bool CCustomGroupListCtrl::EditExecute(int item, int colnum)
 {
-#if _DEMO_PHASE < 100
+#if _DEMO_PHASE < 50
 	return false;
 #else
 	// 選択文字列の取得
@@ -1157,7 +1190,16 @@ void CCustomGroupListCtrl::OnLvnBegindrag(NMHDR* pNMHDR, LRESULT* pResult)
 	*pResult = 0;
 }
 
+/*============================================================================*/
+/*! グループリスト
 
+-# マウス移動イベント
+
+@param
+
+@retval
+*/
+/*============================================================================*/
 void CCustomGroupListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 {
 	if (mpDragImage) {
@@ -1185,7 +1227,16 @@ void CCustomGroupListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 	CListCtrl::OnMouseMove(nFlags, point);
 }
 
+/*============================================================================*/
+/*! グループリスト
 
+-# マウス左ボタンアップイベント
+
+@param
+
+@retval
+*/
+/*============================================================================*/
 void CCustomGroupListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 {
 	if (mpDragImage) {

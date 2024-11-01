@@ -59,6 +59,7 @@ BOOL CCustomMonCntl::OnInitDialog()
 	createControl();
 
 	CenterWindow(GetDesktopWindow());
+	mListData.SetDragFormat(CCustomDropObject::DF_MONITOR);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
@@ -225,6 +226,7 @@ void CCustomMonCntl::OnTvnSelchangedTreeData(NMHDR* pNMHDR, LRESULT* pResult)
 			str = mTreeData.GetItemText(mTreeData.GetSelectedItem());
 			mEditSearch.SetWindowText(str+_T("."));
 		}
+		mListData.SetDragFormat(CCustomDropObject::DF_MONITOR);
 		break;
 	case	eType_Cntl:
 		// 制御を選択
@@ -236,6 +238,7 @@ void CCustomMonCntl::OnTvnSelchangedTreeData(NMHDR* pNMHDR, LRESULT* pResult)
 			str = mTreeData.GetItemText(mTreeData.GetSelectedItem());
 			mEditSearch.SetWindowText(str + _T("."));
 		}
+		mListData.SetDragFormat(CCustomDropObject::DF_CONTROL);
 		break;
 	default:
 		count = 0;

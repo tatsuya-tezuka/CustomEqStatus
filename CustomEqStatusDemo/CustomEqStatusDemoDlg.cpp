@@ -66,8 +66,6 @@ BEGIN_MESSAGE_MAP(CCustomEqStatusDemoDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_MFCBUTTON_LOAD, &CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad)
 	ON_BN_CLICKED(IDC_MFCBUTTON__SAVE, &CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave)
 	ON_BN_CLICKED(IDC_MFCBUTTON__MANAGER, &CCustomEqStatusDemoDlg::OnBnClickedMfcbutton)
-	ON_BN_CLICKED(IDC_BUTTON_MONCNTL, &CCustomEqStatusDemoDlg::OnBnClickedButtonMoncntl)
-	ON_BN_CLICKED(IDC_BUTTON_CUSTOM, &CCustomEqStatusDemoDlg::OnBnClickedButtonCustom)
 END_MESSAGE_MAP()
 
 
@@ -301,26 +299,5 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbutton()
 void CCustomEqStatusDemoDlg::createCustomControl()
 {
 	// カスタム管理画面の作成
-	if (theApp.GetCustomControl().GetCustomManager().GetSafeHwnd() == NULL) {
-		theApp.GetCustomControl().GetCustomManager().Create(IDD_DIALOG_MANAGER, this);
-	}
 	theApp.GetCustomControl().GetCustomManager().ShowWindow(SW_SHOW);
-}
-
-
-#include "CustomMonCntl.h"
-void CCustomEqStatusDemoDlg::OnBnClickedButtonMoncntl()
-{
-#if _DEMO_PHASE < 100
-	return;
-#endif
-
-	CCustomMonCntl dlg;
-	dlg.DoModal();
-}
-
-
-void CCustomEqStatusDemoDlg::OnBnClickedButtonCustom()
-{
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
 }

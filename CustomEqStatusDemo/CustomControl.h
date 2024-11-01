@@ -3,6 +3,8 @@
 #include "CustomDataManager.h"
 #include "CustomManager.h"
 #include "CustomDetail.h"
+#include "CustomMonCntl.h"
+#include "CustomDropTarget.h"
 
 // メモリ管理
 #include <windows.h>
@@ -113,6 +115,8 @@ protected:
 public:
 
 protected:
+	/// メインウィンドウハンドル
+	CWnd* mMainWnd;
 	/// マスタデータ格納パス
 	CString					mAppMasterDataPath;
 	/// ユーザデータ格納パス
@@ -123,15 +127,19 @@ protected:
 	CCustomDataManager		mDataManager;
 	/// カスタマイズ管理
 	CCustomManager			mCustomManager;
+	// 監視・制御一覧
+	CCustomMonCntl			mCustmMonCntl;
 	/// カスタム管理画面位置
 	CPoint					mManagerPoint;
 	CPoint					mCascadePoint;
+	/// ドラッグ＆ドロップ
+	CCustomDropTarget		mCustomDragTarget;
 
 	/* ------------------------------------------------------------------------------------ */
 	/* メンバ関数                                                                           */
 	/* ------------------------------------------------------------------------------------ */
 public:
-	void	Initialize(CString appPath);
+	void	Initialize(CWnd* pParent, CString appPath);
 
 	void PrintMemoryInfo()
 	{
@@ -183,9 +191,23 @@ public:
 	/// カスタムデータ管理関連
 	CCustomDataManager& GetDataManager() { return mDataManager; }
 	/// カスタマイズ管理
-	CCustomManager& GetCustomManager() { return mCustomManager; }
+	CCustomManager& GetCustomManager()
+	{
+		if (mCustomManager.GetSafeHwnd() == NULL) {
+			mCustomManager.Create(IDD_DIALOG_MANAGER, mMainWnd);
+		}
+		return mCustomManager;
+	}
+	// 監視・制御一覧
+	CCustomMonCntl& GetCustomMonCntl()
+	{
+		if (mCustmMonCntl.GetSafeHwnd() == NULL) {
+			mCustmMonCntl.Create(IDD_DIALOG_MONCNTL, mMainWnd);
+		}
+		return mCustmMonCntl;
+	}
 	/// 設備詳細ウィンドウの作成
-	CCustomDetail* CreateEquipment(CTreeNode* pnode);
+	CCustomDetail* CreateEquipment(CTreeNode* pnode, UINT mode= eTreeItemMode_Monitor);
 	/// カスタム管理画面位置の更新
 	void UpdateCustomManagerPoint(CPoint point)
 	{
@@ -203,6 +225,8 @@ public:
 		mCascadePoint.y += CYCAPTION;
 		return point;
 	}
+
+	CCustomDropTarget& GetCustomDragTarget() { return mCustomDragTarget; }
 
 protected:
 	void	createMasterEquipment();
