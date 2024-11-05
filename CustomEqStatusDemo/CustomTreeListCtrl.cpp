@@ -1896,8 +1896,7 @@ DROPEFFECT CALLBACK CCustomTreeListCtrl::Callback_Detail_DragOver(CWnd* pWnd, vo
 /*============================================================================*/
 BOOL CALLBACK CCustomTreeListCtrl::Callback_Detail_DragDrop(CWnd* pWnd, void* pDataObject, UINT dropEffect, CPoint point)
 {
-	return DROPEFFECT_NONE;
-
+#if _DEMO_PHASE >= 50
 	CCustomTreeListCtrl* ptree = (CCustomTreeListCtrl*)pWnd;
 	CCustomDropObject* pdata = (CCustomDropObject*)pDataObject;
 
@@ -1932,6 +1931,9 @@ BOOL CALLBACK CCustomTreeListCtrl::Callback_Detail_DragDrop(CWnd* pWnd, void* pD
 	//ptree->SelectDropTarget(NULL);
 	ptree->ClearDropTarget();
 	return dropEffect;
+#else
+	return DROPEFFECT_NONE;
+#endif
 }
 
 /*============================================================================*/

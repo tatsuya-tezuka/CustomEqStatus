@@ -42,7 +42,7 @@ static const TCHAR* mAppDataUserPath = { _T("USER") };
 static const TCHAR* mAppSaveEquipmentFile = { _T("AppEquipment.xml") };
 
 /// カスタム画面関連
-static const TCHAR* mDefaultCustomTitle = { _T("タイトル") };
+static const TCHAR* mDefaultCustomTitle = { _T("～タイトル") };
 static const TCHAR* mDefaultCustomRoot = { _T("ルート") };
 static const TCHAR* mDefaultCustomMainText = { _T("メインノード") };
 static const TCHAR* mDefaultCustomSubText = { _T("サブノード") };
@@ -59,6 +59,7 @@ static const TCHAR* mCOntrolSignString = { _T("#CNTL#") };
 static const TCHAR* mCOntrolSignStringDisplay = { _T("制御") };
 static const TCHAR* mEditModeString = { _T("（編集中）") };
 static const UINT mSortRange = 20;
+static const UINT mGroupRange = 10;
 
 /// タイトル
 static const TCHAR* mMessage_Title_CustomManager = { _T("カスタム管理画面") };

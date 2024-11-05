@@ -100,7 +100,7 @@ BOOL CCustomEqStatusDemoDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 大きいアイコンの設定
 	SetIcon(m_hIcon, FALSE);		// 小さいアイコンの設定
 
-#if _DEMO_PHASE < 5
+#if _DEMO_PHASE < 10
 	CenterWindow();
 	CRect rect;
 	GetWindowRect(rect);
@@ -183,7 +183,7 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad()
 	if (dlg.DoModal() != IDOK)
 		return;
 
-#if _DEMO_PHASE < 5
+#if _DEMO_PHASE < 10
 	return;
 #endif
 
@@ -232,7 +232,7 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave()
 	if (dlg.DoModal() != IDOK)
 		return;
 
-#if _DEMO_PHASE < 5
+#if _DEMO_PHASE < 10
 	return;
 #endif
 
@@ -280,7 +280,7 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave()
 /*============================================================================*/
 void CCustomEqStatusDemoDlg::OnBnClickedMfcbutton()
 {
-#if _DEMO_PHASE < 5
+#if _DEMO_PHASE < 10
 	return;
 #endif
 	createCustomControl();

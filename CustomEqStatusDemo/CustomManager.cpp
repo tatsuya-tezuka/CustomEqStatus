@@ -202,12 +202,23 @@ void CCustomManager::OnNMRClickListManager(NMHDR *pNMHDR, LRESULT *pResult)
 	}
 
 	mManagerList.ScreenToClient(&pos);
-	int item = mManagerList.HitTest(pos);
 
-	TRACE("[MANAGER]RclickItem(%d)\n", item);
+	UINT nMenuRes = IDR_POPUP_MANAGER;
+	int item = mManagerList.HitTest(pos);
+	if(item >= 0){
+		// アイテムからノード情報を取得する
+		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(item);
+		if (HIWORD(pnode->GetWindowInfo().groupno) != 0) {
+			nMenuRes = IDR_POPUP_MANAGER_GROUP;
+		}
+		TRACE("[MANAGER]Rclick Item=%d Group=%08X)\n", item, pnode->GetWindowInfo().groupno);
+	}
+	else {
+		TRACE("[MANAGER]Rclick Item=--)\n");
+	}
 
 	CMenu menu;
-	if (!menu.LoadMenu(IDR_POPUP_MANAGER)){
+	if (!menu.LoadMenu(nMenuRes)){
 		ASSERT(FALSE);
 		return;
 	}
@@ -234,7 +245,7 @@ void CCustomManager::OnNMRClickListManager(NMHDR *pNMHDR, LRESULT *pResult)
 /*============================================================================*/
 void CCustomManager::OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult)
 {
-#if _DEMO_PHASE < 50
+#if _DEMO_PHASE < 40
 	return;
 #endif
 
@@ -260,6 +271,9 @@ void CCustomManager::OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult)
 /*============================================================================*/
 void CCustomManager::OnManagerNew()
 {
+#if _DEMO_PHASE < 20
+	return;
+#endif
 	UpdateData(TRUE);
 	createEqDetail(NULL);
 	mManagerList.GroupByColumn(eManagerGroup, (mSelectType == eSelectUser) ? TRUE : FALSE);
@@ -282,7 +296,7 @@ void CCustomManager::OnManagerDelete()
 		return;
 	}
 
-#if _DEMO_PHASE < 50
+#if _DEMO_PHASE < 110
 	return;
 #endif
 	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
@@ -320,7 +334,7 @@ void CCustomManager::OnManagerDelete()
 /*============================================================================*/
 void CCustomManager::OnManagerShow()
 {
-#if _DEMO_PHASE < 50
+#if _DEMO_PHASE < 110
 	return;
 #endif
 	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
@@ -408,7 +422,9 @@ void CCustomManager::ResetGroupInnerNo()
 				(*itr)->GetWindowInfo().groupno = HIWORD((*itr)->GetWindowInfo().groupno) << 16 | 1;
 			}
 			else {
-				(*itrmax).second += 10;
+				// ワークのグループ番号を更新する
+				(*itrmax).second += mGroupRange;
+				// ノードのグループ番号を更新する
 				(*itr)->GetWindowInfo().groupno = HIWORD((*itr)->GetWindowInfo().groupno) << 16 | (*itrmax).second;
 			}
 		}
@@ -649,7 +665,7 @@ void CCustomManager::OnClose()
 /*============================================================================*/
 void CCustomManager::updateXmlFile()
 {
-#if _DEMO_PHASE < 50
+#if _DEMO_PHASE < 60
 	return;
 #endif
 	int count = mManagerList.GetItemCount();

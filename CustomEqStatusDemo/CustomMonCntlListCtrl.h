@@ -13,32 +13,18 @@ public:
 	/* ------------------------------------------------------------------------------------ */
 public:
 protected:
-#if _DEMO_PHASE >= 50
-	const COLORREF	mDragImageMaskColor = RGB(255, 0, 255);
-#endif
 	/* ------------------------------------------------------------------------------------ */
 	/* メンバ変数                                                                           */
 	/* ------------------------------------------------------------------------------------ */
 public:
 protected:
-#if _DEMO_PHASE >= 50
-	/// ドラッグ＆ドロップ関連
-	UINT					mDragFormat;
-	UINT					mDropFormat;
-
-	stDragData				mDragData;
-	CImageList*				mpDragImage;
-	COLORREF				mcDragBackColor;
-	COLORREF				mcDragTextColor;
-	bool					mDragEnabled;
-#endif
 
 	/* ------------------------------------------------------------------------------------ */
 	/* メンバ関数                                                                           */
 	/* ------------------------------------------------------------------------------------ */
 public:
 
-#if _DEMO_PHASE >= 100
+#if _DEMO_PHASE >= 999
 	BOOL	GroupByColumn(int nCol);
 	void	SetListTarget(UINT val) { mListTarget = val; }
 #endif
@@ -83,12 +69,44 @@ public:
 		return SetItem(&lv);
 	}
 
-#if _DEMO_PHASE >= 50
+protected:
+
+	CImageList* CreateDragImageEx(LPPOINT lpPoint);
+
+
+
+
+	///
 	/// ドラッグ＆ドロップ関連
+	///
+	/* ------------------------------------------------------------------------------------ */
+	/* 定義                                                                                 */
+	/* ------------------------------------------------------------------------------------ */
+	const COLORREF	mDragImageMaskColor = RGB(255, 0, 255);
+	/* ------------------------------------------------------------------------------------ */
+	/* メンバ変数                                                                           */
+	/* ------------------------------------------------------------------------------------ */
+public:
+protected:
+	/// ドラッグ＆ドロップ関連
+	UINT					mDragFormat;
+	UINT					mDropFormat;
+
+	stDragData				mDragData;
+	CImageList*				mpDragImage;
+	COLORREF				mcDragBackColor;
+	COLORREF				mcDragTextColor;
+	bool					mDragEnabled;
+	/* ------------------------------------------------------------------------------------ */
+	/* メンバ関数                                                                           */
+	/* ------------------------------------------------------------------------------------ */
+public:
 	void	SetDragFormat(UINT format) { mDragFormat = format; }
 	UINT	GetDragFormat() { return mDragFormat; }
 	void	SetDropFormat(UINT format) { mDropFormat = format; }
 	UINT	GetDropFormat() { return mDropFormat; }
+protected:
+#if _DEMO_PHASE >= 50
 	void	ClearDropTarget();
 	void	SetDropTarget(CPoint point);
 	BOOL	DataObjectToList(CCustomDropObject* pDataObject);
@@ -98,10 +116,6 @@ public:
 	static BOOL CALLBACK Callback_MonCntl_DragDrop(CWnd* pWnd, void* pDataObject, UINT dwKeyState, CPoint point);
 	static void CALLBACK Callback_MonCntl_DragLeave(CWnd* pWnd);
 #endif
-
-protected:
-
-	CImageList* CreateDragImageEx(LPPOINT lpPoint);
 
 	/* ------------------------------------------------------------------------------------ */
 

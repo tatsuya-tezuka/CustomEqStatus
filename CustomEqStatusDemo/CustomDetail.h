@@ -87,7 +87,7 @@ protected:
 	CString createLeafText(CString item, CString unit, CString control)
 	{
 		CString str;
-#if _DEMO_PHASE < 100
+#if _DEMO_PHASE < 999
 		int nRand = rand();
 		double dRand = (double)rand() * 360.0 / RAND_MAX;
 		str.Format(_T("%s\t%0.3f\t%s\t%s"), (LPCTSTR)item, dRand, (LPCTSTR)unit, control.IsEmpty() == false ? mCOntrolSignString : _T(""));

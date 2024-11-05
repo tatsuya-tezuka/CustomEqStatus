@@ -258,7 +258,9 @@ protected:
 
 	BOOL	cellClick(HTREEITEM hItem, UINT nSubItem, CPoint point);
 
-#if _DEMO_PHASE >= 50
+
+
+
 	///
 	/// ドラッグ＆ドロップ関連
 	///
@@ -334,8 +336,6 @@ protected:
 	BOOL	PrepareItemBuff(CNode* root);
 	void	PrepareChildItem(HTREEITEM hItem, CNode* root);
 	void	CreateTreeNode(CNode* node, HTREEITEM hItem, UINT object);
-
-#endif
 
 	/* ------------------------------------------------------------------------------------ */
 

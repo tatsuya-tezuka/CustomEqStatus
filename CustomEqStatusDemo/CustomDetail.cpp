@@ -1188,7 +1188,7 @@ void CCustomDetail::OnTvnGetInfoTipTreeCtrl(NMHDR* pNMHDR, LRESULT* pResult)
 	if (CString(pnode->GetMonCtrl().cname).IsEmpty() == false) {
 		strcon = pnode->GetMonCtrl().cname;
 	}
-	mToolText.Format(_T("%s\n%s"), strmon, strcon);
+	mToolText.Format(_T("%s\n%s"), (LPCTSTR)strmon, (LPCTSTR)strcon);
 	pGetInfoTip->pszText = (LPWSTR)(LPCTSTR)mToolText;
 }
 
