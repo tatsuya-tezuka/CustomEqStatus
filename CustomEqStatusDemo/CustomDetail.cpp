@@ -166,6 +166,10 @@ void CCustomDetail::OnNMRClickTreeCtrl(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	*pResult = 0;
 
+#if _DEMO_PHASE < 50
+	return;
+#endif
+
 	mMenuItem = NULL;
 
 	CPoint pos;
@@ -537,12 +541,16 @@ void CCustomDetail::createTreeControl()
 
 	mTreeCtrl.ModifyStyle(TVS_EDITLABELS, 0);
 
-	if (mRestore == true){
+#if _DEMO_PHASE < 50
+	createRoot();
+#else
+	if (mRestore == true) {
 		restoreRoot();
 	}
-	else{
+	else {
 		createRoot();
 	}
+#endif
 
 	mTreeCtrl.UpdateColumns();
 

@@ -335,7 +335,9 @@ protected:
 
 	BOOL	PrepareItemBuff(CNode* root);
 	void	PrepareChildItem(HTREEITEM hItem, CNode* root);
-	void	CreateTreeNode(CNode* node, HTREEITEM hItem, UINT object);
+	bool	DropCopyItem(HTREEITEM hDropItem, CCustomDropObject* pDataObject);
+	bool	DropCopyChildItem(HTREEITEM hDropItem, CNode* node);
+	CString	CreateLeafText(CString item, CString unit, CString control);
 
 	/* ------------------------------------------------------------------------------------ */
 

@@ -5,6 +5,7 @@
 #pragma once
 #include "afxbutton.h"
 #include "resource.h"		// メイン シンボル
+#include "CustomDataManager.h"
 
 // CCustomEqStatusDemoDlg ダイアログ
 class CCustomEqStatusDemoDlg : public CDialogEx
@@ -38,6 +39,8 @@ public:
 protected:
 	void	createCustomControl();
 
+	void	PrintChild(CTreeNode* pnode);
+
 	/* ------------------------------------------------------------------------------------ */
 
 
@@ -59,4 +62,5 @@ public:
 	afx_msg void OnBnClickedMfcbuttonLoad();
 	afx_msg void OnBnClickedMfcbuttonSave();
 	afx_msg void OnBnClickedMfcbutton();
+	afx_msg void OnBnClickedButtonNodeoutput();
 };

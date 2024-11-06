@@ -7,7 +7,8 @@ CNode::CNode(const CString id)
     : fID(id)
     , fChildren()
 {
-    // Nothig to do.
+    pDragWnd = NULL;
+    pdata = NULL;
 }
 
 CNode::~CNode()
@@ -15,11 +16,6 @@ CNode::~CNode()
     for (::std::vector<CNode*>::iterator i = fChildren.begin(); i != fChildren.end(); i++) {
         delete* i;
     }
-}
-
-CString CNode::getID()
-{
-    return fID;
 }
 
 CNode* CNode::createChildIfNotExist(const CString childID)
@@ -33,11 +29,6 @@ CNode* CNode::createChildIfNotExist(const CString childID)
     CNode* child = new CNode(childID);
     fChildren.push_back(child);
     return child;
-}
-
-const ::std::vector<CNode*>& CNode::getChildren()
-{
-    return fChildren;
 }
 
 
@@ -97,6 +88,8 @@ void CCustomDropObject::CreateBuffer(CNode* items)
     for (::std::vector<CNode*>::const_iterator itr = items->getChildren().begin(); itr != items->getChildren().end(); itr++) {
         //TRACE("#%s\n", CStringA((*itr)->getID()));
         CNode* cur = mpNode->createChildIfNotExist((*itr)->getID());
+        cur->setNodeData((*itr)->getNodeData());
+        cur->setWnd((*itr)->getWnd());
         CreateNode((*itr), cur);
     }
 }
@@ -107,6 +100,8 @@ void CCustomDropObject::CreateNode(CNode* item, CNode* node)
     for (::std::vector<CNode*>::const_iterator itr = children.begin(); itr != children.end(); itr++) {
         //TRACE("@%s\n", CStringA((*itr)->getID()));
         CNode* cur = node->createChildIfNotExist((*itr)->getID());
+        cur->setNodeData((*itr)->getNodeData());
+        cur->setWnd((*itr)->getWnd());
         CreateNode((*itr), cur);
     }
 }
@@ -274,7 +269,9 @@ void CCustomDropTarget::OnDragBegin(CNode* items, UINT format, UINT dtype)
 
 -# ドラッグ＆ドロップ移動
 
-@param
+@param  pDragWnd    ドラッグウィンドウ
+@param  dwKeyState  キーボード情報
+@param  point       ドロップ位置
 
 @retval UINT    DE_NONE,DE_COPY,DE_MOVE
 */
@@ -315,7 +312,9 @@ UINT CCustomDropTarget::OnDragMove(CWnd* pDragWnd, UINT dwKeyState, POINT point)
 
 -# ドラッグ＆ドロップ実行
 
-@param
+@param  pDragWnd    ドラッグウィンドウ
+@param  dropEffect  DE_MOVE or DE_COPY（同一画面内でのD&DはDE_MOVE）
+@param  point       ドロップ位置
 
 @retval UINT    DE_NONE,DE_COPY,DE_MOVE
 */
@@ -326,6 +325,14 @@ UINT CCustomDropTarget::OnDragDrop(CWnd* pDragWnd, UINT dropEffect, POINT point)
     itrdrag = mObjectList.find(pDragWnd);
 
     CWnd* pDropWnd = CWnd::WindowFromPoint(point);
+
+    // 同一画面内でのD&DはDE_MOVE
+    if (pDragWnd == pDropWnd) {
+        dropEffect = CCustomDropObject::DE_MOVE;
+    }
+    else {
+        dropEffect = CCustomDropObject::DE_COPY;
+    }
 
     map<CWnd*, CCustomDropObject>::iterator itr;
     for (itr = mObjectList.begin(); itr != mObjectList.end(); itr++) {
@@ -344,7 +351,7 @@ UINT CCustomDropTarget::OnDragDrop(CWnd* pDragWnd, UINT dropEffect, POINT point)
 
 -# ドラッグ＆ドロップ実行
 
-@param
+@param  pDragWnd    ドラッグウィンドウ
 
 @retval UINT    DE_NONE,DE_COPY,DE_MOVE
 */

@@ -55,31 +55,36 @@ void CDropData<T>::set(T data)
 
 class CNode {
 public:
-	/**
-	 * 指定された id の Node を作る。
-	 */
-	CNode(const CString id = _T(""));
+	/// 指定された id の Node を作る
+	CNode(const CString id=_T(""));
 
 	virtual ~CNode();
 
-	/**
-	 * Node の id を返す。
-	 */
-	CString getID();
+	/// Node の id を返す
+	CString getID() { return fID; }
 
-	/**
-	 * 指定した childID の子Nodeが存在しなければ、子Nodeを作成し子Nodeを返す。
-	 * 指定した childID の子Nodeが存在していれば、既に存在する子Nodeを返す。
-	 */
+	/// ドラッグウィンドウの設定
+	void setWnd(CWnd* p) { pDragWnd = p; }
+	/// ドラッグウィンドウを返す
+	CWnd* getWnd() { return pDragWnd; }
+
+	/// 指定した childID の子Nodeが存在しなければ、子Nodeを作成し子Nodeを返す。
+	/// 指定した childID の子Nodeが存在していれば、既に存在する子Nodeを返す。
 	CNode* createChildIfNotExist(const CString childID);
 
-	/**
-	 * 子Node の一覧を返す。
-	 */
-	const ::std::vector<CNode*>& getChildren();
+	/// 子Node の一覧を返す
+	const ::std::vector<CNode*>& getChildren() { return fChildren; }
+
+	/// CTreeNodeの設定
+	void setNodeData(CTreeNode* p) { pdata = p; }
+
+	/// CTreeNodeを返す
+	CTreeNode* getNodeData() { return pdata; }
 
 private:
 	CString fID;
+	CWnd* pDragWnd;
+	CTreeNode *pdata;
 	::std::vector<CNode*> fChildren;
 };
 

@@ -66,6 +66,7 @@ BEGIN_MESSAGE_MAP(CCustomEqStatusDemoDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_MFCBUTTON_LOAD, &CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad)
 	ON_BN_CLICKED(IDC_MFCBUTTON__SAVE, &CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave)
 	ON_BN_CLICKED(IDC_MFCBUTTON__MANAGER, &CCustomEqStatusDemoDlg::OnBnClickedMfcbutton)
+	ON_BN_CLICKED(IDC_BUTTON_NODEOUTPUT, &CCustomEqStatusDemoDlg::OnBnClickedButtonNodeoutput)
 END_MESSAGE_MAP()
 
 
@@ -300,4 +301,41 @@ void CCustomEqStatusDemoDlg::createCustomControl()
 {
 	// ƒJƒXƒ^ƒ€ŠÇ—‰æ–Ê‚Ìì¬
 	theApp.GetCustomControl().GetCustomManager().ShowWindow(SW_SHOW);
+}
+
+
+void CCustomEqStatusDemoDlg::OnBnClickedButtonNodeoutput()
+{
+	CString msg;
+	vector<CTreeNode*>::iterator itr;
+	for (itr = theApp.GetCustomControl().GetDataManager().GetTreeNode().begin(); itr != theApp.GetCustomControl().GetDataManager().GetTreeNode().end(); itr++) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		msg.Format(_T("%s"), (*itr)->GetWindowInfo().title);
+		CLogTraceEx::Write(_T("***"), _T("***"), _T("***"), _T("*"), msg, nLogEx::debug);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================//
+		PrintChild((*itr));
+	}
+}
+
+void CCustomEqStatusDemoDlg::PrintChild(CTreeNode* pnode)
+{
+	CString msg;
+	vector<CTreeNode*>::iterator itr;
+	for (itr = pnode->GetChildren().begin(); itr != pnode->GetChildren().end(); itr++) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		msg.Format(_T("%s\t%s\t%s\t%s"), (*itr)->GetMonCtrl().display, (*itr)->GetMonCtrl().mname, (*itr)->GetMonCtrl().cname, (*itr)->GetMonCtrl().unit);
+		CString sep = _T("*");
+		switch ((*itr)->GetWindowInfo().type) {
+		case	eTreeItemType_Main:	sep = _T("**"); break;
+		case	eTreeItemType_Sub:	sep = _T("***"); break;
+		case	eTreeItemType_Item:	sep = _T("****"); break;
+		}
+		CLogTraceEx::Write(_T("***"), _T("***"), _T("***"), sep, msg, nLogEx::debug);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================//
+		PrintChild((*itr));
+	}
 }
