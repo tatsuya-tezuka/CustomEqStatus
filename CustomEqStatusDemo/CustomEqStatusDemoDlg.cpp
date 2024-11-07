@@ -326,7 +326,7 @@ void CCustomEqStatusDemoDlg::PrintChild(CTreeNode* pnode)
 	for (itr = pnode->GetChildren().begin(); itr != pnode->GetChildren().end(); itr++) {
 		//=====================================================//
 		//«««««««««««« Log ««««««««««««//
-		msg.Format(_T("%s\t%s\t%s\t%s"), (*itr)->GetMonCtrl().display, (*itr)->GetMonCtrl().mname, (*itr)->GetMonCtrl().cname, (*itr)->GetMonCtrl().unit);
+		msg.Format(_T("%s\t%s\t%s\t%s (%d)"), (*itr)->GetMonCtrl().display, (*itr)->GetMonCtrl().mname, (*itr)->GetMonCtrl().cname, (*itr)->GetMonCtrl().unit, (*itr)->GetWindowInfo().sortno);
 		CString sep = _T("*");
 		switch ((*itr)->GetWindowInfo().type) {
 		case	eTreeItemType_Main:	sep = _T("**"); break;

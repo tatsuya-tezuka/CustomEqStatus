@@ -1361,6 +1361,7 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 		//CTreeNode* child = new CTreeNode((HTREEITEM)i, NULL, NULL);
 		CTreeNode* child = new CTreeNode((HTREEITEM)NULL, NULL, NULL);
 		child->LoadTreeNodeXml(xml);
+		child->GetWindowInfo().sortno = i * mSortRange;
 		children.push_back(child);
 		xml.OutOfElem();
 	}

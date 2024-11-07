@@ -1618,70 +1618,6 @@ int CCustomTreeListCtrl::getMaxColumnWidth(HTREEITEM hItem, int nColumn, int nDe
 /*============================================================================*/
 /*! ツリーリストコントロール
 
--# ツリーコントロールのソートを行うコールバック関数
-
-@param
-
-@retval int
-*/
-/*============================================================================*/
-void CCustomTreeListCtrl::SortItem(HTREEITEM item)
-{
-	if (item != NULL && ItemHasChildren(item)) {
-
-		TVSORTCB tvs;
-		tvs.hParent = item;
-		tvs.lpfnCompare = CustomCompare;
-		tvs.lParam = (LPARAM)this;
-
-		SortChildrenCB(&tvs);
-		// ソート番号の更新
-		UpdateSortNo(item);
-	}
-}
-/*============================================================================*/
-/*! ツリーリストコントロール
-
--# ツリーコントロールのソートを行うコールバック関数
-
-@param
-
-@retval int
-*/
-/*============================================================================*/
-int CALLBACK CCustomTreeListCtrl::CustomCompare(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
-{
-	CCustomTreeListCtrl* ptree = (CCustomTreeListCtrl*)lParamSort;
-	DWORD sort1 = ptree->SORTDATA((DWORD)lParam1);
-	DWORD sort2 = ptree->SORTDATA((DWORD)lParam2);
-	TRACE("DragDrop Compare %d:%d > %d:%d\n", lParam1, sort1, lParam2, sort2);
-
-	return (sort1 > sort2);
-}
-/*============================================================================*/
-/*! ツリーリストコントロール
-
--# ツリーコントロールのソートを行うコールバック関数
-
-@param
-
-@retval int
-*/
-/*============================================================================*/
-void CCustomTreeListCtrl::UpdateSortNo(HTREEITEM item)
-{
-	HTREEITEM child = GetChildItem(item);
-	UINT pos = 0;
-	while (child != NULL) {
-		SetItemData(child, MAKEDATA(CCustomDropObject::DK_LEAF, pos * mSortRange));
-		child = GetNextItem(child, TVGN_NEXT);
-		pos++;
-	}
-}
-
-/*============================================================================*/
-/*! ツリーリストコントロール
-
 -# 全アイテムを展開する
 
 @param
@@ -1795,11 +1731,14 @@ void CCustomTreeListCtrl::ExpandAll(HTREEITEM hItem/*=NULL*/)
 
 
 
+/*============================================================================*/
 ///
-/// ドラッグ＆ドロップ関連
+/// ★ドラッグ＆ドロップ関連
 ///
 /*============================================================================*/
-/*! ツリーリストコントロール
+
+/*============================================================================*/
+/*! ツリーリストコントロール（ドラッグ＆ドロップ関連）
 
 -# コントロールの作成
 
@@ -1810,7 +1749,6 @@ void CCustomTreeListCtrl::ExpandAll(HTREEITEM hItem/*=NULL*/)
 /*============================================================================*/
 void CCustomTreeListCtrl::DragDrop_Initialize(CWnd* parent)
 {
-#if _DEMO_PHASE >= 50
 	CCustomDetail* p = (CCustomDetail*)parent;
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(p);
 	if (pnode->GetWindowInfo().kind == eTreeItemKind_Master) {
@@ -1830,13 +1768,10 @@ void CCustomTreeListCtrl::DragDrop_Initialize(CWnd* parent)
 	mcDragBackColor = GetSysColor(COLOR_WINDOW);
 	mcDragTextColor = GetSysColor(COLOR_WINDOWTEXT);
 
-#endif
 }
 
-#if _DEMO_PHASE >= 50
-
 /*============================================================================*/
-/*! ツリーリストコントロール
+/*! ツリーリストコントロール（ドラッグ＆ドロップ関連）
 
 -# コールバック関数：ドラッグオーバー処理
 
@@ -1888,7 +1823,7 @@ DROPEFFECT CALLBACK CCustomTreeListCtrl::Callback_Detail_DragOver(CWnd* pWnd, vo
 }
 
 /*============================================================================*/
-/*! ツリーリストコントロール
+/*! ツリーリストコントロール（ドラッグ＆ドロップ関連）
 
 -# コールバック関数：ドラッグドロップ処理
 
@@ -1902,7 +1837,6 @@ DROPEFFECT CALLBACK CCustomTreeListCtrl::Callback_Detail_DragOver(CWnd* pWnd, vo
 /*============================================================================*/
 BOOL CALLBACK CCustomTreeListCtrl::Callback_Detail_DragDrop(CWnd* pWnd, void* pDataObject, UINT dropEffect, CPoint point)
 {
-#if _DEMO_PHASE >= 50
 	CCustomTreeListCtrl* ptree = (CCustomTreeListCtrl*)pWnd;
 	CCustomDropObject* pdata = (CCustomDropObject*)pDataObject;
 
@@ -1937,13 +1871,10 @@ BOOL CALLBACK CCustomTreeListCtrl::Callback_Detail_DragDrop(CWnd* pWnd, void* pD
 	//ptree->SelectDropTarget(NULL);
 	ptree->ClearDropTarget();
 	return dropEffect;
-#else
-	return DROPEFFECT_NONE;
-#endif
 }
 
 /*============================================================================*/
-/*! ツリーリストコントロール
+/*! ツリーリストコントロール（ドラッグ＆ドロップ関連）
 
 -# コールバック関数：ドラッグリーブ処理
 
@@ -1958,10 +1889,9 @@ void CALLBACK CCustomTreeListCtrl::Callback_Detail_DragLeave(CWnd* pWnd)
 	TRACE("#DragLeave\n");
 	ptree->ClearDropTarget();
 }
-#endif
 
 /*============================================================================*/
-/*! ツリーリストコントロール
+/*! ツリーリストコントロール（ドラッグ＆ドロップ関連）
 
 -# ドラッグ処理の開始
 
@@ -1974,7 +1904,7 @@ void CCustomTreeListCtrl::OnTvnBegindrag(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
 
-#if _DEMO_PHASE >= 50
+#if _DEMO_PHASE >= 90
 
 	if (pNMTreeView == NULL) {
 		*pResult = 0;
@@ -2036,7 +1966,7 @@ void CCustomTreeListCtrl::OnTvnBegindrag(NMHDR* pNMHDR, LRESULT* pResult)
 }
 
 /*============================================================================*/
-/*! ツリーリストコントロール
+/*! ツリーリストコントロール（ドラッグ＆ドロップ関連）
 
 -# ドラッグ可能かをチェックする
 
@@ -2064,7 +1994,7 @@ bool CCustomTreeListCtrl::IsDragEnable()
 
 
 /*============================================================================*/
-/*! ツリーリストコントロール
+/*! ツリーリストコントロール（ドラッグ＆ドロップ関連）
 
 -# マウス左ボタンダウンイベント
 
@@ -2075,7 +2005,7 @@ bool CCustomTreeListCtrl::IsDragEnable()
 /*============================================================================*/
 void CCustomTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 {
-#if _DEMO_PHASE >= 50
+#if _DEMO_PHASE >= 90
 	// 値セルを押下された場合は選択状態にして何もしない
 	HTREEITEM hItem;
 	UINT col = 0;
@@ -2106,7 +2036,7 @@ void CCustomTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 }
 
 /*============================================================================*/
-/*! ツリーリストコントロール
+/*! ツリーリストコントロール（ドラッグ＆ドロップ関連）
 
 -# マウス移動イベント
 
@@ -2117,7 +2047,7 @@ void CCustomTreeListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 /*============================================================================*/
 void CCustomTreeListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 {
-#if _DEMO_PHASE >= 50
+#if _DEMO_PHASE >= 90
 	if (mpDragImage != NULL) {
 		// ドラッグ中
 		// ドラッグ アンド ドロップ操作中にドラッグされているイメージを移動
@@ -2142,7 +2072,7 @@ void CCustomTreeListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 	CTreeCtrl::OnMouseMove(nFlags, point);
 }
 /*============================================================================*/
-/*! ツリーリストコントロール
+/*! ツリーリストコントロール（ドラッグ＆ドロップ関連）
 
 -# マウス左ボタンアップイベント
 
@@ -2153,7 +2083,7 @@ void CCustomTreeListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 /*============================================================================*/
 void CCustomTreeListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 {
-#if _DEMO_PHASE >= 50
+#if _DEMO_PHASE >= 90
 	if (mpDragImage) {
 		::ReleaseCapture();
 		mpDragImage->DragLeave(NULL/*CWnd::GetDesktopWindow()*/);
@@ -2186,7 +2116,7 @@ void CCustomTreeListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 }
 
 /*============================================================================*/
-/*! ツリーリストコントロール
+/*! ツリーリストコントロール（ドラッグ＆ドロップ関連）
 
 -# ドラッグイメージの作成
 
@@ -2279,7 +2209,7 @@ CImageList* CCustomTreeListCtrl::CreateDragImageMulti(HTREEITEM hItem, LPPOINT l
 }
 
 /*============================================================================*/
-/*! ツリーコントロール
+/*! ツリーコントロール（ドラッグ＆ドロップ関連）
 
 -# ドラッグアイテムの作成
 
@@ -2304,7 +2234,7 @@ BOOL CCustomTreeListCtrl::PrepareItemBuff(CNode* root)
 }
 
 /*============================================================================*/
-/*! ツリーコントロール
+/*! ツリーコントロール（ドラッグ＆ドロップ関連）
 
 -# ドラッグ子アイテムの作成
 
@@ -2332,7 +2262,7 @@ void CCustomTreeListCtrl::PrepareChildItem(HTREEITEM hItem, CNode* root)
 	}
 }
 /*============================================================================*/
-/*! ツリーコントロール
+/*! ツリーコントロール（ドラッグ＆ドロップ関連）
 
 -# ドロップされたデータをリストへ登録
 
@@ -2375,7 +2305,7 @@ BOOL CCustomTreeListCtrl::IsDropTarget(HTREEITEM hItem, CCustomDropObject* pData
 	return TRUE;
 }
 /*============================================================================*/
-/*! ツリーコントロール
+/*! ツリーコントロール（ドラッグ＆ドロップ関連）
 
 -# コールバック関数：ドラッグリーブ処理
 
@@ -2413,7 +2343,7 @@ void CCustomTreeListCtrl::ClearDropTarget(HTREEITEM hRoot/*=NULL*/)
 	}
 }
 /*============================================================================*/
-/*! リストコントロール
+/*! リストコントロール（ドラッグ＆ドロップ関連）
 
 -# ドロップされたデータをリストへ登録
 
@@ -2460,7 +2390,7 @@ BOOL CCustomTreeListCtrl::DataObjectToList(HTREEITEM hDropItem, CCustomDropObjec
 			}
 		}
 		if (bsort == true) {
-			SortItem(hParent);
+			SortLeafItem(hParent);
 		}
 	}
 
@@ -2474,7 +2404,7 @@ BOOL CCustomTreeListCtrl::DataObjectToList(HTREEITEM hDropItem, CCustomDropObjec
 	return TRUE;
 }
 /*============================================================================*/
-/*! 設備詳細
+/*! リストコントロール（ドラッグ＆ドロップ関連）
 
 -# ドロップ時のアイテムのコピー
 
@@ -2486,25 +2416,20 @@ BOOL CCustomTreeListCtrl::DataObjectToList(HTREEITEM hDropItem, CCustomDropObjec
 /*============================================================================*/
 bool CCustomTreeListCtrl::DropCopyItem(HTREEITEM hDropItem, CCustomDropObject* pDataObject)
 {
+	bool ret = true;
 	DWORD dw = (DWORD)TYPEDATA((DWORD)GetItemData(hDropItem));
 	HTREEITEM hParent = GetParentItem(hDropItem);
 
 	// ドラッグデータの先頭を取得
 	CNode* node = pDataObject->mpNode;
 
-	if (dw == CCustomDropObject::DK_LEAF) {
-		// ドロップ先がリーフの場合
-		bool ret = DropCopyChildItem(hDropItem, node);
-	}
-	else {
-		// ドロップ先がリーフ以外の場合
-		// 子ノード以下をコピーする
-		bool ret = DropCopyChildItem(hDropItem, node);
-	}
-	return true;
+	// 子ノード以下をコピーする
+	ret = DropCopyChildItem(hDropItem, node);
+
+	return ret;
 }
 /*============================================================================*/
-/*! 設備詳細
+/*! リストコントロール（ドラッグ＆ドロップ関連）
 
 -# ドロップ時のアイテムのコピー
 
@@ -2519,24 +2444,39 @@ bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node)
 	UINT count = 0;
 	DWORD dw = (DWORD)TYPEDATA((DWORD)GetItemData(hDropItem));
 	CTreeNode* pnodeDrop = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hDropItem);
+
+	// ドロップ先の親アイテム、親ノード情報を取得
+	HTREEITEM hParent = GetParentItem(hDropItem);
+	CTreeNode* pnodeParent = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hParent);
+
 	// 子ノード以下をコピーする
 	count = GetChildCount(hDropItem);
+	HTREEITEM hSortItem = NULL;
 	for (::std::vector<CNode*>::const_iterator itr = node->getChildren().begin(); itr != node->getChildren().end(); itr++) {
 		CTreeNode* pnode = (*itr)->getNodeData();
 		CString text = pnode->GetMonCtrl().display;
-		if (dw == CCustomDropObject::DK_LEAF || (dw + 1) == CCustomDropObject::DK_LEAF) {
+		if (pnode->GetWindowInfo().type == eTreeItemType_Item) {
+			// リーフ用のテキストを作成
 			text = CreateLeafText(pnode->GetMonCtrl().display, pnode->GetMonCtrl().unit, pnode->GetMonCtrl().cname);
 		}
 		if (dw == CCustomDropObject::DK_LEAF) {
-			HTREEITEM hParent = GetParentItem(hDropItem);
-			CTreeNode* pnodeParent = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hParent);
+			// ドロップ先がリーフの場合
 			HTREEITEM item = InsertItem(text, NULL, NULL, hParent, TVI_SORT);
 			SetItemData(item, MAKEDATA(dw + 1, pnodeDrop->GetWindowInfo().sortno + 1));
 			CTreeNode* new_node = pnodeParent->CreateTreeNode(hParent, item, TVI_FIRST);
 			new_node->CopyItem(pnode);
+			hSortItem = hParent;
 		}
 		else {
-			HTREEITEM item = InsertItem(text, NULL, NULL, hDropItem, TVI_FIRST);
+			// ドロップ先がリーフ以外の場合
+			HTREEITEM item;
+			if (pnode->GetWindowInfo().type == eTreeItemType_Item) {
+				item = InsertItem(text, NULL, NULL, hDropItem, TVI_SORT);
+				hSortItem = hDropItem;
+			}
+			else {
+				item = InsertItem(text, NULL, NULL, hDropItem, TVI_FIRST);
+			}
 			SetItemData(item, MAKEDATA(dw + 1, count * mSortRange));
 			CTreeNode* new_node = pnodeDrop->CreateTreeNode(hDropItem, item, TVI_FIRST);
 			new_node->CopyItem(pnode);
@@ -2544,11 +2484,16 @@ bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node)
 		}
 		count++;
 	}
+
+	if (hSortItem != NULL) {
+		SortLeafItem(hSortItem);
+	}
+
 	return true;
 }
 
 /*============================================================================*/
-/*! ツリーリストコントロール
+/*! リストコントロール（ドラッグ＆ドロップ関連）
 
 -# ツリーﾉｰﾄﾞの作成
 
@@ -2560,6 +2505,76 @@ bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node)
 CString CCustomTreeListCtrl::CreateLeafText(CString item, CString unit, CString control)
 {
 	CString str;
-	str.Format(_T("%s\t\t%s\t%s"), item, unit, control.IsEmpty() == false ? mCOntrolSignString : _T(""));
+	str.Format(_T("%s\t\t%s\t%s"), (LPCTSTR)item, (LPCTSTR)unit, control.IsEmpty() == false ? mCOntrolSignString : _T(""));
 	return str;
+}
+
+/*============================================================================*/
+/*! リストコントロール（ドラッグ＆ドロップ関連）
+
+-# ツリーコントロールのソートを行う
+
+@param
+
+@retval int
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::SortLeafItem(HTREEITEM item)
+{
+	if (item != NULL && ItemHasChildren(item)) {
+
+		TVSORTCB tvs;
+		tvs.hParent = item;
+		tvs.lpfnCompare = LeafCustomCompare;
+		tvs.lParam = (LPARAM)this;
+
+		SortChildrenCB(&tvs);
+		// ソート番号の更新
+		UpdateSortNo(item);
+		CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, item);
+		pnode->SortTreeNode(item);
+	}
+}
+
+/*============================================================================*/
+/*! リストコントロール（ドラッグ＆ドロップ関連）
+
+-# ツリーコントロールのソートを行うコールバック関数
+
+@param
+
+@retval int
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::UpdateSortNo(HTREEITEM item)
+{
+	HTREEITEM child = GetChildItem(item);
+	UINT pos = 0;
+	while (child != NULL) {
+		SetItemData(child, MAKEDATA(CCustomDropObject::DK_LEAF, pos * mSortRange));
+		CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, child);
+		pnode->GetWindowInfo().sortno = (pos * mSortRange);
+		child = GetNextItem(child, TVGN_NEXT);
+		pos++;
+	}
+}
+
+/*============================================================================*/
+/*! リストコントロール（ドラッグ＆ドロップ関連）
+
+-# ツリーコントロールのソートを行うコールバック関数
+
+@param
+
+@retval int
+*/
+/*============================================================================*/
+int CALLBACK CCustomTreeListCtrl::LeafCustomCompare(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+{
+	CCustomTreeListCtrl* ptree = (CCustomTreeListCtrl*)lParamSort;
+	DWORD sort1 = ptree->SORTDATA((DWORD)lParam1);
+	DWORD sort2 = ptree->SORTDATA((DWORD)lParam2);
+	TRACE("DragDrop Compare %d:%d > %d:%d\n", lParam1, sort1, lParam2, sort2);
+
+	return (sort1 > sort2);
 }

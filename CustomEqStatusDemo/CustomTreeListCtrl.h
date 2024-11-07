@@ -179,11 +179,8 @@ public:
 		}
 		return Count;
 	}
-	void	SortItem(HTREEITEM item);
-	static int CALLBACK CustomCompare(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
-	void	UpdateSortNo(HTREEITEM item);
-	void	ExpandAllItems(HTREEITEM item);
 
+	void	ExpandAllItems(HTREEITEM item);
 
 	void	UpdateColumns();
 	void	UpdateScroller();
@@ -338,6 +335,9 @@ protected:
 	bool	DropCopyItem(HTREEITEM hDropItem, CCustomDropObject* pDataObject);
 	bool	DropCopyChildItem(HTREEITEM hDropItem, CNode* node);
 	CString	CreateLeafText(CString item, CString unit, CString control);
+	void	SortLeafItem(HTREEITEM item);
+	void	UpdateSortNo(HTREEITEM item);
+	static int CALLBACK LeafCustomCompare(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 
 	/* ------------------------------------------------------------------------------------ */
 
