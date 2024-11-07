@@ -846,15 +846,15 @@ bool CCustomDataManager::SaveCustomLayout(CArchive& ar)
 			continue;
 		}
 
-		if ((*itr)->SaveCustomLayout() == false)
-			continue;
+		//if ((*itr)->SaveCustomLayout() == false)
+		//	continue;
 
-		// ここまできたらXMLファイル名を保存する
 		count++;
 	}
 	// 保存データ数の設定
 	ar << count;
 
+#ifdef _NoZorder
 	// 個々のデータを保存
 	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
 		if ((*itr)->GetWindowInfo().wnd == NULL) {
@@ -870,6 +870,36 @@ bool CCustomDataManager::SaveCustomLayout(CArchive& ar)
 		// ここまできたらXMLファイル名を保存する
 		ar << CString((*itr)->GetXmlFileName());
 	}
+#else
+	// 個々のデータを保存(Zオーダーを考慮)
+	CWnd* pWnd = theApp.GetMainWnd()->GetWindow(GW_ENABLEDPOPUP);
+	UINT pos = 0;
+	while (pWnd) {
+		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
+			if ((*itr)->GetWindowInfo().wnd == NULL) {
+				continue;
+			}
+			if ((*itr)->GetWindowInfo().wnd->IsWindowVisible() == FALSE) {
+				continue;
+			}
+
+			if (pWnd != (*itr)->GetWindowInfo().wnd) {
+				continue;
+			}
+
+			//=====================================================//
+			//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+			TRACE("Save Title:%s\n", CStringA((*itr)->GetWindowInfo().title));
+			CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveCustomLayout"), (*itr)->GetWindowInfo().title, _T(""), nLogEx::debug);
+			//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+			//=====================================================//
+
+			// ここまできたらXMLファイル名を保存する
+			ar << CString((*itr)->GetXmlFileName());
+		}
+		pWnd = pWnd->GetWindow(GW_HWNDNEXT);
+	}
+#endif
 
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
@@ -956,15 +986,19 @@ bool CCustomDataManager::LoadCustomLayout(CArchive& ar)
 
 	// 保存データ数の設定
 	ar >> count;
-
-	// 個々のデータを保存
+	vector<CString> loadlist;
 	for (UINT i = 0; i < count; i++) {
 		CString xmlfile;
 		ar >> xmlfile;
+		loadlist.push_back(xmlfile);
+	}
 
+	// 個々のデータを取得
+	vector<CString>::reverse_iterator itrr;
+	for (itrr = loadlist.rbegin(); itrr != loadlist.rend(); itrr++) {
 		vector<CTreeNode*>::iterator itr;
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
-			if (CString((*itr)->GetXmlFileName()).MakeLower() == xmlfile.MakeLower()) {
+			if (CString((*itr)->GetXmlFileName()).MakeLower() == (*itrr).MakeLower()) {
 				if ((*itr)->GetWindowInfo().wnd == NULL) {
 					CCustomDetail* pitem = theApp.GetCustomControl().CreateEquipment((*itr));
 					if (pitem == NULL)
@@ -977,6 +1011,12 @@ bool CCustomDataManager::LoadCustomLayout(CArchive& ar)
 				(*itr)->GetWindowInfo().wnd->SetActiveWindow();
 				// 常に監視モードとする
 				(*itr)->GetWindowInfo().mode = eTreeItemMode_Monitor;
+				//=====================================================//
+				//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+				TRACE("Load Title:%s\n", CStringA((*itr)->GetWindowInfo().title));
+				CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("LoadCustomLayout"), (*itr)->GetWindowInfo().title, _T(""), nLogEx::debug);
+				//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+				//=====================================================//
 				break;
 			}
 		}
