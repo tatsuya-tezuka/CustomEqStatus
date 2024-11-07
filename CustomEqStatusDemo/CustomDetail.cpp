@@ -784,7 +784,7 @@ void CCustomDetail::restoreRoot()
 void CCustomDetail::restoreNode(CTreeNode* pnode, HTREEITEM ptree)
 {
 	vector<CTreeNode*>::iterator itr;
-	UINT sortno = 0;
+	UINT sortno = 1;
 	for (itr = pnode->GetChildren().begin(); itr != pnode->GetChildren().end(); itr++){
 		CString str;
 		str = generateTreeText((*itr));
@@ -2070,7 +2070,7 @@ void CCustomDetail::UpdateSortNo(HTREEITEM hItem)
 		CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, hSubItem);
 		if (pnode->GetWindowInfo().type == eTreeItemType_Sub) {
 			HTREEITEM hItem = mTreeCtrl.GetChildItem(hSubItem);
-			UINT pos = 0;
+			UINT pos = 1;
 			while (hItem) {
 				CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, hItem);
 				pnode->GetWindowInfo().sortno = pos * mSortRange;

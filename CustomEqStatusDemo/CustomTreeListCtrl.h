@@ -324,6 +324,8 @@ protected:
 					return hItem;
 		return 0;
 	}
+
+	void		DeleteSelectedItems();
 	CImageList* CreateDragImageMulti(HTREEITEM hItem, LPPOINT lpPoint);
 
 	static DROPEFFECT CALLBACK Callback_Detail_DragOver(CWnd* pWnd, void* pDataObject, UINT dwKeyState, CPoint point);

@@ -2099,11 +2099,12 @@ void CCustomTreeListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 		//TRACE("#Drop Result(%d)\n", ret);
 		if (ret == CCustomDropObject::DE_COPY) {
 			// コピー（＋CTRL）の場合;
+			TRACE("#DROP_COPY\n");
 		}
 		else if (ret == CCustomDropObject::DE_MOVE) {
 			// 移動の場合
-			//if (mDragFormat == CCustomDropObject::DF_USER)
-			//	DeleteSelectedItems();
+			TRACE("#DROP_MOVE\n");
+			DeleteSelectedItems();
 		}
 		else {
 			//TRACE("#DROPEFFECT_NONE\n");
@@ -2113,6 +2114,24 @@ void CCustomTreeListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 	TRACE("OnLButtonUp : Select Items : \n");
 #endif
 	CTreeCtrl::OnLButtonUp(nFlags, point);
+}
+/*============================================================================*/
+/*! ツリーリストコントロール（ドラッグ＆ドロップ関連）
+
+-# ドラッグアイテムの削除
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::DeleteSelectedItems()
+{
+	for (HTREEITEM item = GetFirstSelectedItem(); item != 0; item = GetNextSelectedItem(item)) {
+		CTreeNode* pparent_node = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, GetParentItem(item));
+		pparent_node->DeleteTreeNode(item);
+		DeleteItem(item);
+	}
 }
 
 /*============================================================================*/
@@ -2357,40 +2376,66 @@ BOOL CCustomTreeListCtrl::DataObjectToList(HTREEITEM hDropItem, CCustomDropObjec
 {
 	DWORD dw = (DWORD)TYPEDATA((DWORD)GetItemData(hDropItem));
 	HTREEITEM hParent = GetParentItem(hDropItem);
+	CTreeNode* pnodeDrop = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hDropItem);
 	UINT count = 0;
 
 	if (pDataObject->mDataType == CCustomDropObject::DT_TCHAR) {
-		bool bsort = false;
+		HTREEITEM hSortItem = NULL;
 		TCHAR* pbuf = (TCHAR*)pDataObject->GetBuffer();
 		if (pbuf == NULL)
 			return FALSE;
 		CString str, sItem, strItems = CString(pbuf);
 		UINT index = 0;
-		UINT sortno = SORTDATA((DWORD)GetItemData(hDropItem));
 		while (AfxExtractSubString(sItem, strItems, index++, ';')) {
 			if (sItem.IsEmpty())
 				continue;
 
 			UINT item = 0;
-			sortno++;
 			while (AfxExtractSubString(str, sItem, item, '\t')) {
 				if (str.IsEmpty())
 					continue;
 				if (dw == CCustomDropObject::DK_SUBNODE) {
-					count = GetChildCount(hDropItem);
-					HTREEITEM item = InsertItem(str, NULL, NULL, hDropItem);
-					SetItemData(item, MAKEDATA(CCustomDropObject::DK_LEAF, count * mSortRange));
+					// サブノードにドロップ
+					// サブノードの子ノード先頭に追加する
+					HTREEITEM item = InsertItem(str, NULL, NULL, hDropItem, TVI_SORT);
+					hSortItem = hDropItem;
+					SetItemData(item, MAKEDATA(CCustomDropObject::DK_LEAF, count));
+					CTreeNode* new_node = pnodeDrop->CreateTreeNode(hDropItem, item, TVI_FIRST);
+					if (pDataObject->mFormat == CCustomDropObject::DF_MONITOR) {
+						swprintf_s(new_node->GetMonCtrl().mname, mNameSize, _T("%s"), (LPCTSTR)str);
+					}
+					else {
+						swprintf_s(new_node->GetMonCtrl().cname, mNameSize, _T("%s"), (LPCTSTR)str);
+					}
+					new_node->SetParentNode(pnodeDrop);
+					new_node->SetTreeItem(item);
+					new_node->GetWindowInfo().tree = this;
+					new_node->GetWindowInfo().wnd = mTreeParent;
+					new_node->GetWindowInfo().type = eTreeItemType_Item;
+
+					stColorData color;
+					theApp.GetCustomControl().GetDataManager().GetNodeColor(mTreeParent, new_node->GetWindowInfo().type, color);
+					memcpy(&(new_node->GetColor()), &color, sizeof(stColorData));
 				}
 				else {
-					HTREEITEM item = InsertItem(str, NULL, NULL, hParent);
-					SetItemData(item, MAKEDATA(CCustomDropObject::DK_LEAF, sortno));
-					bsort = true;
+					// リーフにドロップ
+					// リーフの監視、制御を更新する
+					CTreeNode* pnodeDrop = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hDropItem);
+					if (pDataObject->mFormat == CCustomDropObject::DF_MONITOR) {
+						swprintf_s(pnodeDrop->GetMonCtrl().mname, mNameSize, _T("%s"), (LPCTSTR)str);
+					}
+					else {
+						swprintf_s(pnodeDrop->GetMonCtrl().cname, mNameSize, _T("%s"), (LPCTSTR)str);
+					}
+					CString strLeafstr = CreateLeafText(pnodeDrop->GetMonCtrl().display, pnodeDrop->GetMonCtrl().unit, pnodeDrop->GetMonCtrl().cname);
+					SetItemText(hDropItem, strLeafstr);
 				}
 				break;
 			}
+			count++;
 		}
-		if (bsort == true) {
-			SortLeafItem(hParent);
+		if (hSortItem != NULL) {
+			SortLeafItem(hSortItem);
 		}
 	}
 
@@ -2450,7 +2495,7 @@ bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node)
 	CTreeNode* pnodeParent = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hParent);
 
 	// 子ノード以下をコピーする
-	count = GetChildCount(hDropItem);
+	count = 0;
 	HTREEITEM hSortItem = NULL;
 	for (::std::vector<CNode*>::const_iterator itr = node->getChildren().begin(); itr != node->getChildren().end(); itr++) {
 		CTreeNode* pnode = (*itr)->getNodeData();
@@ -2480,7 +2525,7 @@ bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node)
 			else {
 				item = InsertItem(text, NULL, NULL, hDropItem, TVI_FIRST);
 			}
-			SetItemData(item, MAKEDATA(dw + 1, count * mSortRange));
+			SetItemData(item, MAKEDATA(dw + 1, count));
 			CTreeNode* new_node = pnodeDrop->CreateTreeNode(hDropItem, item, TVI_FIRST);
 			new_node->DropCopyItem(pnode);
 			stColorData color;
@@ -2555,7 +2600,7 @@ void CCustomTreeListCtrl::SortLeafItem(HTREEITEM item)
 void CCustomTreeListCtrl::UpdateSortNo(HTREEITEM item)
 {
 	HTREEITEM child = GetChildItem(item);
-	UINT pos = 0;
+	UINT pos = 1;
 	while (child != NULL) {
 		SetItemData(child, MAKEDATA(CCustomDropObject::DK_LEAF, pos * mSortRange));
 		CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, child);

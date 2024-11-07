@@ -327,12 +327,12 @@ UINT CCustomDropTarget::OnDragDrop(CWnd* pDragWnd, UINT dropEffect, POINT point)
     CWnd* pDropWnd = CWnd::WindowFromPoint(point);
 
     // “¯ˆê‰æ–Ê“à‚Å‚ÌD&D‚ÍDE_MOVE
-    if (pDragWnd == pDropWnd) {
-        dropEffect = CCustomDropObject::DE_MOVE;
-    }
-    else {
-        dropEffect = CCustomDropObject::DE_COPY;
-    }
+    //if (pDragWnd == pDropWnd) {
+    //    dropEffect = CCustomDropObject::DE_MOVE;
+    //}
+    //else {
+    //    dropEffect = CCustomDropObject::DE_COPY;
+    //}
 
     map<CWnd*, CCustomDropObject>::iterator itr;
     for (itr = mObjectList.begin(); itr != mObjectList.end(); itr++) {
