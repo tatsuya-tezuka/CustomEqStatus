@@ -2464,7 +2464,10 @@ bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node)
 			HTREEITEM item = InsertItem(text, NULL, NULL, hParent, TVI_SORT);
 			SetItemData(item, MAKEDATA(dw + 1, pnodeDrop->GetWindowInfo().sortno + 1));
 			CTreeNode* new_node = pnodeParent->CreateTreeNode(hParent, item, TVI_FIRST);
-			new_node->CopyItem(pnode);
+			new_node->DropCopyItem(pnode);
+			stColorData color;
+			theApp.GetCustomControl().GetDataManager().GetNodeColor(mTreeParent, new_node->GetWindowInfo().type, color);
+			memcpy(&(new_node->GetColor()), &color, sizeof(stColorData));
 			hSortItem = hParent;
 		}
 		else {
@@ -2479,7 +2482,10 @@ bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node)
 			}
 			SetItemData(item, MAKEDATA(dw + 1, count * mSortRange));
 			CTreeNode* new_node = pnodeDrop->CreateTreeNode(hDropItem, item, TVI_FIRST);
-			new_node->CopyItem(pnode);
+			new_node->DropCopyItem(pnode);
+			stColorData color;
+			theApp.GetCustomControl().GetDataManager().GetNodeColor(mTreeParent, new_node->GetWindowInfo().type, color);
+			memcpy(&(new_node->GetColor()), &color, sizeof(stColorData));
 			DropCopyChildItem(item, (*itr));
 		}
 		count++;

@@ -308,6 +308,8 @@ void CCustomDetail::OnMenudetailSave()
 	// ツリーデータの保存
 	saveHeaderWidth();
 	theApp.GetCustomControl().GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, pnode->GetXmlFileName(), this);
+	// ノード情報のクローン
+	mBackupNode = theApp.GetCustomControl().GetDataManager().CloneItemNode(pnode, mBackupNode);
 
 	// カスタム管理画面へ通知してタイトルを更新する
 	if (pnode->GetWindowInfo().manager->GetSafeHwnd())
@@ -742,8 +744,7 @@ void CCustomDetail::restoreRoot()
 	mTreeCtrl.SetItemData(rootItem, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_TITLE, 0));
 
 	pnode->SetTreeItem(rootItem);
-	if (abs(mTreeLogFont.lfHeight) < abs(pnode->GetColor().font.lfHeight))
-		mTreeLogFont.lfHeight = pnode->GetColor().font.lfHeight;
+	mTreeLogFont = pnode->GetColor().font;
 
 	setNodeWindowInfo(pnode, eTreeItemType_Title, pnode->GetWindowInfo().title, NULL);
 	// フォントの設定
@@ -1052,6 +1053,7 @@ void CCustomDetail::OnDetailConfig()
 			switch (mColorConfig[i].type) {
 			case	eTreeItemType_Window:
 				config.mColor[eColorType_Window] = color.back;
+				config.mFont[eTreeItemType_Window] = color.font;
 				break;
 			case	eTreeItemType_Title:
 				config.mColor[eColorType_TitleBack] = color.textback;
@@ -1119,8 +1121,6 @@ void CCustomDetail::OnDetailConfig()
 			break;
 		}
 	}
-	// ツリーコントロールの背景色設定
-	mTreeCtrl.SetFontEx(eTreeItemType_Window, mTreeLogFont);
 
 	// 設定ダイアログで設定された色情報を保存する
 	for (int i = 0; i < sizeof(mColorConfig) / sizeof(mColorConfig[0]); i++) {
@@ -1130,6 +1130,7 @@ void CCustomDetail::OnDetailConfig()
 			case	eTreeItemType_Window:
 				color.back = config.mColor[eColorType_Window];
 				mTreeCtrl.SetBkColor(color.back);
+				color.font = config.mFont[eTreeItemType_Window];
 				break;
 			case	eTreeItemType_Title:
 				color.textback = config.mColor[eColorType_TitleBack];

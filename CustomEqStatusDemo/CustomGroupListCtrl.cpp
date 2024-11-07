@@ -500,7 +500,7 @@ void CCustomGroupListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		break;
 	case CDDS_ITEMPREPAINT:
 		if (pnode != NULL){
-			lplvcd->clrText = pnode->GetColor().text;
+			//lplvcd->clrText = pnode->GetColor().text;
 			//if (pnode->GetWindowInfo().wnd == NULL || pnode->GetWindowInfo().wnd->IsWindowVisible() == FALSE)
 			//	lplvcd->clrText = mManagerHideColor;// GetSysColor(COLOR_GRAYTEXT);
 		}
@@ -509,7 +509,7 @@ void CCustomGroupListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		break;
 	case CDDS_SUBITEM | CDDS_PREPAINT | CDDS_ITEM:
 		if (pnode != NULL){
-			lplvcd->clrTextBk = pnode->GetColor().textback;
+			//lplvcd->clrTextBk = pnode->GetColor().textback;
 		}
 		*pResult = CDRF_DODEFAULT;
 		return;

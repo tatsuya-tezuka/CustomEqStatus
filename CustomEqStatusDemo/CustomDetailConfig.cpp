@@ -142,6 +142,9 @@ void CCustomDetailConfig::setFont(UINT type)
 	{
 		lf.lfHeight = -::MulDiv(-lf.lfHeight, 72, dc.GetDeviceCaps(LOGPIXELSY));
 		mFont[type] = lf;
+		if (type == eTreeItemType_Title) {
+			mFont[eTreeItemType_Window] = lf;
+		}
 	}
 }
 

@@ -273,11 +273,16 @@ public:
 	void	CopyTreeNode(CTreeNode* copyNode);
 	void	CopyItem(CTreeNode* copyNode, bool bColorOnly = false)
 	{
-		if (bColorOnly == false){
+		if (bColorOnly == false) {
 			memcpy(&wininfo, &(copyNode->wininfo), sizeof(stWindowInfo));
 			memcpy(&monctrl, &(copyNode->monctrl), sizeof(stMonCtrlData));
 		}
 		memcpy(&color, &(copyNode->color), sizeof(stColorData));
+	}
+	void	DropCopyItem(CTreeNode* copyNode)
+	{
+		memcpy(&wininfo, &(copyNode->wininfo), sizeof(stWindowInfo));
+		memcpy(&monctrl, &(copyNode->monctrl), sizeof(stMonCtrlData));
 	}
 
 	/// ◆設備制御詳細画面レイアウト
