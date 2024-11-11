@@ -2469,7 +2469,7 @@ bool CCustomTreeListCtrl::DropCopyItem(HTREEITEM hDropItem, CCustomDropObject* p
 	CNode* node = pDataObject->mpNode;
 
 	// 子ノード以下をコピーする
-	ret = DropCopyChildItem(hDropItem, node);
+	ret = DropCopyChildItem(hDropItem, node, true);
 
 	return ret;
 }
@@ -2484,7 +2484,7 @@ bool CCustomTreeListCtrl::DropCopyItem(HTREEITEM hDropItem, CCustomDropObject* p
 @retval
 */
 /*============================================================================*/
-bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node)
+bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node, bool bFirst)
 {
 	UINT count = 0;
 	DWORD dw = (DWORD)TYPEDATA((DWORD)GetItemData(hDropItem));
@@ -2523,15 +2523,15 @@ bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node)
 				hSortItem = hDropItem;
 			}
 			else {
-				item = InsertItem(text, NULL, NULL, hDropItem, TVI_FIRST);
+				item = InsertItem(text, NULL, NULL, hDropItem, (bFirst) ? TVI_FIRST : TVI_LAST);
 			}
 			SetItemData(item, MAKEDATA(dw + 1, count));
-			CTreeNode* new_node = pnodeDrop->CreateTreeNode(hDropItem, item, TVI_FIRST);
+			CTreeNode* new_node = pnodeDrop->CreateTreeNode(hDropItem, item, (bFirst) ? TVI_FIRST : TVI_LAST);
 			new_node->DropCopyItem(pnode);
 			stColorData color;
 			theApp.GetCustomControl().GetDataManager().GetNodeColor(mTreeParent, new_node->GetWindowInfo().type, color);
 			memcpy(&(new_node->GetColor()), &color, sizeof(stColorData));
-			DropCopyChildItem(item, (*itr));
+			DropCopyChildItem(item, (*itr), false);
 		}
 		count++;
 	}

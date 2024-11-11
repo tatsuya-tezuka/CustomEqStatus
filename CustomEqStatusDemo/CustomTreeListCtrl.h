@@ -335,7 +335,7 @@ protected:
 	BOOL	PrepareItemBuff(CNode* root);
 	void	PrepareChildItem(HTREEITEM hItem, CNode* root);
 	bool	DropCopyItem(HTREEITEM hDropItem, CCustomDropObject* pDataObject);
-	bool	DropCopyChildItem(HTREEITEM hDropItem, CNode* node);
+	bool	DropCopyChildItem(HTREEITEM hDropItem, CNode* node, bool bFirst);
 	CString	CreateLeafText(CString item, CString unit, CString control);
 	void	SortLeafItem(HTREEITEM item);
 	void	UpdateSortNo(HTREEITEM item);

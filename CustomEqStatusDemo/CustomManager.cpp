@@ -271,7 +271,7 @@ void CCustomManager::OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult)
 /*============================================================================*/
 void CCustomManager::OnManagerNew()
 {
-#if _DEMO_PHASE < 20
+#if _DEMO_PHASE < 30
 	return;
 #endif
 	UpdateData(TRUE);

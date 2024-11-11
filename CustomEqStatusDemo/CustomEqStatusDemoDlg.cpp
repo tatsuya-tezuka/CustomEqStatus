@@ -189,7 +189,7 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad()
 	if (dlg.DoModal() != IDOK)
 		return;
 
-#if _DEMO_PHASE < 10
+#if _DEMO_PHASE < 100
 	return;
 #endif
 
@@ -246,7 +246,7 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave()
 	if (dlg.DoModal() != IDOK)
 		return;
 
-#if _DEMO_PHASE < 10
+#if _DEMO_PHASE < 100
 	return;
 #endif
 

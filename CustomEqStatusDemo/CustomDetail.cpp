@@ -865,6 +865,7 @@ void CCustomDetail::resizeFit()
 	UINT cxTotal, cyTotal;
 
 	int CYCAPTION = GetSystemMetrics(SM_CYCAPTION);
+	int CYMENU = GetSystemMetrics(SM_CYMENU);
 	int CXSIZEFRAME = GetSystemMetrics(SM_CXSIZEFRAME);
 	int CYSIZEFRAME = GetSystemMetrics(SM_CYSIZEFRAME);
 	int CXEDGE = GetSystemMetrics(SM_CXEDGE);
@@ -893,7 +894,7 @@ void CCustomDetail::resizeFit()
 		hItem = mTreeCtrl.GetNextVisibleItem(hItem);
 	}
 
-	cyTotal = CYCAPTION + (CXSIZEFRAME * 4) + nHeaderHeight + (mTreeCtrl.GetItemHeight() * itemCount) + (CXEDGE * 2);
+	cyTotal = CYCAPTION + CYMENU + (CXSIZEFRAME * 4) + nHeaderHeight + (mTreeCtrl.GetItemHeight() * itemCount) + (CXEDGE * 2);
 
 	// ◆ウィンドウサイズ変更
 	WINDOWPLACEMENT	wPlacement;
@@ -1101,7 +1102,7 @@ void CCustomDetail::OnDetailConfig()
 		return;
 	}
 
-#if _DEMO_PHASE < 50
+#if _DEMO_PHASE < 70
 	return;
 #endif
 
