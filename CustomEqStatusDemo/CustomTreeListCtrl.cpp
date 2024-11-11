@@ -1751,7 +1751,7 @@ void CCustomTreeListCtrl::DragDrop_Initialize(CWnd* parent)
 {
 	CCustomDetail* p = (CCustomDetail*)parent;
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(p);
-	if (pnode->GetWindowInfo().kind == eTreeItemKind_Master) {
+	if (pnode != NULL && pnode->GetWindowInfo().kind == eTreeItemKind_Master) {
 		mDragFormat = CCustomDropObject::DF_MASTER;
 		mDropFormat = CCustomDropObject::DF_NONE;
 	}

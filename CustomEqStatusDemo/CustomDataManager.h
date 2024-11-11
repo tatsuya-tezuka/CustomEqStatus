@@ -69,6 +69,8 @@ static const TCHAR* mMessage_Title_CustomDetail = { _T("カスタム画面") };
 static const TCHAR* mMessage_ManagerDelete = { _T("選択されたカスタム情報を削除します。\nよろしいですか？") };
 static const TCHAR* mMessage_DetailSaveDifferentData = { _T("設備詳細の変更内容を保存しますか？") };
 static const TCHAR* mMessage_DetailDelete = { _T("%sを削除します。\nよろしいですか？") };
+static const TCHAR* mMessage_LoadLayout = { _T("表示されている全ての設備詳細画面の変更内容を破棄します。\nよろしいですか？") };
+static const TCHAR* mMessage_SaveLayout = { _T("表示されている全ての設備詳細画面の変更内容を保存します。\nよろしいですか？") };
 
 static const int mMonMax = 5000;			// 監視の最大数
 static const int mCtrlMax = 5000;			// 制御の最大数
@@ -424,6 +426,7 @@ public:
 protected:
 	/// ツリーノード
 	vector<CTreeNode*>		mTreeNode;
+	map<CWnd*, CTreeNode*>	mEditTreeNode;
 
 	/// 監視・制御データベースデータ管理関連
 	CCustomDBAccess			mDataMonitor;
@@ -434,16 +437,51 @@ protected:
 	/* ------------------------------------------------------------------------------------ */
 public:
 	/// ツリーノード取得
-	vector<CTreeNode*>&	GetTreeNode() { return mTreeNode; }
-	// ツリーノード取得
+	vector<CTreeNode*>& GetTreeNode() { return mTreeNode; }
+	/// 編集用ツリーノード取得
+	map<CWnd*, CTreeNode*>& GetEditTreeNode() { return mEditTreeNode; }
+
+	// ツリーノードの登録
 	void	AddTreeNode(CTreeNode* val)
 	{
-		//val->getColor().textback = mRootNodeBackColor;
 		mTreeNode.push_back(val);
 	}
+
+
+	//========================================================================================
+	// ノードの検索
+	//========================================================================================
+	/// ツリーノード内の設備詳細ウィンドウ検索
+	CTreeNode* SearchWndNode(CWnd* pTarget, bool bEdit=true)
+	{
+		// 編集用リスト内に指定ウィンドウが存在する場合は編集用を使用する
+		if (bEdit == true) {
+			map<CWnd*, CTreeNode*>::iterator itrwnd;
+			itrwnd = mEditTreeNode.find(pTarget);
+			if (itrwnd != mEditTreeNode.end()) {
+				return (*itrwnd).second;
+			}
+		}
+
+		vector<CTreeNode*>::iterator itr;
+		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
+			if ((*itr)->GetWindowInfo().wnd == pTarget) {
+				return (*itr);
+			}
+		}
+		return NULL;
+	}
+
 	/// ツリーノード内のアイテムの検索
 	CTreeNode* SearchItemNode(CWnd* pTarget, HTREEITEM target)
 	{
+		// 編集用リスト内に指定ウィンドウが存在する場合は編集用を使用する
+		map<CWnd*, CTreeNode*>::iterator itrwnd;
+		itrwnd = mEditTreeNode.find(pTarget);
+		if (itrwnd != mEditTreeNode.end()) {
+			return (*itrwnd).second->SearchTreeNode(target);
+		}
+
 		vector<CTreeNode*>::iterator itr;
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++){
 			if ((*itr)->GetWindowInfo().wnd == pTarget){
@@ -455,21 +493,17 @@ public:
 	/// ツリーノード内のアイテム種別の検索
 	CTreeNode* SearchItemNodeType(CWnd* pTarget, UINT target)
 	{
+		// 編集用リスト内に指定ウィンドウが存在する場合は編集用を使用する
+		map<CWnd*, CTreeNode*>::iterator itrwnd;
+		itrwnd = mEditTreeNode.find(pTarget);
+		if (itrwnd != mEditTreeNode.end()) {
+			return (*itrwnd).second->SearchTreeNodeType(target);
+		}
+
 		vector<CTreeNode*>::iterator itr;
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++){
 			if ((*itr)->GetWindowInfo().wnd == pTarget){
 				return (*itr)->SearchTreeNodeType(target);
-			}
-		}
-		return NULL;
-	}
-	/// ツリーノード内の設備詳細ウィンドウ検索
-	CTreeNode* SearchWndNode(CWnd* pTarget)
-	{
-		vector<CTreeNode*>::iterator itr;
-		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++){
-			if ((*itr)->GetWindowInfo().wnd == pTarget){
-				return (*itr);
 			}
 		}
 		return NULL;
@@ -557,20 +591,14 @@ public:
 	// 個別ノードのクリア
 	void ClearItemNode(CTreeNode* p)
 	{
-		vector<CTreeNode*>::iterator itr;
-		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
-			if ((*itr) == p) {
-				if ((*itr) != NULL) {
-					vector<CTreeNode*>::iterator itrch;
-					for (itrch = (*itr)->GetChildren().begin(); itrch != (*itr)->GetChildren().end(); itrch++) {
-						if ((*itrch) != NULL) {
-							delete (*itrch);
-						}
-					}
-					(*itr)->GetChildren().clear();
+		if (p != NULL) {
+			vector<CTreeNode*>::iterator itrch;
+			for (itrch = p->GetChildren().begin(); itrch != p->GetChildren().end(); itrch++) {
+				if ((*itrch) != NULL) {
+					delete (*itrch);
 				}
-				break;
 			}
+			p->GetChildren().clear();
 		}
 	}
 	// ノードのクローン作成
@@ -635,6 +663,60 @@ public:
 	/// 監視・制御データベースデータ管理関連
 	CCustomDBAccess& GetDataMonitor() { return mDataMonitor; }
 	CCustomDBAccess& GetDataControl() { return mDataControl; }
+
+	/// ノードリストから編集用ノードを作成する
+	void BackupEditNode(CWnd* pWnd)
+	{
+		CTreeNode* pnode = SearchWndNode(pWnd);
+		map<CWnd*, CTreeNode*>::iterator itrwnd;
+		itrwnd = mEditTreeNode.find(pWnd);
+		if (itrwnd == mEditTreeNode.end()) {
+			CTreeNode* dest = NULL;
+			dest = CloneItemNode(pnode, dest);
+			mEditTreeNode.insert(map<CWnd*, CTreeNode*>::value_type(pWnd, dest));
+		}
+		else {
+			(*itrwnd).second = CloneItemNode(pnode, (*itrwnd).second);
+		}
+	}
+
+	/// 編集用ノードをノードリストにリストアする
+	void RestoreEditNode(CWnd* pWnd)
+	{
+		CTreeNode* pnode = SearchWndNode(pWnd, false);
+		map<CWnd*, CTreeNode*>::iterator itrwnd;
+		itrwnd = mEditTreeNode.find(pWnd);
+		if (itrwnd == mEditTreeNode.end()) {
+			// 編集ノードにない場合は何もしない
+			return;
+		}
+		// 編集用ノードに存在する場合は編集用ノードからノードリストへコピーする
+		CloneItemNode((*itrwnd).second, pnode);
+	}
+
+	/// 編集ノードとノードリスト内のノードを比較する
+	bool CompareEditNode(CWnd* pWnd)
+	{
+		CTreeNode* pnode = SearchWndNode(pWnd, false);
+		map<CWnd*, CTreeNode*>::iterator itrwnd;
+		itrwnd = mEditTreeNode.find(pWnd);
+		if (itrwnd == mEditTreeNode.end()) {
+			return false;
+		}
+		return (*itrwnd).second->Equal(pnode);
+	}
+
+	/// 編集用ノードの削除
+	void DeleteEditNode(CWnd* pWnd)
+	{
+		map<CWnd*, CTreeNode*>::iterator itrwnd;
+		itrwnd = mEditTreeNode.find(pWnd);
+		if (itrwnd == mEditTreeNode.end()) {
+			return;
+		}
+		delete (*itrwnd).second;
+		mEditTreeNode.erase(itrwnd);
+	}
 
 protected:
 	/// カラー情報

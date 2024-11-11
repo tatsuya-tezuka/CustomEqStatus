@@ -319,6 +319,7 @@ void CTreeNode::CopyTreeNode(CTreeNode* copyNode)
 	memcpy(&wininfo, &(copyNode->wininfo), sizeof(stWindowInfo));
 	memcpy(&monctrl, &(copyNode->monctrl), sizeof(stMonCtrlData));
 	memcpy(&color, &(copyNode->color), sizeof(stColorData));
+	swprintf_s(xmlfile, _MAX_PATH, _T("%s"), (LPCTSTR)copyNode->xmlfile);
 
 	// 子リストをコピーする
 	vector<CTreeNode*>::iterator itr;
@@ -402,6 +403,12 @@ CCustomDataManager::~CCustomDataManager()
 	// ウィンドウ、ノードの削除
 	DeleteAllWnd();
 	DeleteAllNode();
+
+	map<CWnd*, CTreeNode*>::iterator itr;
+	for (itr = mEditTreeNode.begin(); itr != mEditTreeNode.end(); itr++) {
+		delete (*itr).second;
+	}
+	mEditTreeNode.clear();
 }
 
 /*============================================================================*/
@@ -547,26 +554,31 @@ bool CCustomDataManager::SaveTreeData(CString strFile, CWnd* pTargetWnd/* = NULL
 	}
 
 	CArchive mArc(&file, CArchive::store);
-	// バージョン保存
-	mArc << (UINT)EN_FILE_VERSION_MAJOR;
 
-	if (pTargetWnd == NULL) {
-		mArc << (UINT)GetNodeKindCount(eTreeItemKind_User);
-	}
-	else {
-		mArc << (UINT)1;
-	}
+	try {
+		// バージョン保存
+		mArc << (UINT)EN_FILE_VERSION_MAJOR;
 
-	// 個々のデータを保存
-	vector<CTreeNode*>::iterator itr;
-	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
-		if (pTargetWnd != NULL && pTargetWnd != (*itr)->GetWindowInfo().wnd) {
-			continue;
+		if (pTargetWnd == NULL) {
+			mArc << (UINT)GetNodeKindCount(eTreeItemKind_User);
 		}
-		if ((*itr)->GetWindowInfo().kind != eTreeItemKind_User)
-			continue;
+		else {
+			mArc << (UINT)1;
+		}
 
-		(*itr)->SaveTreeNode(mArc);
+		// 個々のデータを保存
+		vector<CTreeNode*>::iterator itr;
+		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
+			if (pTargetWnd != NULL && pTargetWnd != (*itr)->GetWindowInfo().wnd) {
+				continue;
+			}
+			if ((*itr)->GetWindowInfo().kind != eTreeItemKind_User)
+				continue;
+
+			(*itr)->SaveTreeNode(mArc);
+		}
+	}
+	catch (...) {
 	}
 
 	mArc.Flush();
@@ -689,35 +701,39 @@ bool CCustomDataManager::LoadTreeData(CString strFile, bool bClear)
 
 	CArchive mArc(&file, CArchive::load);
 
-	// バージョン
-	UINT version;
-	mArc >> version;
-	if (version != EN_FILE_VERSION_MAJOR) {
-		//=====================================================//
-		//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
-		CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("LoadTreeData"), _T("Version Error"), _T(""), nLogEx::error);
-		//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
-		//=====================================================//
-		return false;
-	}
-
-	if (bClear == true) {
-		// 現行のデータを削除する
-		//DeleteKindWnd(eTreeItemKind_User);
-		DeleteKindNode(eTreeItemKind_User);
-	}
-
-	UINT size;
-	mArc >> size;
-	mTreeNode.reserve(size);
-	for (UINT i = 0; i < size; i++) {
-		//CTreeNode* pnode = new CTreeNode((HTREEITEM)i, NULL, NULL);
-		CTreeNode* pnode = new CTreeNode((HTREEITEM)NULL, NULL, NULL);
-		if (pnode->LoadTreeNode(mArc) == false) {
-			delete pnode;
-			break;
+	try {
+		// バージョン
+		UINT version;
+		mArc >> version;
+		if (version != EN_FILE_VERSION_MAJOR) {
+			//=====================================================//
+			//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+			CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("LoadTreeData"), _T("Version Error"), _T(""), nLogEx::error);
+			//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+			//=====================================================//
+			return false;
 		}
-		mTreeNode.push_back(pnode);
+
+		if (bClear == true) {
+			// 現行のデータを削除する
+			//DeleteKindWnd(eTreeItemKind_User);
+			DeleteKindNode(eTreeItemKind_User);
+		}
+
+		UINT size;
+		mArc >> size;
+		mTreeNode.reserve(size);
+		for (UINT i = 0; i < size; i++) {
+			//CTreeNode* pnode = new CTreeNode((HTREEITEM)i, NULL, NULL);
+			CTreeNode* pnode = new CTreeNode((HTREEITEM)NULL, NULL, NULL);
+			if (pnode->LoadTreeNode(mArc) == false) {
+				delete pnode;
+				break;
+			}
+			mTreeNode.push_back(pnode);
+		}
+	}
+	catch (...) {
 	}
 	mArc.Close();
 	file.Close();
@@ -812,6 +828,7 @@ bool CTreeNode::LoadTreeNode(CArchive& ar)
 	return true;
 }
 
+static CWnd* compWnd = NULL;
 /*============================================================================*/
 /*! ツリーノード
 
@@ -846,35 +863,20 @@ bool CCustomDataManager::SaveCustomLayout(CArchive& ar)
 			continue;
 		}
 
-		//if ((*itr)->SaveCustomLayout() == false)
-		//	continue;
+		if ((*itr)->SaveCustomLayout() == false)
+			continue;
 
 		count++;
 	}
 	// 保存データ数の設定
 	ar << count;
 
-#ifdef _NoZorder
-	// 個々のデータを保存
-	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
-		if ((*itr)->GetWindowInfo().wnd == NULL) {
-			continue;
-		}
-		if ((*itr)->GetWindowInfo().wnd->IsWindowVisible() == FALSE) {
-			continue;
-		}
-
-		if ((*itr)->SaveCustomLayout() == false)
-			continue;
-
-		// ここまできたらXMLファイル名を保存する
-		ar << CString((*itr)->GetXmlFileName());
-	}
-#else
 	// 個々のデータを保存(Zオーダーを考慮)
 	CWnd* pWnd = theApp.GetMainWnd()->GetWindow(GW_ENABLEDPOPUP);
 	UINT pos = 0;
 	while (pWnd) {
+		compWnd = pWnd;
+		//itr = std::find_if(mTreeNode.begin(), mTreeNode.end(), [](CTreeNode* p) { return (p->GetWindowInfo().wnd == compWnd); });
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
 			if ((*itr)->GetWindowInfo().wnd == NULL) {
 				continue;
@@ -899,7 +901,6 @@ bool CCustomDataManager::SaveCustomLayout(CArchive& ar)
 		}
 		pWnd = pWnd->GetWindow(GW_HWNDNEXT);
 	}
-#endif
 
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
@@ -970,10 +971,8 @@ bool CCustomDataManager::LoadCustomLayout(CArchive& ar)
 	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 	//=====================================================//
 
-	// 現行のデータを削除する
-	//DeleteKindWnd(eTreeItemKind_User);
-	//DeleteKindNode(eTreeItemKind_User);
-	//DeleteAll();
+	// 現在憑依されている設備詳細画面を閉じる
+	DeleteAllWnd();
 
 	CString strAppName;
 	double nVersion;
@@ -987,6 +986,8 @@ bool CCustomDataManager::LoadCustomLayout(CArchive& ar)
 	// 保存データ数の設定
 	ar >> count;
 	vector<CString> loadlist;
+
+	// Zオーダー順で保存されているため、一度リストに登録する
 	for (UINT i = 0; i < count; i++) {
 		CString xmlfile;
 		ar >> xmlfile;
@@ -994,6 +995,7 @@ bool CCustomDataManager::LoadCustomLayout(CArchive& ar)
 	}
 
 	// 個々のデータを取得
+	// Zオーダーを考慮して、逆引きで情報を取得する
 	vector<CString>::reverse_iterator itrr;
 	for (itrr = loadlist.rbegin(); itrr != loadlist.rend(); itrr++) {
 		vector<CTreeNode*>::iterator itr;
@@ -1077,7 +1079,6 @@ bool CTreeNode::LoadCustomLayout()
 
 	return true;
 }
-
 
 /*============================================================================*/
 /*! カスタムデータ管理クラス
@@ -1482,18 +1483,22 @@ void CCustomDataManager::LoadEquipmentData(UINT typeLayout, CString strfile, boo
 
 	theApp.GetCustomControl().PrintMemoryInfo();
 
-	// アプリケーション終了時に保存された設備詳細データの復元
-	switch (typeLayout) {
-	case	eLayoutFileType_SCL:
-		LoadTreeData(strfile, bClear);
-		break;
-	case	eLayoutFileType_XML:
-		AfxMessageBox(_T("LoadEquipmentData Error"));
-		return;
-		//LoadTreeDataXml(strfile, bClear);
-		break;
-	default:
-		return;
+	try {
+		// アプリケーション終了時に保存された設備詳細データの復元
+		switch (typeLayout) {
+		case	eLayoutFileType_SCL:
+			LoadTreeData(strfile, bClear);
+			break;
+		case	eLayoutFileType_XML:
+			AfxMessageBox(_T("LoadEquipmentData Error"));
+			return;
+			//LoadTreeDataXml(strfile, bClear);
+			break;
+		default:
+			return;
+		}
+	}
+	catch (...) {
 	}
 
 	// 設備詳細画面を復元する
@@ -1525,7 +1530,7 @@ void CCustomDataManager::LoadEquipmentData(UINT typeLayout, CString strfile, boo
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
 	CString msg;
-	msg.Format(_T("TreeNode Count : %d"), GetTreeNode().size());
+	msg.Format(_T("TreeNode Count : %d"), (UINT)GetTreeNode().size());
 	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("LoadEquipmentData"), msg, _T(""), nLogEx::info);
 	msg.Format(_T("Elaps Time : %dms"), end_time - start_time);
 	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("LoadEquipmentData"), msg, _T(""), nLogEx::info);
@@ -1557,16 +1562,20 @@ void CCustomDataManager::SaveEquipmentData(UINT typeLayout, CString strfile, CWn
 
 	theApp.GetCustomControl().PrintMemoryInfo();
 
-	// アプリケーション終了時に保存された設備詳細データの復元
-	switch (typeLayout) {
-	case	eLayoutFileType_SCL:
-		SaveTreeData(strfile, pTargetWnd);
-		break;
-	case	eLayoutFileType_XML:
-		SaveTreeDataXml(strfile, pTargetWnd);
-		break;
-	default:
-		return;
+	try {
+		// アプリケーション終了時に保存された設備詳細データの復元
+		switch (typeLayout) {
+		case	eLayoutFileType_SCL:
+			SaveTreeData(strfile, pTargetWnd);
+			break;
+		case	eLayoutFileType_XML:
+			SaveTreeDataXml(strfile, pTargetWnd);
+			break;
+		default:
+			return;
+		}
+	}
+	catch (...) {
 	}
 
 	DWORD	end_time = timeGetTime();
@@ -1574,7 +1583,7 @@ void CCustomDataManager::SaveEquipmentData(UINT typeLayout, CString strfile, CWn
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
 	CString msg;
-	msg.Format(_T("TreeNode Count : %d"), GetTreeNode().size());
+	msg.Format(_T("TreeNode Count : %d"), (UINT)GetTreeNode().size());
 	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveEquipmentData"), msg, _T(""), nLogEx::info);
 	msg.Format(_T("Elaps Time : %dms"), end_time - start_time);
 	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveEquipmentData"), msg, _T(""), nLogEx::info);

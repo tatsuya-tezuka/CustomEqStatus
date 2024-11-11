@@ -40,6 +40,7 @@ protected:
 	void	createCustomControl();
 
 	void	PrintChild(CTreeNode* pnode);
+	void	PrintChildEdit(CTreeNode* pnode);
 
 	/* ------------------------------------------------------------------------------------ */
 

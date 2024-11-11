@@ -40,7 +40,7 @@ protected:
 	bool		mRestore;
 	LOGFONT		mTreeLogFont;
 	HTREEITEM	mMenuItem;
-	CTreeNode*	mBackupNode;
+	//CTreeNode*	mBackupNode;
 
 	/// ツールチップ
 	CString		mToolText;

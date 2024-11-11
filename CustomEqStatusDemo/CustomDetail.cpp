@@ -32,13 +32,13 @@ CCustomDetail::CCustomDetail(CWnd* pParent /*=NULL*/, bool bRestore/* = false*/)
 	mTreeLogFont.lfHeight = -mTreeFontHeight;
 	mTreeLogFont.lfWeight = FW_NORMAL;
 	temp.DeleteObject();
-	mBackupNode = NULL;
+	//mBackupNode = NULL;
 }
 
 CCustomDetail::~CCustomDetail()
 {
-	if(mBackupNode != NULL)
-		delete mBackupNode;
+	//if(mBackupNode != NULL)
+	//	delete mBackupNode;
 }
 
 void CCustomDetail::DoDataExchange(CDataExchange* pDX)
@@ -145,9 +145,6 @@ BOOL CCustomDetail::OnInitDialog()
 
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 
-	// ノード情報のクローン
-	mBackupNode = theApp.GetCustomControl().GetDataManager().CloneItemNode(pnode, mBackupNode);
-
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
 }
@@ -199,25 +196,32 @@ void CCustomDetail::OnNMRClickTreeCtrl(NMHDR *pNMHDR, LRESULT *pResult)
 
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, mMenuItem);
 	// ここでツリーノード種別によってメニューの活性、非活性を行う
-	switch (pnode->GetWindowInfo().type) {
-	case	eTreeItemType_Title:
-		pMenu->EnableMenuItem(ID_DETAIL_DELETE, MF_BYCOMMAND | MF_GRAYED);
-		pMenu->EnableMenuItem(ID_DETAIL_MONCTRL, MF_BYCOMMAND | MF_GRAYED);
-		break;
-	case	eTreeItemType_Main:
-		pMenu->EnableMenuItem(ID_DETAIL_MONCTRL, MF_BYCOMMAND | MF_GRAYED);
-		break;
-	case	eTreeItemType_Sub:
-		pMenu->EnableMenuItem(ID_DETAIL_MONCTRL, MF_BYCOMMAND | MF_GRAYED);
-		break;
-	case	eTreeItemType_Item:
-		pMenu->EnableMenuItem(ID_DETAIL_ADD, MF_BYCOMMAND | MF_GRAYED);
-		break;
-	}
+	if (pnode != NULL) {
+		switch (pnode->GetWindowInfo().type) {
+		case	eTreeItemType_Title:
+			pMenu->EnableMenuItem(ID_DETAIL_DELETE, MF_BYCOMMAND | MF_GRAYED);
+			pMenu->EnableMenuItem(ID_DETAIL_MONCTRL, MF_BYCOMMAND | MF_GRAYED);
+			break;
+		case	eTreeItemType_Main:
+			pMenu->EnableMenuItem(ID_DETAIL_MONCTRL, MF_BYCOMMAND | MF_GRAYED);
+			break;
+		case	eTreeItemType_Sub:
+			pMenu->EnableMenuItem(ID_DETAIL_MONCTRL, MF_BYCOMMAND | MF_GRAYED);
+			break;
+		case	eTreeItemType_Item:
+			pMenu->EnableMenuItem(ID_DETAIL_ADD, MF_BYCOMMAND | MF_GRAYED);
+			break;
+		}
 
-	pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
-	if (pnode->GetWindowInfo().mode == eTreeItemMode_Monitor) {
-		pMenu->EnableMenuItem(ID_DETAIL_ADD, MF_BYCOMMAND | MF_GRAYED);
+		pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
+		if (pnode->GetWindowInfo().mode == eTreeItemMode_Monitor) {
+			pMenu->EnableMenuItem(ID_DETAIL_ADD, MF_BYCOMMAND | MF_GRAYED);
+			pMenu->EnableMenuItem(ID_DETAIL_DELETE, MF_BYCOMMAND | MF_GRAYED);
+			pMenu->EnableMenuItem(ID_DETAIL_RENAME, MF_BYCOMMAND | MF_GRAYED);
+			pMenu->EnableMenuItem(ID_DETAIL_MONCTRL, MF_BYCOMMAND | MF_GRAYED);
+		}
+	}
+	else {
 		pMenu->EnableMenuItem(ID_DETAIL_DELETE, MF_BYCOMMAND | MF_GRAYED);
 		pMenu->EnableMenuItem(ID_DETAIL_RENAME, MF_BYCOMMAND | MF_GRAYED);
 		pMenu->EnableMenuItem(ID_DETAIL_MONCTRL, MF_BYCOMMAND | MF_GRAYED);
@@ -256,31 +260,26 @@ void CCustomDetail::OnMenudetailClose()
 {
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 
-	bool ret = mBackupNode->Equal(pnode);
+	//bool ret = mBackupNode->Equal(pnode);
+	bool ret = theApp.GetCustomControl().GetDataManager().CompareEditNode(this);
 	if (ret == true) {
 		TRACE("Same Data\b");
 	}
 	else {
 		TRACE("Different Data\n");
+		int retmsg = CustomSaveDifferentMessageBoxHooked(m_hWnd, mMessage_DetailSaveDifferentData, pnode->GetWindowInfo().title, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1, CString(pnode->GetXmlFileName()).IsEmpty() ? false : true);
+
+		if (retmsg == IDCANCEL)
+			return;
+
+		if (retmsg == IDYES) {
+			// 変更内容を保存する
+			OnMenudetailSave();
+		}
 	}
 
-	int retmsg = CustomSaveDifferentMessageBoxHooked(m_hWnd, mMessage_DetailSaveDifferentData, pnode->GetWindowInfo().title, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1, CString(pnode->GetXmlFileName()).IsEmpty()?false:true);
-
-	if (retmsg == IDCANCEL)
-		return;
-
-	if (retmsg == IDYES) {
-		// 変更内容を保存する
-		OnMenudetailSave();
-	}
-	else {
-		// ノード情報のクローン
-		theApp.GetCustomControl().GetDataManager().CloneItemNode(mBackupNode, pnode);
-		// 対象ノードをクリアする
-		//theApp.GetCustomControl().GetDataManager().ClearItemNode(pnode);
-		// バックアップノードから元に戻す
-		//pnode->CopyTreeNode(mBackupNode);
-	}
+	// 編集用ノードの削除
+	theApp.GetCustomControl().GetDataManager().DeleteEditNode(this);
 
 	CCustomDialogBase::OnClose();
 
@@ -307,9 +306,11 @@ void CCustomDetail::OnMenudetailSave()
 
 	// ツリーデータの保存
 	saveHeaderWidth();
+
+	// 編集用ノード情報の保存
+	theApp.GetCustomControl().GetDataManager().RestoreEditNode(this);
+
 	theApp.GetCustomControl().GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, pnode->GetXmlFileName(), this);
-	// ノード情報のクローン
-	mBackupNode = theApp.GetCustomControl().GetDataManager().CloneItemNode(pnode, mBackupNode);
 
 	// カスタム管理画面へ通知してタイトルを更新する
 	if (pnode->GetWindowInfo().manager->GetSafeHwnd())
@@ -547,6 +548,8 @@ void CCustomDetail::createTreeControl()
 	createRoot();
 #else
 	if (mRestore == true) {
+		// 編集用ノードを使用するためにノードリストをバックする
+		theApp.GetCustomControl().GetDataManager().BackupEditNode(this);
 		restoreRoot();
 	}
 	else {
@@ -577,16 +580,21 @@ void CCustomDetail::createRoot()
 	HTREEITEM rootItem = mTreeCtrl.InsertItem(mDefaultCustomTitle, NULL, NULL, TVI_ROOT);
 	mTreeCtrl.SetItemData(rootItem, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_TITLE, 0));
 
-	CTreeNode* tn_root = new CTreeNode(rootItem, this, &mTreeCtrl);
-	setNodeWindowInfo(tn_root, eTreeItemType_Title, (LPWSTR)mDefaultCustomTitle, NULL);
+	CTreeNode* newnode = new CTreeNode(rootItem, this, &mTreeCtrl);
+	setNodeWindowInfo(newnode, eTreeItemType_Title, (LPWSTR)mDefaultCustomTitle, NULL);
 	// デフォルトフォントの設定
-	mTreeCtrl.SetFontEx(tn_root->GetWindowInfo().type, mTreeLogFont);
+	mTreeCtrl.SetFontEx(newnode->GetWindowInfo().type, mTreeLogFont);
 	// 論理フォントの取得
-	mTreeCtrl.GetFontEx(eTreeItemType_Window).GetLogFont(&tn_root->GetColor().font);
+	mTreeCtrl.GetFontEx(eTreeItemType_Window).GetLogFont(&newnode->GetColor().font);
 
-	tn_root->GetWindowInfo().mode = eTreeItemMode_Edit;
+	newnode->GetWindowInfo().mode = eTreeItemMode_Edit;
 
-	theApp.GetCustomControl().GetDataManager().AddTreeNode(tn_root);
+	theApp.GetCustomControl().GetDataManager().AddTreeNode(newnode);
+
+	// 編集用ノードを使用するためにノードリストをバックする
+	theApp.GetCustomControl().GetDataManager().BackupEditNode(this);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
+	pnode->SetTreeItem(rootItem);
 
 	updateMode();
 }

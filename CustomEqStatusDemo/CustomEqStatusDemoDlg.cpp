@@ -179,6 +179,11 @@ HCURSOR CCustomEqStatusDemoDlg::OnQueryDragIcon()
 /*============================================================================*/
 void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad()
 {
+	// 確認メッセージ
+	if (MessageBox(mMessage_LoadLayout, mMessage_Title_CustomDetail, MB_YESNO | MB_ICONQUESTION) == IDNO) {
+		return;
+	}
+
 	const TCHAR BASED_CODE szFilter[] = _T("Station Control Layout(*.scl)|*.scl|");
 	CFileDialog dlg(TRUE, _T("xml"), NULL, OFN_OVERWRITEPROMPT | OFN_LONGNAMES | OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY, szFilter);
 	if (dlg.DoModal() != IDOK)
@@ -211,6 +216,9 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad()
 		e->Delete();
 		ret = false;
 	}
+	catch (...) {
+		ret = false;
+	}
 
 	mArc.Flush();
 	file.Close();
@@ -228,6 +236,11 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad()
 /*============================================================================*/
 void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave()
 {
+	// 確認メッセージ
+	if (MessageBox(mMessage_SaveLayout, mMessage_Title_CustomDetail, MB_YESNO | MB_ICONQUESTION) == IDNO) {
+		return;
+	}
+
 	const TCHAR BASED_CODE szFilter[] = _T("Station Control Layout(*.scl)|*.scl|");
 	CFileDialog dlg(FALSE, _T("xml"), NULL, OFN_OVERWRITEPROMPT | OFN_LONGNAMES | OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY, szFilter);
 	if (dlg.DoModal() != IDOK)
@@ -258,6 +271,9 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave()
 	catch (CFileException* e)
 	{
 		e->Delete();
+		ret = false;
+	}
+	catch (...) {
 		ret = false;
 	}
 
@@ -317,6 +333,18 @@ void CCustomEqStatusDemoDlg::OnBnClickedButtonNodeoutput()
 		//=====================================================//
 		PrintChild((*itr));
 	}
+
+	// 編集用リスト内に指定ウィンドウが存在する場合は編集用を使用する
+	map<CWnd*, CTreeNode*>::iterator itre;
+	for (itre = theApp.GetCustomControl().GetDataManager().GetEditTreeNode().begin(); itre != theApp.GetCustomControl().GetDataManager().GetEditTreeNode().end(); itre++) {
+		//=====================================================//
+		//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+		msg.Format(_T("%s"), (*itre).second->GetWindowInfo().title);
+		CLogTraceEx::Write(_T("###"), _T("###"), _T("###"), _T("#"), msg, nLogEx::debug);
+		//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+		//=====================================================//
+		PrintChildEdit((*itre).second);
+	}
 }
 
 void CCustomEqStatusDemoDlg::PrintChild(CTreeNode* pnode)
@@ -337,5 +365,26 @@ void CCustomEqStatusDemoDlg::PrintChild(CTreeNode* pnode)
 		//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 		//=====================================================//
 		PrintChild((*itr));
+	}
+}
+
+void CCustomEqStatusDemoDlg::PrintChildEdit(CTreeNode* pnode)
+{
+	CString msg;
+	vector<CTreeNode*>::iterator itr;
+	for (itr = pnode->GetChildren().begin(); itr != pnode->GetChildren().end(); itr++) {
+		//=====================================================//
+		//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+		msg.Format(_T("%s\t%s\t%s\t%s (%d)"), (*itr)->GetMonCtrl().display, (*itr)->GetMonCtrl().mname, (*itr)->GetMonCtrl().cname, (*itr)->GetMonCtrl().unit, (*itr)->GetWindowInfo().sortno);
+		CString sep = _T("*");
+		switch ((*itr)->GetWindowInfo().type) {
+		case	eTreeItemType_Main:	sep = _T("##"); break;
+		case	eTreeItemType_Sub:	sep = _T("###"); break;
+		case	eTreeItemType_Item:	sep = _T("####"); break;
+		}
+		CLogTraceEx::Write(_T("###"), _T("###"), _T("###"), sep, msg, nLogEx::debug);
+		//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+		//=====================================================//
+		PrintChildEdit((*itr));
 	}
 }
