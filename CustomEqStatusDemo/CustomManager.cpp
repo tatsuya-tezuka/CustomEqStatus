@@ -334,7 +334,7 @@ void CCustomManager::OnManagerDelete()
 /*============================================================================*/
 void CCustomManager::OnManagerShow()
 {
-#if _DEMO_PHASE < 110
+#if _DEMO_PHASE < 100
 	return;
 #endif
 	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
@@ -716,6 +716,7 @@ void CCustomManager::showCustomDetail(int nItem, bool bDblClick)
 	CLogTraceEx::Write(_T("***"), _T("CCustomManager"), _T("showCustomDetail"), CString(pnode->GetWindowInfo().title), _T(""), nLogEx::info);
 	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 	//=====================================================//
+	bool bEditMode = false;
 	if (pnode != NULL) {
 		if (pnode->GetWindowInfo().wnd == NULL) {
 			CCustomDetail* pitem = theApp.GetCustomControl().CreateEquipment(pnode);
@@ -723,6 +724,7 @@ void CCustomManager::showCustomDetail(int nItem, bool bDblClick)
 				return;
 
 			pnode->GetWindowInfo().wnd = pitem;
+			bEditMode = true;
 
 			if (bDblClick == true) {
 				// ダブルクリック時はカスケード表示
@@ -734,9 +736,10 @@ void CCustomManager::showCustomDetail(int nItem, bool bDblClick)
 		}
 		pnode->GetWindowInfo().wnd->ShowWindow(SW_SHOWNA);
 		pnode->GetWindowInfo().wnd->SetActiveWindow();
-		// ダブルクリック時は常に編集モードとする
-		pnode->GetWindowInfo().mode = eTreeItemMode_Edit;
-		pnode->GetWindowInfo().wnd->PostMessageW(eUserMessage_Detail_Mode, 0, (LPARAM)eTreeItemMode_Edit);
+		if (bEditMode == true) {
+			// ダブルクリック時は常に編集モードとする
+			pnode->GetWindowInfo().wnd->PostMessageW(eUserMessage_Detail_Mode, 0, (LPARAM)eTreeItemMode_Edit);
+		}
 	}
 }
 

@@ -283,6 +283,7 @@ void CCustomDetail::OnMenudetailClose()
 
 	CCustomDialogBase::OnClose();
 
+	// 新規作成時のウィンドウ時、保存しない場合は削除する
 	theApp.GetCustomControl().GetCustomManager().SendMessage(eUserMessage_Manager_Delete, CString(pnode->GetXmlFileName()).IsEmpty() == true ? 1 : 0, (LPARAM)this);
 }
 
@@ -298,6 +299,9 @@ void CCustomDetail::OnMenudetailClose()
 /*============================================================================*/
 void CCustomDetail::OnMenudetailSave()
 {
+#if _DEMO_PHASE < 60
+	return;
+#endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 
 	if (CString(pnode->GetXmlFileName()).IsEmpty() == true) {
@@ -329,6 +333,9 @@ void CCustomDetail::OnMenudetailSave()
 /*============================================================================*/
 void CCustomDetail::OnMenudetailSaveas()
 {
+#if _DEMO_PHASE < 60
+	return;
+#endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 
 	CCustomSelectSaveFile dlg;
@@ -1227,7 +1234,7 @@ LRESULT CCustomDetail::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message) {
 	case	eUserMessage_Detail_Mode:
-		updateMode();
+		OnMenudetailEdit();
 		break;
 	case	eUserMessage_Manager_Update:
 		setTreeTitle(lParam);
@@ -1354,6 +1361,60 @@ bool CCustomDetail::updateMenuItem(MENUITEMINFO* pMenuItemInfo)
 	}
 	return false;
 }
+
+/*============================================================================*/
+/*! 設備詳細
+
+-# ツリーテキストの生成
+
+@param	pnode	ツリーﾉｰﾄﾞ
+
+@retval void
+*/
+/*============================================================================*/
+CString CCustomDetail::generateTreeText(CTreeNode* pnode)
+{
+	CString ret;
+
+	if (pnode->GetWindowInfo().type == eTreeItemType_Item) {
+		ret = createLeafText(pnode->GetMonCtrl().display, pnode->GetMonCtrl().unit, pnode->GetMonCtrl().cname);
+	}
+	else {
+		ret.Format(_T("%s"), pnode->GetMonCtrl().display);
+	}
+	return ret;
+}
+
+/*============================================================================*/
+/*! 設備詳細
+
+-# ソート番号の更新
+
+@param	hItem	ツリーアイテム
+
+@retval void
+*/
+/*============================================================================*/
+void CCustomDetail::UpdateSortNo(HTREEITEM hItem)
+{
+	HTREEITEM hSubItem = mTreeCtrl.GetChildItem(hItem);
+	while (hSubItem) {
+		UpdateSortNo(hSubItem);
+		CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, hSubItem);
+		if (pnode->GetWindowInfo().type == eTreeItemType_Sub) {
+			HTREEITEM hItem = mTreeCtrl.GetChildItem(hSubItem);
+			UINT pos = 1;
+			while (hItem) {
+				CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, hItem);
+				pnode->GetWindowInfo().sortno = pos * mSortRange;
+				pos++;
+				hItem = mTreeCtrl.GetNextSiblingItem(hItem);
+			}
+		}
+		hSubItem = mTreeCtrl.GetNextSiblingItem(hSubItem);
+	}
+}
+
 
 #ifdef _DRAGDROP
 /*============================================================================*/
@@ -1806,7 +1867,7 @@ bool CCustomDetail::DragDrop_CopyItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* d
 
 	CTreeNode* pnode;
 	CTreeNode* pnodeParent = NULL;
-	HTREEITEM parent=NULL;
+	HTREEITEM parent = NULL;
 	if (bSort == true) {
 		//=====================================================//
 		//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
@@ -2040,56 +2101,3 @@ void CCustomDetail::DragDrop_UpdateSortNo(HTREEITEM item)
 	}
 }
 #endif
-
-/*============================================================================*/
-/*! 設備詳細
-
--# ツリーテキストの生成
-
-@param	pnode	ツリーﾉｰﾄﾞ
-
-@retval void
-*/
-/*============================================================================*/
-CString CCustomDetail::generateTreeText(CTreeNode* pnode)
-{
-	CString ret;
-
-	if (pnode->GetWindowInfo().type == eTreeItemType_Item) {
-		ret = createLeafText(pnode->GetMonCtrl().display, pnode->GetMonCtrl().unit, pnode->GetMonCtrl().cname);
-	}
-	else {
-		ret.Format(_T("%s"), pnode->GetMonCtrl().display);
-	}
-	return ret;
-}
-
-/*============================================================================*/
-/*! 設備詳細
-
--# ソート番号の更新
-
-@param	hItem	ツリーアイテム
-
-@retval void
-*/
-/*============================================================================*/
-void CCustomDetail::UpdateSortNo(HTREEITEM hItem)
-{
-	HTREEITEM hSubItem = mTreeCtrl.GetChildItem(hItem);
-	while (hSubItem) {
-		UpdateSortNo(hSubItem);
-		CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, hSubItem);
-		if (pnode->GetWindowInfo().type == eTreeItemType_Sub) {
-			HTREEITEM hItem = mTreeCtrl.GetChildItem(hSubItem);
-			UINT pos = 1;
-			while (hItem) {
-				CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, hItem);
-				pnode->GetWindowInfo().sortno = pos * mSortRange;
-				pos++;
-				hItem = mTreeCtrl.GetNextSiblingItem(hItem);
-			}
-		}
-		hSubItem = mTreeCtrl.GetNextSiblingItem(hSubItem);
-	}
-}
