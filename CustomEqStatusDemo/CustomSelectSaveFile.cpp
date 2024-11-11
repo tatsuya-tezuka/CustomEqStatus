@@ -61,12 +61,9 @@ void CCustomSelectSaveFile::OnBnClickedOk()
 	CFileFind find;
 	if (find.FindFile(mSavePathName + _T("\\") + mSaveFileName))
 	{
+		// 同名ファイルが存在する
 		MessageBox(_T("ファイルが既に存在します。\n確認してください。"), 0, MB_OK | MB_ICONERROR);
 		return;
-	}
-	else
-	{
-		// ファイルが存在しない場合
 	}
 
 	CDialogEx::OnOK();

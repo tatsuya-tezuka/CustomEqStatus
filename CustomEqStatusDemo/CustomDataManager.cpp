@@ -1145,6 +1145,66 @@ bool CCustomDataManager::SaveTreeDataXml(CString strFile, CWnd* pTargetWnd/* = N
 }
 
 /*============================================================================*/
+/*! カスタムデータ管理クラス
+
+-# ツリーデータ情報の名前を付けて保存
+
+@param		strFile		保存ファイル
+@param		pTargetWnd	編集用カスタム画面ハンドル
+
+@retval
+*/
+/*============================================================================*/
+bool CCustomDataManager::SaveasTreeDataXml(CString strFile, CWnd* pTargetWnd)
+{
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveasTreeDataXml"), _T("Start"), _T(""), nLogEx::debug);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
+	CString	decl = _T("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+	CMarkup xml(decl);
+
+	SetTreeZorder();
+
+	// 改行コードを設定
+	xml.SetEOL(MCD_T("\n"));
+	xml.SetEOLLEN(sizeof(MCD_T("\n")) / sizeof(MCD_CHAR) - 1);
+
+	// BOMを未出力
+	xml.SetBOM(false);
+
+	xml.SetDocFlags(CMarkup::MDF_UTF8PREAMBLE);
+
+	// <ROOT>を出力
+	xml.AddElem(_T("ROOT"));
+	xml.IntoElem();
+	xml.AddElem(_T("VERSION"), EN_FILE_VERSION_MAJOR);
+
+	xml.AddElem(_T("SIZE"), (UINT)1);
+
+	map<CWnd*, CTreeNode*>::iterator itrwnd;
+	itrwnd = mEditTreeNode.find(pTargetWnd);
+	if (itrwnd == mEditTreeNode.end()) {
+		return false;
+	}
+
+	xml.AddElem(_T("EQUIPMENT"));
+	xml.IntoElem();
+	(*itrwnd).second->SaveTreeNodeXml(xml);
+	xml.OutOfElem();
+
+	xml.OutOfElem();
+	xml.Save(strFile);
+	//=====================================================//
+	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveasTreeDataXml"), _T("Stop"), _T(""), nLogEx::debug);
+	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+	//=====================================================//
+	return true;
+}
+
+/*============================================================================*/
 /*! ツリーノード
 
 -# ノード情報の保存

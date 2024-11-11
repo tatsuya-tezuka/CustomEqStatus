@@ -340,17 +340,16 @@ void CCustomDetail::OnMenudetailSaveas()
 	CString filename = dlg.GetSavePathName() + _T("\\") + dlg.GetSaveFileName();
 	CString backxml = CString(pnode->GetXmlFileName());
 
+	// ツリーデータの保存
 	saveHeaderWidth();
 
-	// ①CTreeNodeを指定ファイル名で保存する
-	theApp.GetCustomControl().GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, filename, this);
-	// ②CTreeNodeのXMLファイル名を変更する
+	// 編集用ノード情報の保存
 	swprintf_s(pnode->GetXmlFileName(), _MAX_PATH, _T("%s"), (LPCTSTR)filename);
-	// ③保存前のXMLを再ロードする
-	CTreeNode* pnode_new = theApp.GetCustomControl().GetDataManager().LoadTreeDataXml(backxml, eTreeItemKind_User);
-	// ★名前を付けて保存したアイテムと再度読み込みしたアイテムSWAPする
 
-	// ④CCustomManagerの表示更新
+	// ①編集用ノードを名前を付けて保存する
+	theApp.GetCustomControl().GetDataManager().SaveasEditNode(this, (LPCTSTR)filename);
+
+	// ②CCustomManagerの表示更新
 	if (theApp.GetCustomControl().GetCustomManager().GetSafeHwnd() != NULL) {
 		theApp.GetCustomControl().GetCustomManager().PostMessage(eUserMessage_Manager_Reset, 0, 1);
 	}
@@ -766,7 +765,9 @@ void CCustomDetail::restoreRoot()
 	// ツリーコントロールのフォント設定
 	mTreeCtrl.SetFontEx(eTreeItemType_Window, mTreeLogFont);
 
-	if (pnode->GetWindowInfo().treeopen != 0){
+	// 常に展開モード
+	//if (pnode->GetWindowInfo().treeopen != 0)
+	{
 		mTreeCtrl.Expand(rootItem, TVE_EXPAND);
 	}
 
@@ -818,7 +819,9 @@ void CCustomDetail::restoreNode(CTreeNode* pnode, HTREEITEM ptree)
 		(*itr)->GetWindowInfo().wnd = this;
 		restoreNode((*itr), item);
 
-		if ((*itr)->GetWindowInfo().treeopen != 0){
+		// 常に展開モードとする
+		//if ((*itr)->GetWindowInfo().treeopen != 0)
+		{
 			mTreeCtrl.Expand(item, TVE_EXPAND);
 		}
 	}

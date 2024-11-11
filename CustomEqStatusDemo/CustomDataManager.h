@@ -644,6 +644,7 @@ public:
 	bool	SaveTreeData(CString strFile, CWnd* pTargetWnd = NULL);
 	bool	LoadTreeData(CString strFile, bool bClear);
 	bool	SaveTreeDataXml(CString strFile, CWnd* pTargetWnd = NULL);
+	bool	SaveasTreeDataXml(CString strFile, CWnd* pTargetWnd);
 	CTreeNode* LoadTreeDataXml(CString strFile, UINT kind=UINT_MAX);
 
 	/// Zオーダー設定
@@ -692,6 +693,23 @@ public:
 		}
 		// 編集用ノードに存在する場合は編集用ノードからノードリストへコピーする
 		CloneItemNode((*itrwnd).second, pnode);
+	}
+
+	/// 編集用ノードを名前を付けて保存する
+	void SaveasEditNode(CWnd* pWnd, CString xmlfile)
+	{
+		map<CWnd*, CTreeNode*>::iterator itrwnd;
+		itrwnd = mEditTreeNode.find(pWnd);
+		if (itrwnd == mEditTreeNode.end()) {
+			// 編集ノードにない場合は何もしない
+			return;
+		}
+		SaveasTreeDataXml(xmlfile, pWnd);
+		CTreeNode* dest = NULL;
+		dest = CloneItemNode((*itrwnd).second, dest);
+		AddTreeNode(dest);
+		CTreeNode* pnode = SearchWndNode(pWnd, false);
+		pnode->GetWindowInfo().wnd = NULL;
 	}
 
 	/// 編集ノードとノードリスト内のノードを比較する
