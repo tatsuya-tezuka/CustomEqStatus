@@ -77,5 +77,5 @@ using namespace std;
 
 	110:リリースバージョン
 */
-#define	_DEMO_PHASE		100
+#define	_DEMO_PHASE		110
 

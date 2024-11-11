@@ -973,6 +973,12 @@ bool CCustomDataManager::LoadCustomLayout(CArchive& ar)
 
 	// 現在憑依されている設備詳細画面を閉じる
 	DeleteAllWnd();
+	// 編集用のウィンドウ情報も削除する
+	map<CWnd*, CTreeNode*>::iterator itredit;
+	for (itredit = mEditTreeNode.begin(); itredit != mEditTreeNode.end(); itredit++) {
+		delete (*itredit).second;
+	}
+	mEditTreeNode.clear();
 
 	CString strAppName;
 	double nVersion;
@@ -1386,6 +1392,9 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 		swprintf_s(wininfo.groupname, mNameSize, _T("%s"), (LPCTSTR)xml.GetData());
 		xml.FindElem(_T("GROUPNO"));
 		wininfo.groupno = _wtoi(xml.GetData());
+		if (HIWORD(wininfo.groupno) == 0) {
+			swprintf_s(wininfo.groupname, mNameSize, _T("99999"));
+		}
 		xml.FindElem(_T("MONITOR"));
 		wininfo.monitor = _wtoi(xml.GetData());
 		wininfo.placement.length = sizeof(WINDOWPLACEMENT);
@@ -1671,4 +1680,31 @@ UINT CCustomDataManager::GetMaxInnerNo(UINT group)
 		}
 	}
 	return max;
+}
+
+/*============================================================================*/
+/*! カスタムデータ管理クラス
+
+-# 表示されている設備詳細画面が編集中かを取得する
+
+@param
+@retval		true 表示されている設備詳細画面が編集中
+
+*/
+/*============================================================================*/
+bool CCustomDataManager::IsVisibleEditMode()
+{
+	vector<CTreeNode*>::iterator itr;
+	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
+		if ((*itr)->GetWindowInfo().wnd != NULL && (*itr)->GetWindowInfo().mode == eTreeItemMode_Edit)
+			return true;
+	}
+
+	map<CWnd*, CTreeNode*>::iterator itrwnd;
+	for (itrwnd = mEditTreeNode.begin(); itrwnd != mEditTreeNode.end(); itrwnd++) {
+		if ((*itrwnd).second->GetWindowInfo().wnd != NULL && (*itrwnd).second->GetWindowInfo().mode == eTreeItemMode_Edit)
+			return true;
+	}
+
+	return false;
 }

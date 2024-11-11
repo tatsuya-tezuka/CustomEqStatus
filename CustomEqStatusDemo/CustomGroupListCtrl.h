@@ -131,6 +131,7 @@ public:
 	void	CreateGroupControl(CWnd* parent);
 	BOOL	GroupByColumn(int nCol, BOOL bEnableGroup=TRUE);
 
+	void	SortItem();
 	void	SortGroup();
 
 	/// カラムの自動サイズ調整

@@ -52,6 +52,7 @@ BEGIN_MESSAGE_MAP(CCustomManager, CCustomDialogBase)
 	ON_WM_MOVE()
 	ON_WM_CLOSE()
 	ON_COMMAND(ID_MENUMANAGER_CLOSE, &CCustomManager::OnMenumanagerClose)
+	ON_NOTIFY(LVN_GETINFOTIP, IDC_LIST_MANAGER, &CCustomManager::OnLvnGetInfoTipListManager)
 END_MESSAGE_MAP()
 
 // CCustomManager メッセージ ハンドラー
@@ -174,6 +175,9 @@ void CCustomManager::OnBnClickedRadioUser()
 /*============================================================================*/
 void CCustomManager::OnBnClickedRadioMaster()
 {
+#if _DEMO_PHASE < 30
+	return;
+#endif
 	UpdateData(TRUE);
 	if (theApp.GetCustomControl().GetDataManager().GetTreeNode().size() != 0){
 		createItem((int)mSelectType);
@@ -355,7 +359,22 @@ void CCustomManager::OnManagerShow()
 /*============================================================================*/
 void CCustomManager::OnManagerCreate()
 {
-	// TODO: ここにコマンド ハンドラー コードを追加します。
+#if _DEMO_PHASE < 110
+	return;
+#endif
+	UINT maxGroup = GetGroupMaxNo();
+	UINT nGroup = 0;
+	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
+	while (pos) {
+		int nItem = mManagerList.GetNextSelectedItem(pos);
+		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
+		pnode->GetWindowInfo().groupno = MAKELONG(nGroup, maxGroup + 1);
+		CString str;
+		str.Format(_T("%d"), HIWORD(pnode->GetWindowInfo().groupno));
+		swprintf_s(pnode->GetWindowInfo().groupname, mNameSize, _T("%s"), (LPCTSTR)str);
+		nGroup++;
+	}
+	createItem((int)eSelectUser);
 }
 /*============================================================================*/
 /*! 設備詳細管理
@@ -370,6 +389,26 @@ void CCustomManager::OnManagerCreate()
 void CCustomManager::OnManagerCancel()
 {
 	// TODO: ここにコマンド ハンドラー コードを追加します。
+}
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# グループ番号の最大値を取得する
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+UINT CCustomManager::GetGroupMaxNo()
+{
+	UINT nGroup = 0;
+	for (UINT item = 0; item < (UINT)mManagerList.GetItemCount(); item++) {
+		// データのグループ番号から対象カラムのテキストを設定する
+		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(item);
+		nGroup = __max(nGroup, HIWORD(pnode->GetWindowInfo().groupno));
+	}
+	return nGroup;
 }
 
 /*============================================================================*/
@@ -418,8 +457,8 @@ void CCustomManager::ResetGroupInnerNo()
 		if ((*itr)->GetWindowInfo().kind == eTreeItemKind_User) {
 			map<UINT, UINT>::iterator itrmax = maxlist.find((UINT)HIWORD((*itr)->GetWindowInfo().groupno));
 			if (itrmax == maxlist.end()) {
-				maxlist.insert(map<UINT, UINT>::value_type(HIWORD((*itr)->GetWindowInfo().groupno), 1));
-				(*itr)->GetWindowInfo().groupno = HIWORD((*itr)->GetWindowInfo().groupno) << 16 | 1;
+				maxlist.insert(map<UINT, UINT>::value_type(HIWORD((*itr)->GetWindowInfo().groupno), 0));
+				(*itr)->GetWindowInfo().groupno = HIWORD((*itr)->GetWindowInfo().groupno) << 16 | 0;
 			}
 			else {
 				// ワークのグループ番号を更新する
@@ -427,6 +466,7 @@ void CCustomManager::ResetGroupInnerNo()
 				// ノードのグループ番号を更新する
 				(*itr)->GetWindowInfo().groupno = HIWORD((*itr)->GetWindowInfo().groupno) << 16 | (*itrmax).second;
 			}
+			TRACE("### GroupNo : %d\n", HIWORD((*itr)->GetWindowInfo().groupno));
 		}
 	}
 }
@@ -748,4 +788,23 @@ void CCustomManager::OnMenumanagerClose()
 	updateXmlFile();
 
 	CCustomDialogBase::OnClose();
+}
+
+
+void CCustomManager::OnLvnGetInfoTipListManager(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMLVGETINFOTIP pGetInfoTip = reinterpret_cast<LPNMLVGETINFOTIP>(pNMHDR);
+
+	CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(pGetInfoTip->iItem);
+	if (pnode == NULL) {
+		return;
+	}
+#ifdef _DEBUG
+	mToolText.Format(_T("GROUP(%d) NO(%d)"), HIWORD(pnode->GetWindowInfo().groupno), LOWORD(pnode->GetWindowInfo().groupno));
+	TRACE("%s\n", CStringA(mToolText));
+#endif
+	pGetInfoTip->pszText = (LPWSTR)(LPCTSTR)mToolText;
+	pGetInfoTip->cchTextMax = mToolText.GetLength();
+
+	*pResult = 0;
 }

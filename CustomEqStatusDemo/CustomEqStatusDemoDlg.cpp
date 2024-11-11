@@ -237,8 +237,11 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonLoad()
 void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave()
 {
 	// 確認メッセージ
-	if (MessageBox(mMessage_SaveLayout, mMessage_Title_CustomDetail, MB_YESNO | MB_ICONQUESTION) == IDNO) {
-		return;
+	bool isedit = theApp.GetCustomControl().GetDataManager().IsVisibleEditMode();
+	if (isedit == true) {
+		if (MessageBox(mMessage_SaveLayout, mMessage_Title_CustomDetail, MB_YESNO | MB_ICONQUESTION) == IDNO) {
+			return;
+		}
 	}
 
 	const TCHAR BASED_CODE szFilter[] = _T("Station Control Layout(*.scl)|*.scl|");

@@ -522,13 +522,11 @@ BOOL CCustomTreeListCtrl::cellClick(HTREEITEM hItem, UINT nSubItem, CPoint point
 	CCustomDetail* p = (CCustomDetail*)mTreeParent;
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(p);
 
-	if (pnode->GetWindowInfo().mode != eTreeItemMode_Edit) {
-		return FALSE;
-	}
-
 	UINT mask = 1 << eTreeItemSubType_Item | 1 << eTreeItemSubType_Unit;
 	if ((1 << nSubItem) & mask)
 		return TRUE;
+
+	// 項目、単位以外はここにくる
 
 	// 制御セルが押下されたかチェック
 	bool bControl = IsControl(point);
@@ -572,16 +570,19 @@ void CCustomTreeListCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
 			SetFocus();
 			return;
 		}
-		UINT mask = 1 << eTreeItemSubType_Item | 1 << eTreeItemSubType_Unit;
-		if ((1 << col) & mask) {
-			if (hItem != NULL /*&& col != 0*/) {
-				//CString text = GetSubItemText(hItem, col);
-				//if (cellClick(hItem, col, point) == TRUE)
-				{
-					// 編集モードへ切り替え
-					SelectItem(hItem);
-					SwitchEditMode(hItem, col, point);
-					return;
+		CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(mTreeParent);
+		if (pnode != NULL && pnode->GetWindowInfo().mode == eTreeItemMode_Edit) {
+			UINT mask = 1 << eTreeItemSubType_Item | 1 << eTreeItemSubType_Unit;
+			if ((1 << col) & mask) {
+				if (hItem != NULL /*&& col != 0*/) {
+					//CString text = GetSubItemText(hItem, col);
+					//if (cellClick(hItem, col, point) == TRUE)
+					{
+						// 編集モードへ切り替え
+						SelectItem(hItem);
+						SwitchEditMode(hItem, col, point);
+						return;
+					}
 				}
 			}
 		}
@@ -2292,6 +2293,11 @@ void CCustomTreeListCtrl::PrepareChildItem(HTREEITEM hItem, CNode* root)
 /*============================================================================*/
 BOOL CCustomTreeListCtrl::IsDropTarget(HTREEITEM hItem, CCustomDropObject* pDataObject)
 {
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(mTreeParent);
+	if (pnode != NULL && pnode->GetWindowInfo().mode != eTreeItemMode_Edit) {
+		return FALSE;
+	}
+
 	DWORD dw = (DWORD)TYPEDATA((DWORD)GetItemData(hItem));
 	switch (pDataObject->mFormat) {
 	case	CCustomDropObject::DF_USER:

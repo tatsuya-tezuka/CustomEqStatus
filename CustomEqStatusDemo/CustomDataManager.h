@@ -70,7 +70,7 @@ static const TCHAR* mMessage_ManagerDelete = { _T("‘I‘ğ‚³‚ê‚½ƒJƒXƒ^ƒ€î•ñ‚ğíœ‚
 static const TCHAR* mMessage_DetailSaveDifferentData = { _T("İ”õÚ×‚Ì•ÏX“à—e‚ğ•Û‘¶‚µ‚Ü‚·‚©H") };
 static const TCHAR* mMessage_DetailDelete = { _T("%s‚ğíœ‚µ‚Ü‚·B\n‚æ‚ë‚µ‚¢‚Å‚·‚©H") };
 static const TCHAR* mMessage_LoadLayout = { _T("•\¦‚³‚ê‚Ä‚¢‚é‘S‚Ä‚Ìİ”õÚ×‰æ–Ê‚Ì•ÏX“à—e‚ğ”jŠü‚µ‚Ü‚·B\n‚æ‚ë‚µ‚¢‚Å‚·‚©H") };
-static const TCHAR* mMessage_SaveLayout = { _T("•\¦‚³‚ê‚Ä‚¢‚é‘S‚Ä‚Ìİ”õÚ×‰æ–Ê‚Ì•ÏX“à—e‚ğ•Û‘¶‚µ‚Ü‚·B\n‚æ‚ë‚µ‚¢‚Å‚·‚©H") };
+static const TCHAR* mMessage_SaveLayout = { _T("•ÒW’†‚Ìî•ñ‚Í”jŠü‚³‚ê‚Ü‚·B\n‚æ‚ë‚µ‚¢‚Å‚·‚©H") };
 
 static const int mMonMax = 5000;			// ŠÄ‹‚ÌÅ‘å”
 static const int mCtrlMax = 5000;			// §Œä‚ÌÅ‘å”
@@ -735,6 +735,8 @@ public:
 		delete (*itrwnd).second;
 		mEditTreeNode.erase(itrwnd);
 	}
+
+	bool	IsVisibleEditMode();
 
 protected:
 	/// ƒJƒ‰[î•ñ

@@ -367,6 +367,15 @@ namespace
 		const CString& left = ps.LookupGroupName(nLeftId);
 		const CString& right = ps.LookupGroupName(nRightId);
 
+		if (left == _T("No Group")) {
+			return -1;
+		}
+		if (right == _T("No Group")) {
+			return 1;
+		}
+
+		TRACE("%s : %s (%d)\n", CStringA(ps.LookupGroupName(nLeftId)), CStringA(ps.LookupGroupName(nRightId)), _tcscmp(left, right));
+
 		if (ps.m_Ascending)
 			return _tcscmp(left, right);
 		else
@@ -420,14 +429,14 @@ namespace
 /*============================================================================*/
 /*! グループリスト
 
--# ウィンドウメッセージ処理
+-# ソート関数
 
 @param
 
 @retval
 */
 /*============================================================================*/
-void CCustomGroupListCtrl::SortGroup()
+void CCustomGroupListCtrl::SortItem()
 {
 	GROUPSORT groupsort(m_hWnd, 0, true);
 	for (int nRow = 0; nRow < GetItemCount(); ++nRow)
@@ -440,6 +449,20 @@ void CCustomGroupListCtrl::SortGroup()
 	//ListView_SortGroups(m_hWnd, SortFuncGroup, &groupsort);
 	//SortGroups(&SortFuncGroupEx, &groupsort);
 	ListView_SortItemsEx(m_hWnd, SortFunc, &groupsort);
+}
+void CCustomGroupListCtrl::SortGroup()
+{
+	GROUPSORT groupsort(m_hWnd, 0, true);
+	for (int nRow = 0; nRow < GetItemCount(); ++nRow)
+	{
+		int nGroupId = getRowGroupId(nRow);
+		if (nGroupId != -1 && groupsort.m_GroupNames.FindKey(nGroupId) == -1) {
+			groupsort.m_GroupNames.Add(nGroupId, getGroupHeader(nGroupId));
+			TRACE("### GroupName : [%d]%s\n", nGroupId, CStringA(getGroupHeader(nGroupId)));
+		}
+	}
+	Invalidate(FALSE);
+	ListView_SortGroups(m_hWnd, SortFuncGroup, &groupsort);
 }
 
 
@@ -576,6 +599,9 @@ void CCustomGroupListCtrl::CreateGroupControl(CWnd* parent)
 	//  拡張スタイルのセット
 	dwStyle &= ~LVS_TYPEMASK;
 	dwStyle |= LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER;
+#ifdef _DEBUG
+	dwStyle |= LVS_EX_INFOTIP;
+#endif
 	//  新しい拡張スタイルを設定
 	ListView_SetExtendedListViewStyle(m_hWnd, dwStyle);
 
@@ -586,7 +612,11 @@ void CCustomGroupListCtrl::CreateGroupControl(CWnd* parent)
 		switch (i) {
 		case	eManagerTitle:	width = 300; break;
 		case	eManagerNote:	width = 200; break;
+#ifdef _DEBUG
+		case	eManagerGroup:	width = 50; break;
+#else
 		case	eManagerGroup:	width = 0; break;
+#endif
 		}
 		InsertColumn(i, mGroupListHeader[i], LVCFMT_LEFT, width);
 	}
@@ -913,13 +943,18 @@ void CCustomGroupListCtrl::OnHdnBegintrack(NMHDR *pNMHDR, LRESULT *pResult)
 	LPNMHEADER phdr = reinterpret_cast<LPNMHEADER>(pNMHDR);
 
 	int nCol = (int)phdr->iItem;
-	if (nCol == eManagerGroup){
+#ifdef _DEBUG
+	SetFocus();
+	*pResult = 0;
+#else
+	if (nCol == eManagerGroup) {
 		*pResult = 1;
 	}
-	else{
+	else {
 		SetFocus();
 		*pResult = 0;
 	}
+#endif
 }
 /*============================================================================*/
 /*! グループリスト
@@ -940,14 +975,20 @@ void CCustomGroupListCtrl::OnHdnDividerdblclick(NMHDR *pNMHDR, LRESULT *pResult)
 	LPNMHEADER phdr = reinterpret_cast<LPNMHEADER>(pNMHDR);
 
 	int nCol = (int)phdr->iItem;
-	if (nCol == eManagerGroup){
+#ifdef _DEBUG
+	SetFocus();
+	AutoSizeColumns(nCol);
+	*pResult = 0;
+#else
+	if (nCol == eManagerGroup) {
 		*pResult = 1;
 	}
-	else{
+	else {
 		SetFocus();
 		AutoSizeColumns(nCol);
 		*pResult = 0;
 	}
+#endif
 
 	*pResult = 0;
 }

@@ -41,6 +41,9 @@ public:
 protected:
 	CCustomSynchroWindow		mSyncWindow;
 
+	/// ツールチップ
+	CString		mToolText;
+
 	/* ------------------------------------------------------------------------------------ */
 	/* メンバ関数                                                                           */
 	/* ------------------------------------------------------------------------------------ */
@@ -127,6 +130,7 @@ protected:
 	void	updateItemData(LPARAM lParam);
 	void	updateXmlFile();
 	void	showCustomDetail(int nItem, bool bDblClick);
+	UINT	GetGroupMaxNo();
 
 	/* ------------------------------------------------------------------------------------ */
 
@@ -154,4 +158,5 @@ public:
 	afx_msg void OnMove(int x, int y);
 	afx_msg void OnClose();
 	afx_msg void OnMenumanagerClose();
+	afx_msg void OnLvnGetInfoTipListManager(NMHDR* pNMHDR, LRESULT* pResult);
 };

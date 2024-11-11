@@ -49,20 +49,6 @@ protected:
 	/* メンバ関数                                                                           */
 	/* ------------------------------------------------------------------------------------ */
 public:
-#ifdef _DRAGDROP
-	/// ドラッグ＆ドロップ
-	void	DragDrop_AddLeaf(HTREEITEM targetitem, CTreeNode* tagetnode, stDragData* pdata);
-	void	DragDrop_UpdateLeaf(HTREEITEM targetitem, CTreeNode* tagetnode, stDragData* pdata);
-	BOOL	DragDrop_SetSelectTarget(UINT todrag, LPARAM lParam);
-	BOOL	DragDrop_SetSelectCustom(UINT todrag, LPARAM lParam);
-	void	DragDrop_SetDropTarget(UINT todrag, LPARAM lParam, bool bMove =false);
-	void	DragDrop_Copy(HTREEITEM hItem, LPARAM lParam);
-	void	DragDrop_Move(HTREEITEM hItem, LPARAM lParam);
-	bool	DragDrop_CopyItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* dropWnd, HTREEITEM dropItem, bool bSort, HTREEITEM hInsertAfter = TVI_FIRST);
-	bool	DragDrop_MoveItem(CWnd* dragWnd, HTREEITEM dragItem, CWnd* dropWnd, HTREEITEM dropItem, bool bSort, HTREEITEM hInsertAfter = TVI_FIRST);
-	bool	DragDrop_IsDropExecute(CTreeNode* pnodeDrag, CTreeNode* pnodeDrop);
-#endif
-
 	void	UpdateSortNo(HTREEITEM hItem);
 
 protected:
@@ -71,13 +57,6 @@ protected:
 	void	createMainNode(HTREEITEM parentitem, CTreeNode* parentnode);
 	void	createSubNode(HTREEITEM parentitem, CTreeNode* parentnode);
 	void	createLeaf(HTREEITEM parentitem, CTreeNode* parentnode);
-
-#ifdef _DRAGDROP
-	void	DragDrop_SortItem(HTREEITEM item);
-	static int CALLBACK DragDrop_Compare(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
-	void	DragDrop_UpdateSortNo(HTREEITEM item);
-	void	DragDrop_GetDataName(UINT type, UINT pos, CString& strmon, CString& strcon);
-#endif
 
 	void	restoreRoot();
 	void	restoreNode(CTreeNode* pnode, HTREEITEM ptree);
