@@ -42,6 +42,7 @@ static const TCHAR* mAppDataUserPath = { _T("USER") };
 static const TCHAR* mAppSaveEquipmentFile = { _T("AppEquipment.xml") };
 
 /// ƒJƒXƒ^ƒ€‰æ–ÊŠÖ˜A
+static const TCHAR* mNoGroupText = { _T("No Group") };
 static const TCHAR* mDefaultCustomTitle = { _T("`ƒ^ƒCƒgƒ‹") };
 static const TCHAR* mDefaultCustomRoot = { _T("ƒ‹[ƒg") };
 static const TCHAR* mDefaultCustomMainText = { _T("ƒƒCƒ“ƒm[ƒh") };
@@ -71,6 +72,7 @@ static const TCHAR* mMessage_DetailSaveDifferentData = { _T("İ”õÚ×‚Ì•ÏX“à—e‚
 static const TCHAR* mMessage_DetailDelete = { _T("%s‚ğíœ‚µ‚Ü‚·B\n‚æ‚ë‚µ‚¢‚Å‚·‚©H") };
 static const TCHAR* mMessage_LoadLayout = { _T("•\¦‚³‚ê‚Ä‚¢‚é‘S‚Ä‚Ìİ”õÚ×‰æ–Ê‚Ì•ÏX“à—e‚ğ”jŠü‚µ‚Ü‚·B\n‚æ‚ë‚µ‚¢‚Å‚·‚©H") };
 static const TCHAR* mMessage_SaveLayout = { _T("•ÒW’†‚Ìî•ñ‚Í”jŠü‚³‚ê‚Ü‚·B\n‚æ‚ë‚µ‚¢‚Å‚·‚©H") };
+static const TCHAR* mMessage_SameGroupName = { _T("“¯–¼‚ÌƒOƒ‹[ƒv–¼‚ª‘¶İ‚µ‚Ü‚·BÄ“x“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B") };
 
 static const int mMonMax = 5000;			// ŠÄ‹‚ÌÅ‘å”
 static const int mCtrlMax = 5000;			// §Œä‚ÌÅ‘å”

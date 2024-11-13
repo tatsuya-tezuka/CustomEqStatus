@@ -87,7 +87,7 @@ CCustomDetail* CCustomControl::CreateEquipment(CTreeNode* pnode, UINT mode/* = e
 		CTreeNode* pnodeitem = GetDataManager().SearchWndNode(pitem);
 		pnodeitem->GetWindowInfo().wnd = pitem;
 		pnodeitem->GetWindowInfo().manager = &mCustomManager;
-		swprintf_s(pnodeitem->GetWindowInfo().groupname, mNameSize, _T("%s"), (LPCTSTR)_T("0"));
+		//swprintf_s(pnodeitem->GetWindowInfo().groupname, mNameSize, _T("%s"), (LPCTSTR)mNoGroupText);
 		pnodeitem->GetWindowInfo().groupno = 0;
 		pnodeitem->GetWindowInfo().mode = mode;
 		pnodeitem->GetWindowInfo().kind = eTreeItemKind_User;

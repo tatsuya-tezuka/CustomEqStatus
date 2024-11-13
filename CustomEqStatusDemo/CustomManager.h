@@ -11,6 +11,7 @@
 #include "afxcmn.h"
 #include "CustomGroupListCtrl.h"
 #include "CustomSynchroWindow.h"
+#include "CustomGroupName.h"
 
 // CCustomManager ダイアログ
 
@@ -43,6 +44,9 @@ protected:
 
 	/// ツールチップ
 	CString		mToolText;
+
+	/// メニューグループID
+	int			mMenuSelectGroupID;
 
 	/* ------------------------------------------------------------------------------------ */
 	/* メンバ関数                                                                           */
@@ -126,11 +130,12 @@ protected:
 	void	createItem(UINT nSelect);
 	void	createEquipment();
 	void	createEqDetail(CTreeNode* node = NULL);
-	void	updateMenuItemStatus(CMenu* pMenu);
+	void	updateMenuItemStatus(CMenu* pMenu, bool bUser, bool bGroup, bool bNoGroup);
 	void	updateItemData(LPARAM lParam);
 	void	updateXmlFile();
 	void	showCustomDetail(int nItem, bool bDblClick);
 	UINT	GetGroupMaxNo();
+	bool	IsSameGroupName(CString groupName);
 
 	/* ------------------------------------------------------------------------------------ */
 
@@ -150,8 +155,7 @@ public:
 	afx_msg void OnManagerDelete();
 	afx_msg void OnManagerShow();
 	afx_msg void OnManagerCreate();
-	afx_msg void OnManagerCancel();
-	afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
+	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	afx_msg void OnShowWindow(BOOL bShow, UINT nStatus);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
@@ -159,4 +163,7 @@ public:
 	afx_msg void OnClose();
 	afx_msg void OnMenumanagerClose();
 	afx_msg void OnLvnGetInfoTipListManager(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnMangroupRename();
+	afx_msg void OnMangroupReset();
+	afx_msg void OnMangroupShow();
 };

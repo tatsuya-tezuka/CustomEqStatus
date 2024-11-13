@@ -178,6 +178,11 @@ public:
 	int		HitTestEx(CPoint &point, int *col);
 	bool	EditExecute(int item, int colnum);
 
+	int		GroupHitTest(const CPoint& point);
+	int		GetRowGroupId(int nRow) { return getRowGroupId(nRow); }
+	CString	GetGroupHeader(int nRow) { return getGroupHeader(nRow); }
+	BOOL	SetGroupHeader(int nGroupID, const CString& header);
+
 protected:
 	LRESULT	insertGroupHeader(int nIndex, int nGroupId, const CString& strHeader, DWORD dwState = LVGS_NORMAL, DWORD dwAlign = LVGA_HEADER_LEFT);
 	BOOL	setGroupTask(int nGroupID, const CString& task);

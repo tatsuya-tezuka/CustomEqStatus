@@ -30,7 +30,8 @@ void CCustomSynchroWindow::Set(UINT group, CWnd* pbase)
 	if (itr != mGroupWindowList.end()) {
 		vector<GroupInfo>::iterator itrlist;
 		itrlist = std::find((*itr).second.begin(), (*itr).second.end(), search);
-		if (itrlist == (*itr).second.end()) {
+		//if (itrlist == (*itr).second.end())
+		{
 			(*itr).second.push_back(search);
 		}
 	}

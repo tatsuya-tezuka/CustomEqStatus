@@ -39,13 +39,12 @@ void CCustomManager::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CCustomManager, CCustomDialogBase)
 	ON_BN_CLICKED(IDC_RADIO_USER, &CCustomManager::OnBnClickedRadioUser)
 	ON_BN_CLICKED(IDC_RADIO_MASTER, &CCustomManager::OnBnClickedRadioMaster)
-	ON_NOTIFY(NM_RCLICK, IDC_LIST_MANAGER, &CCustomManager::OnNMRClickListManager)
+	//ON_NOTIFY(NM_RCLICK, IDC_LIST_MANAGER, &CCustomManager::OnNMRClickListManager)
 	ON_NOTIFY(NM_DBLCLK, IDC_LIST_MANAGER, &CCustomManager::OnNMDblclkListManager)
 	ON_COMMAND(ID_MANAGER_NEW, &CCustomManager::OnManagerNew)
 	ON_COMMAND(ID_MANAGER_DELETE, &CCustomManager::OnManagerDelete)
 	ON_COMMAND(ID_MANAGER_SHOW, &CCustomManager::OnManagerShow)
 	ON_COMMAND(ID_MANAGER_CREATE, &CCustomManager::OnManagerCreate)
-	ON_COMMAND(ID_MANAGER_CANCEL, &CCustomManager::OnManagerCancel)
 	ON_WM_CONTEXTMENU()
 	ON_WM_SHOWWINDOW()
 	ON_WM_LBUTTONDOWN()
@@ -53,6 +52,9 @@ BEGIN_MESSAGE_MAP(CCustomManager, CCustomDialogBase)
 	ON_WM_CLOSE()
 	ON_COMMAND(ID_MENUMANAGER_CLOSE, &CCustomManager::OnMenumanagerClose)
 	ON_NOTIFY(LVN_GETINFOTIP, IDC_LIST_MANAGER, &CCustomManager::OnLvnGetInfoTipListManager)
+	ON_COMMAND(ID_MANGROUP_RENAME, &CCustomManager::OnMangroupRename)
+	ON_COMMAND(ID_MANGROUP_RESET, &CCustomManager::OnMangroupReset)
+	ON_COMMAND(ID_MANGROUP_SHOW, &CCustomManager::OnMangroupShow)
 END_MESSAGE_MAP()
 
 // CCustomManager メッセージ ハンドラー
@@ -79,26 +81,12 @@ BOOL CCustomManager::OnInitDialog()
 		createItem((int)eSelectUser);
 	}
 
-	UpdateGroup();
+	//UpdateGroup();
 
 	CenterWindow(GetDesktopWindow());
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
-}
-/*============================================================================*/
-/*! 設備詳細管理
-
--# ポップアップメニュー表示イベント
-
-@param
-
-@retval
-*/
-/*============================================================================*/
-void CCustomManager::OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/)
-{
-	// TODO: ここにメッセージ ハンドラー コードを追加します。
 }
 /*============================================================================*/
 /*! 設備詳細管理
@@ -186,6 +174,100 @@ void CCustomManager::OnBnClickedRadioMaster()
 /*============================================================================*/
 /*! 設備詳細管理
 
+-# ポップアップメニュー表示イベント
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomManager::OnContextMenu(CWnd* pWnd, CPoint point)
+{
+	if (pWnd != (CWnd*)&mManagerList) {
+		// リストコントロール上でなければ何もしない
+		return;
+	}
+
+	CPoint pt = point;
+	mManagerList.ScreenToClient(&pt);
+
+	int nItem, colnum;
+	nItem = mManagerList.HitTestEx(pt, &colnum);
+	TRACE("# OnContextMenu : INDEX=%d COL=%d\n", nItem, colnum);
+	if (nItem < 0) {
+		// リストコントロール上でなければ何もしない
+		//return;
+	}
+
+	// アイテム、グループ混在かをチェック
+	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
+	int nGroup = -1;
+	while (pos) {
+		int item = mManagerList.GetNextSelectedItem(pos);
+		if (nGroup >= 0 && mManagerList.GetRowGroupId(item) != nGroup) {
+			return;
+		}
+		nGroup = mManagerList.GetRowGroupId(item);
+	}
+
+	UINT nMenuRes = IDR_POPUP_MANAGER;
+
+	bool bUser = false;
+	bool bGroup = false;
+	bool bNoGroup = false;
+	mMenuSelectGroupID = -1;
+	if (mManagerList.IsGroupViewEnabled() == TRUE) {
+		// ユーザ
+		bUser = true;
+		TRACE("# OnContextMenu : USER\n");
+		if (point.x != -1 && point.y != -1) {
+			int nGroupId = mManagerList.GroupHitTest(pt);
+			if (nGroupId >= 0) {
+				// グループラベル
+				CString str = mManagerList.GetGroupHeader(nGroupId);
+				if (str == mNoGroupText) {
+					return;
+				}
+				bGroup = true;
+				nMenuRes = IDR_POPUP_MANAGER_GROUP;
+				mMenuSelectGroupID = nGroupId;
+				TRACE("# OnContextMenu : USER GroupID=%d\n", nGroupId);
+			}
+			else {
+				// リスト項目
+				if (nItem < 0) {
+					return;
+				}
+				nGroupId = mManagerList.GetRowGroupId(nItem);
+				bNoGroup = (mManagerList.GetGroupHeader(nGroupId) == mNoGroupText);
+				TRACE("# OnContextMenu : USER Item=%d NoGroup=%d GroupID=%d\n", nItem, bNoGroup, nGroupId);
+			}
+		}
+	}
+	else {
+		// マスタ
+		if (nItem < 0) {
+			return;
+		}
+		TRACE("# OnContextMenu : MASTER\n");
+	}
+
+	CMenu menu;
+	if (!menu.LoadMenu(nMenuRes)) {
+		ASSERT(FALSE);
+		return;
+	}
+
+	CMenu* pMenu = menu.GetSubMenu(0);
+	ASSERT(pMenu);
+
+	updateMenuItemStatus(pMenu, bUser, bGroup, bNoGroup);
+
+	pMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
+}
+/*============================================================================*/
+/*! 設備詳細管理
+
 -# リストコントロールでのマウス右クリックイベント（※メニュー表示）
 
 @param
@@ -232,7 +314,7 @@ void CCustomManager::OnNMRClickListManager(NMHDR *pNMHDR, LRESULT *pResult)
 	CMenu* pMenu = menu.GetSubMenu(0);
 	ASSERT(pMenu);
 
-	updateMenuItemStatus(pMenu);
+	//updateMenuItemStatus(pMenu);
 
 	mManagerList.ClientToScreen(&pos);
 	pMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pos.x, pos.y, this);
@@ -259,7 +341,23 @@ void CCustomManager::OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult)
 	if (nItem < 0)
 		return;
 
-	showCustomDetail(nItem, true);
+	CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
+	if (pnode == NULL)
+		return;
+
+	if (HIWORD(pnode->GetWindowInfo().groupno) != 0) {
+		UINT nGroup = 0;
+		for (UINT item = 0; item < (UINT)mManagerList.GetItemCount(); item++) {
+			CTreeNode* group = (CTreeNode*)mManagerList.GetItemData(item);
+			if (HIWORD(group->GetWindowInfo().groupno) == HIWORD(pnode->GetWindowInfo().groupno)) {
+				showCustomDetail(item, true);
+			}
+		}
+		UpdateGroup();
+	}
+	else {
+		OnManagerShow();
+	}
 
 	*pResult = 0;
 }
@@ -329,7 +427,7 @@ void CCustomManager::OnManagerDelete()
 /*============================================================================*/
 /*! 設備詳細管理
 
--# ポップアップメニュー「表示-表示」イベント
+-# ポップアップメニュー「表示」イベント
 
 @param
 
@@ -341,16 +439,41 @@ void CCustomManager::OnManagerShow()
 #if _DEMO_PHASE < 100
 	return;
 #endif
+	// 選択されているグループ内アイテムを取得する
+	int nItem = -1;
 	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
 	while (pos) {
-		int nItem = mManagerList.GetNextSelectedItem(pos);
-		showCustomDetail(nItem, true);
+		nItem = mManagerList.GetNextSelectedItem(pos);
+		break;
+	}
+	if (nItem < 0)
+		return;
+
+	// 選択されているグループ番号を取得
+	int nGroupId = mManagerList.GetRowGroupId(nItem);
+	if (nGroupId <= 0) {
+		// 選択されているアイテムを表示
+		POSITION pos = mManagerList.GetFirstSelectedItemPosition();
+		while (pos) {
+			int nItem = mManagerList.GetNextSelectedItem(pos);
+			showCustomDetail(nItem, true);
+		}
+	}
+	else {
+		// グループ内のアイテム全てを表示させて画面連結させる
+		for (nItem = 0; nItem < mManagerList.GetItemCount(); nItem++) {
+			int group = mManagerList.GetRowGroupId(nItem);
+			if (group == nGroupId) {
+				showCustomDetail(nItem, true);
+			}
+		}
+		UpdateGroup();
 	}
 }
 /*============================================================================*/
 /*! 設備詳細管理
 
--# ポップアップメニュー「画面連結-作成」イベント
+-# ポップアップメニュー「画面連結作成」イベント
 
 @param
 
@@ -362,6 +485,20 @@ void CCustomManager::OnManagerCreate()
 #if _DEMO_PHASE < 110
 	return;
 #endif
+	// グループ名の取得
+	CString str = _T("");
+	CCustomGroupName dlg(str);
+	while (1) {
+		if (dlg.DoModal() == IDCANCEL)
+			return;
+
+		if (IsSameGroupName(dlg.mGroupName) == true) {
+			MessageBox(mMessage_SameGroupName, mMessage_Title_CustomDetail, MB_OK | MB_ICONWARNING);
+			continue;
+		}
+		break;
+	}
+
 	UINT maxGroup = GetGroupMaxNo();
 	UINT nGroup = 0;
 	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
@@ -369,27 +506,88 @@ void CCustomManager::OnManagerCreate()
 		int nItem = mManagerList.GetNextSelectedItem(pos);
 		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
 		pnode->GetWindowInfo().groupno = MAKELONG(nGroup, maxGroup + 1);
-		CString str;
-		str.Format(_T("%d"), HIWORD(pnode->GetWindowInfo().groupno));
-		swprintf_s(pnode->GetWindowInfo().groupname, mNameSize, _T("%s"), (LPCTSTR)str);
+		swprintf_s(pnode->GetWindowInfo().groupname, mNameSize, _T("%s"), (LPCTSTR)dlg.mGroupName);
 		nGroup++;
 	}
 	createItem((int)eSelectUser);
+	UpdateGroup();
 }
+
 /*============================================================================*/
 /*! 設備詳細管理
 
--# ポップアップメニュー「画面連結-解除」イベント
+-# グループポップアップメニュー「名称変更」イベント
 
 @param
 
 @retval
 */
 /*============================================================================*/
-void CCustomManager::OnManagerCancel()
+void CCustomManager::OnMangroupRename()
 {
-	// TODO: ここにコマンド ハンドラー コードを追加します。
+	CWaitCursor wait;
+
+	CString str = mManagerList.GetGroupHeader(mMenuSelectGroupID);
+	CCustomGroupName dlg(str);
+	if (dlg.DoModal() == IDCANCEL)
+		return;
+	mManagerList.SetGroupHeader(mMenuSelectGroupID, dlg.mGroupName);
+
+	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
+	while (pos) {
+		int item = mManagerList.GetNextSelectedItem(pos);
+		if (mMenuSelectGroupID == mManagerList.GetRowGroupId(item)) {
+			CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(item);
+			swprintf_s(pnode->GetWindowInfo().groupname, mNameSize, _T("%s"), (LPCTSTR)dlg.mGroupName);
+		}
+	}
 }
+
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# グループポップアップメニュー「画面連結解除」イベント
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomManager::OnMangroupReset()
+{
+	for (UINT item = 0; item < (UINT)mManagerList.GetItemCount(); item++) {
+		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(item);
+		if (HIWORD(pnode->GetWindowInfo().groupno) == mMenuSelectGroupID) {
+			pnode->GetWindowInfo().groupno = MAKELONG(0, 0);
+		}
+	}
+	createItem((int)eSelectUser);
+	UpdateGroup();
+}
+
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# グループポップアップメニュー「表示」イベント
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomManager::OnMangroupShow()
+{
+#if _DEMO_PHASE < 100
+	return;
+#endif
+	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
+	while (pos) {
+		int nItem = mManagerList.GetNextSelectedItem(pos);
+		showCustomDetail(nItem, true);
+	}
+	UpdateGroup();
+}
+
 /*============================================================================*/
 /*! 設備詳細管理
 
@@ -409,6 +607,28 @@ UINT CCustomManager::GetGroupMaxNo()
 		nGroup = __max(nGroup, HIWORD(pnode->GetWindowInfo().groupno));
 	}
 	return nGroup;
+}
+
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# 同名のグループ名が存在するかを確認する
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+bool CCustomManager::IsSameGroupName(CString groupName)
+{
+	for (UINT item = 0; item < (UINT)mManagerList.GetItemCount(); item++) {
+		// データのグループ番号から対象カラムのテキストを設定する
+		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(item);
+		CString str = CString(pnode->GetWindowInfo().groupname);
+		if (str.MakeLower() == groupName.MakeLower())
+			return true;
+	}
+	return false;
 }
 
 /*============================================================================*/
@@ -466,7 +686,8 @@ void CCustomManager::ResetGroupInnerNo()
 				// ノードのグループ番号を更新する
 				(*itr)->GetWindowInfo().groupno = HIWORD((*itr)->GetWindowInfo().groupno) << 16 | (*itrmax).second;
 			}
-			TRACE("### GroupNo : %d\n", HIWORD((*itr)->GetWindowInfo().groupno));
+
+			TRACE("# ResetGroupInnerNo : GroupNo=%d\n", HIWORD((*itr)->GetWindowInfo().groupno));
 		}
 	}
 }
@@ -501,11 +722,11 @@ void CCustomManager::createItem(UINT nSelect)
 		}
 	}
 
-	ResetGroupInnerNo();
-
 	mManagerList.SetRedraw(TRUE);
 
 	mManagerList.GroupByColumn(eManagerGroup, (nSelect == eSelectUser) ? TRUE : FALSE);
+
+	ResetGroupInnerNo();
 
 	if (nSelect == eSelectUser) {
 		mManagerList.SortGroup();
@@ -564,28 +785,33 @@ void CCustomManager::createEqDetail(CTreeNode* node/*=NULL*/)
 
 -# メニュー項目の状態を更新する（※メニュー表示）
 
-@param	pMenu	メニューハンドル
+@param	pMenu		メニューハンドル
+@param	bUser		trueの場合ユーザ
+@param	bGroup		trueの場合グループヘッダー
+@param	bNoGroup	trueの場合[No Group]
 
 @retval
 */
 /*============================================================================*/
-void CCustomManager::updateMenuItemStatus(CMenu* pMenu)
+void CCustomManager::updateMenuItemStatus(CMenu* pMenu, bool bUser, bool bGroup, bool bNoGroup)
 {
 	UINT count = pMenu->GetMenuItemCount();
 	for (UINT pos = 0; pos < count; pos++){
 		UINT state = pMenu->GetMenuState(pos, MF_BYPOSITION);
 		if (state & MF_POPUP){
 			CMenu* pPopup = pMenu->GetSubMenu(pos);
-			updateMenuItemStatus(pPopup);
+			updateMenuItemStatus(pPopup, bUser, bGroup, bNoGroup);
 		}
 		else{
-			BOOL bKind = (mSelectType == eSelectUser) ? TRUE : FALSE;
-			BOOL bSelect = (mManagerList.GetSelectedCount() > 0) ? TRUE : FALSE;
-			BOOL bMultiSelect = (mManagerList.GetSelectedCount() > 1) ? TRUE : FALSE;
-			pMenu->EnableMenuItem(ID_MANAGER_NEW, MF_BYCOMMAND | (bKind) ? MF_ENABLED : MF_GRAYED);
-			pMenu->EnableMenuItem(ID_MANAGER_DELETE, MF_BYCOMMAND | (bKind) && (bSelect || bMultiSelect) ? MF_ENABLED : MF_GRAYED);
+			bool bSelect = (mManagerList.GetSelectedCount() > 0) ? true : false;
+			bool bMultiSelect = (mManagerList.GetSelectedCount() > 1) ? true : false;
+			pMenu->EnableMenuItem(ID_MANAGER_NEW, MF_BYCOMMAND | (bUser) ? MF_ENABLED : MF_GRAYED);
+			pMenu->EnableMenuItem(ID_MANAGER_DELETE, MF_BYCOMMAND | (bUser && (bSelect || bMultiSelect)) ? MF_ENABLED : MF_GRAYED);
 			pMenu->EnableMenuItem(ID_MANAGER_SHOW, MF_BYCOMMAND | (bSelect || bMultiSelect) ? MF_ENABLED : MF_GRAYED);
-			pMenu->EnableMenuItem(ID_MANAGER_CREATE, MF_BYCOMMAND | (bKind) && (bMultiSelect) ? MF_ENABLED : MF_GRAYED);
+			pMenu->EnableMenuItem(ID_MANAGER_CREATE, MF_BYCOMMAND | (bNoGroup && bUser && bMultiSelect) ? MF_ENABLED : MF_GRAYED);
+			pMenu->EnableMenuItem(ID_MANGROUP_RENAME, MF_BYCOMMAND | (bGroup) ? MF_ENABLED : MF_GRAYED);
+			pMenu->EnableMenuItem(ID_MANGROUP_RESET, MF_BYCOMMAND | (bUser) ? MF_ENABLED : MF_GRAYED);
+			pMenu->EnableMenuItem(ID_MANGROUP_SHOW, MF_BYCOMMAND | (bSelect || bMultiSelect) ? MF_ENABLED : MF_GRAYED);
 		}
 	}
 }
@@ -633,6 +859,7 @@ void CCustomManager::OnLButtonDown(UINT nFlags, CPoint point)
 LRESULT CCustomManager::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	CTreeNode* pnode;
+
 	switch (message) {
 	case	eUserMessage_Manager_Update:
 		updateItemData(lParam);
@@ -726,11 +953,26 @@ void CCustomManager::updateXmlFile()
 		UINT type = _wtoi(xml.GetData());
 		if (type == eTreeItemType_Title) {
 			xml.FindElem(_T("TITLE"));
+			// 「備考」保存
 			if (xml.FindElem(_T("MEMO")) == false) {
 				xml.AddElem(_T("MEMO"), mManagerList.GetItemText(i, 1));
 			}
 			else {
 				xml.SetData(mManagerList.GetItemText(i, 1));
+			}
+			// グループ番号保存
+			if (xml.FindElem(_T("GROUPNO")) == false) {
+				xml.AddElem(_T("GROUPNO"), pnode->GetWindowInfo().groupno);
+			}
+			else {
+				xml.SetData(pnode->GetWindowInfo().groupno);
+			}
+			// グループ名称保存
+			if (xml.FindElem(_T("GROUP")) == false) {
+				xml.AddElem(_T("GROUP"), pnode->GetWindowInfo().groupname);
+			}
+			else {
+				xml.SetData(pnode->GetWindowInfo().groupname);
 			}
 		}
 
@@ -800,7 +1042,8 @@ void CCustomManager::OnLvnGetInfoTipListManager(NMHDR* pNMHDR, LRESULT* pResult)
 		return;
 	}
 #ifdef _DEBUG
-	mToolText.Format(_T("GROUP(%d) NO(%d)"), HIWORD(pnode->GetWindowInfo().groupno), LOWORD(pnode->GetWindowInfo().groupno));
+	int nGroupId = mManagerList.GetRowGroupId(pGetInfoTip->iItem);
+	mToolText.Format(_T("(%d)NODE_GROUP=%d NODE_NO=%d NODE_GROUP_NAME=%s"), nGroupId, HIWORD(pnode->GetWindowInfo().groupno), LOWORD(pnode->GetWindowInfo().groupno), pnode->GetWindowInfo().groupname);
 	TRACE("%s\n", CStringA(mToolText));
 #endif
 	pGetInfoTip->pszText = (LPWSTR)(LPCTSTR)mToolText;

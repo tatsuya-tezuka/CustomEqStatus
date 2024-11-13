@@ -195,6 +195,7 @@
     <ClInclude Include="CustomDBAccess.h" />
     <ClInclude Include="CustomDetailConfig.h" />
     <ClInclude Include="CustomDropTarget.h" />
+    <ClInclude Include="CustomGroupName.h" />
     <ClInclude Include="CustomMonCntl.h" />
     <ClInclude Include="CustomMonCntlListCtrl.h" />
     <ClInclude Include="CustomSelectSaveFile.h" />
@@ -219,6 +220,7 @@
     <ClCompile Include="CustomDBAccess.cpp" />
     <ClCompile Include="CustomDetailConfig.cpp" />
     <ClCompile Include="CustomDropTarget.cpp" />
+    <ClCompile Include="CustomGroupName.cpp" />
     <ClCompile Include="CustomMonCntl.cpp" />
     <ClCompile Include="CustomMonCntlListCtrl.cpp" />
     <ClCompile Include="CustomSelectSaveFile.cpp" />

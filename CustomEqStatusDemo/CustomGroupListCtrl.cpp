@@ -367,14 +367,14 @@ namespace
 		const CString& left = ps.LookupGroupName(nLeftId);
 		const CString& right = ps.LookupGroupName(nRightId);
 
-		if (left == _T("No Group")) {
+		if (left == mNoGroupText) {
 			return -1;
 		}
-		if (right == _T("No Group")) {
+		if (right == mNoGroupText) {
 			return 1;
 		}
 
-		TRACE("%s : %s (%d)\n", CStringA(ps.LookupGroupName(nLeftId)), CStringA(ps.LookupGroupName(nRightId)), _tcscmp(left, right));
+		TRACE("# SortFuncGroup : %s : %s (%d)\n", CStringA(ps.LookupGroupName(nLeftId)), CStringA(ps.LookupGroupName(nRightId)), _tcscmp(left, right));
 
 		if (ps.m_Ascending)
 			return _tcscmp(left, right);
@@ -458,7 +458,7 @@ void CCustomGroupListCtrl::SortGroup()
 		int nGroupId = getRowGroupId(nRow);
 		if (nGroupId != -1 && groupsort.m_GroupNames.FindKey(nGroupId) == -1) {
 			groupsort.m_GroupNames.Add(nGroupId, getGroupHeader(nGroupId));
-			TRACE("### GroupName : [%d]%s\n", nGroupId, CStringA(getGroupHeader(nGroupId)));
+			TRACE("# SortGroup ; GroupName=[%d]%s\n", nGroupId, CStringA(getGroupHeader(nGroupId)));
 		}
 	}
 	Invalidate(FALSE);
@@ -644,37 +644,75 @@ BOOL CCustomGroupListCtrl::GroupByColumn(int nCol, BOOL bEnableGroup/* = TRUE*/)
 
 	if (IsGroupViewEnabled()){
 		// グループ表示の場合
+		// グループ番号の直し、グループヘッダー、フッターの設定を行う
 
 		CSimpleMap<CString, CSimpleArray<int> > groups;
 		vector<CString> footers;
 		footers.clear();
 
-		// 各アイテムのグループ設定
-		for (int nRow = 0; nRow < GetItemCount(); ++nRow){
+		//========================================================================================================
+		// グループ番号なしの場合
+		for (int nRow = 0; nRow < GetItemCount(); ++nRow) {
 			// データのグループ番号から対象カラムのテキストを設定する
 			CTreeNode* pnode = (CTreeNode*)GetItemData(nRow);
-			if (HIWORD(pnode->GetWindowInfo().groupno) == 0){
-				SetItemText(nRow, nCol, _T("No Group"));
+			if (HIWORD(pnode->GetWindowInfo().groupno) != 0) {
+				continue;
 			}
-			else{
-				CString str;
-				str.Format(_T("Group_%d"), HIWORD(pnode->GetWindowInfo().groupno));
-				SetItemText(nRow, nCol, str);
-			}
+			SetItemText(nRow, nCol, mNoGroupText);
+
 			// アイテム文字列からグループを作成する
 			CString cellText = GetItemText(nRow, nCol);
 
 			int nGroupId = groups.FindKey(cellText);
-			if (nGroupId == -1){
+			if (nGroupId == -1) {
 				// グループが存在しないのでグループとして設定する
 				CSimpleArray<int> rows;
 				groups.Add(cellText, rows);
 				nGroupId = groups.FindKey(cellText);
 			}
 			groups.GetValueAt(nGroupId).Add(nRow);
+			pnode->GetWindowInfo().groupno = MAKELONG(0, nGroupId);
+			swprintf_s(pnode->GetWindowInfo().groupname, mNameSize, _T("%s"), (LPCTSTR)cellText);
 
 			CString strFooter = cellText;
-			if (footers.size() < (UINT)(nGroupId + 1)){
+			if (footers.size() < (UINT)(nGroupId + 1)) {
+				// グループが存在しないのでグループとして設定する
+				footers.push_back(strFooter);
+			}
+		}
+
+		//========================================================================================================
+		// グループ番号ありの場合
+		for (int nRow = 0; nRow < GetItemCount(); ++nRow) {
+			// データのグループ番号から対象カラムのテキストを設定する
+			CTreeNode* pnode = (CTreeNode*)GetItemData(nRow);
+			if (HIWORD(pnode->GetWindowInfo().groupno) == 0) {
+				continue;
+			}
+			else {
+				CString str;
+				str.Format(_T("Group_%d"), HIWORD(pnode->GetWindowInfo().groupno));
+				if (wcslen(pnode->GetWindowInfo().groupname) != 0 && CString(pnode->GetWindowInfo().groupname).IsEmpty() == false) {
+					str = CString(pnode->GetWindowInfo().groupname);
+				}
+				SetItemText(nRow, nCol, str);
+			}
+			// アイテム文字列からグループを作成する
+			CString cellText = GetItemText(nRow, nCol);
+
+			int nGroupId = groups.FindKey(cellText);
+			if (nGroupId == -1) {
+				// グループが存在しないのでグループとして設定する
+				CSimpleArray<int> rows;
+				groups.Add(cellText, rows);
+				nGroupId = groups.FindKey(cellText);
+			}
+			groups.GetValueAt(nGroupId).Add(nRow);
+			pnode->GetWindowInfo().groupno = MAKELONG(0, nGroupId);
+			swprintf_s(pnode->GetWindowInfo().groupname, mNameSize, _T("%s"), (LPCTSTR)cellText);
+
+			CString strFooter = cellText;
+			if (footers.size() < (UINT)(nGroupId + 1)) {
 				// グループが存在しないのでグループとして設定する
 				footers.push_back(strFooter);
 			}
@@ -757,14 +795,14 @@ int CCustomGroupListCtrl::HitTestEx(CPoint &point, int *col)
 				int colwidth = GetColumnWidth(colnum);
 				if (point.x >= rect.left && point.x <= (rect.left + colwidth)){
 					if (col) *col = colnum;
-					TRACE("Select Item(%d) SubItem(%d)\n", row, *col);
+					TRACE("# HitTestEx : Select Item(%d) SubItem(%d)\n", row, *col);
 					return row;
 				}
 				rect.left += colwidth;
 			}
 		}
 	}
-	TRACE("Not Select Item\n");
+	TRACE("# HitTestEx : Not Select Item\n");
 	return -1;
 }
 
@@ -792,6 +830,32 @@ LRESULT CCustomGroupListCtrl::insertGroupHeader(int nIndex, int nGroupId, const 
 	lg.cchHeader = strHeader.GetLength();
 
 	return InsertGroup(nIndex, (PLVGROUP)&lg);
+}
+
+/*============================================================================*/
+/*! グループリスト
+
+-# グループヘッダーの設定
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+BOOL CCustomGroupListCtrl::SetGroupHeader(int nGroupID, const CString& header)
+{
+	LVGROUP lg = { 0 };
+	lg.cbSize = sizeof(lg);
+	lg.mask = LVGF_HEADER;
+	lg.pszHeader = (LPWSTR)(LPCTSTR)header;
+	lg.cchHeader = header.GetLength();
+
+	if (SetGroupInfo(nGroupID, (PLVGROUP)&lg) == -1)
+		return FALSE;
+
+	setGroupFooter(nGroupID, _T("----- ") + header + _T(" -----"), LVGA_FOOTER_CENTER);
+
+	return TRUE;
 }
 
 /*============================================================================*/
@@ -1253,7 +1317,7 @@ void CCustomGroupListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 		int index = HitTest(point, &flags);
 
 		if (index >= 0) {
-			TRACE("Drop Item(%d)\n", index);
+			TRACE("# OnMouseMove : Drop Item(%d)\n", index);
 			SetItemState(-1, 0, LVIS_DROPHILITED);
 			SetItemState(index, LVIS_DROPHILITED, LVIS_DROPHILITED);
 			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
@@ -1454,18 +1518,89 @@ void CCustomGroupListCtrl::OnRButtonDown(UINT nFlags, CPoint point)
 	ScreenToClient(&ptCursor);
 	UINT flags = 0;
 	int item = HitTest(point, &flags);
-	TRACE("[GROUP]RclickItem(%d)\n", item);
+	TRACE("# OnRButtonDown : RclickItem(%d)\n", item);
 	if (item < 0) {
 		for (int i = 0; i < GetGroupCount(); i++) {
 			// グループREC取得	
 			CRect rect;
 			if (GetGroupRect(i, rect, LVGGR_HEADER) == TRUE) {
 				if (rect.PtInRect(ptCursor) == TRUE) {
-					TRACE("[GROUP]GroupID(%d) OK\n", i);
+					TRACE("# OnRButtonDown : GroupID(%d) OK\n", i);
 				}
 			}
 		}
 	}
 
 	CListCtrl::OnRButtonDown(nFlags, point);
+}
+
+/*============================================================================*/
+/*! グループリスト
+
+-# 位置情報からグループリストの場所を取得
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+int CCustomGroupListCtrl::GroupHitTest(const CPoint& point)
+{
+	if (!IsGroupViewEnabled())
+		return -1;
+
+	if (HitTest(point) != -1)
+		return -1;
+
+	if (IsGroupViewEnabled()){
+		LRESULT groupCount = SNDMSG((m_hWnd), LVM_GETGROUPCOUNT, (WPARAM)0, (LPARAM)0);
+		if (groupCount <= 0) {
+			// グループがない
+			return -1;
+		}
+
+		for (int i = 0; i < groupCount; ++i){
+			LVGROUP lg = { 0 };
+			lg.cbSize = sizeof(lg);
+			lg.mask = LVGF_GROUPID;
+
+			VERIFY(SNDMSG((m_hWnd), LVM_GETGROUPINFOBYINDEX, (WPARAM)(i), (LPARAM)(&lg)));
+
+			CRect rect(0, LVGGR_HEADER, 0, 0);
+			VERIFY(SNDMSG((m_hWnd), LVM_GETGROUPRECT, (WPARAM)(lg.iGroupId), (LPARAM)(RECT*)(&rect)));
+
+			if (rect.PtInRect(point)) {
+				return lg.iGroupId;
+			}
+		}
+		return -1;
+	}
+
+	if (GetItemCount() == 0) {
+		return -1;
+	}
+
+	int nFirstRow = -1;
+	CRect gridRect;
+	GetWindowRect(&gridRect);
+	for (CPoint pt = point; pt.y < gridRect.bottom; pt.y += 2){
+		nFirstRow = HitTest(pt);
+		if (nFirstRow != -1) {
+			break;
+		}
+	}
+
+	if (nFirstRow == -1) {
+		return -1;
+	}
+
+	int nGroupId = getRowGroupId(nFirstRow);
+
+	// Extra validation that the above row belongs to a different group
+	int nAboveRow = GetNextItem(nFirstRow, LVNI_ABOVE);
+	if (nAboveRow != -1 && nGroupId == getRowGroupId(nAboveRow)) {
+		return -1;
+	}
+
+	return nGroupId;
 }

@@ -1111,7 +1111,7 @@ bool CCustomDataManager::SaveTreeDataXml(CString strFile, CWnd* pTargetWnd/* = N
 
 	// 改行コードを設定
 	xml.SetEOL(MCD_T("\n"));
-	xml.SetEOLLEN(sizeof(MCD_T("\n")) / sizeof(MCD_CHAR)-1);
+	xml.SetEOLLEN(sizeof(MCD_T("\n")) / sizeof(MCD_CHAR) - 1);
 
 	// BOMを未出力
 	xml.SetBOM(false);
@@ -1123,16 +1123,16 @@ bool CCustomDataManager::SaveTreeDataXml(CString strFile, CWnd* pTargetWnd/* = N
 	xml.IntoElem();
 	xml.AddElem(_T("VERSION"), EN_FILE_VERSION_MAJOR);
 
-	if (pTargetWnd == NULL){
+	if (pTargetWnd == NULL) {
 		xml.AddElem(_T("SIZE"), (UINT)mTreeNode.size());
 	}
-	else{
+	else {
 		xml.AddElem(_T("SIZE"), (UINT)1);
 	}
 
 	vector<CTreeNode*>::iterator itr;
-	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++){
-		if (pTargetWnd != NULL && pTargetWnd != (*itr)->GetWindowInfo().wnd){
+	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
+		if (pTargetWnd != NULL && pTargetWnd != (*itr)->GetWindowInfo().wnd) {
 			continue;
 		}
 		xml.AddElem(_T("EQUIPMENT"));
@@ -1244,8 +1244,8 @@ bool CTreeNode::SaveTreeNodeXml(CMarkup& xml)
 	if (wininfo.type == eTreeItemType_Title){
 		xml.AddElem(_T("TITLE"), wininfo.title);
 		xml.AddElem(_T("MEMO"), wininfo.memo);
-		xml.AddElem(_T("GROUP"), wininfo.groupname);
 		xml.AddElem(_T("GROUPNO"), wininfo.groupno);
+		xml.AddElem(_T("GROUP"), wininfo.groupname);
 		xml.AddElem(_T("MONITOR"), wininfo.monitor);
 		xml.AddElem(_T("FLAGS"), wininfo.placement.flags);
 		xml.AddElem(_T("SHOWCMD"), (wininfo.wnd == NULL) ? 0 : wininfo.wnd->IsWindowVisible()/*wininfo.placement.showCmd*/);
@@ -1388,13 +1388,14 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 		swprintf_s(wininfo.title, mTitleSize, _T("%s"), (LPCTSTR)xml.GetData());
 		xml.FindElem(_T("MEMO"));
 		swprintf_s(wininfo.memo, mTitleSize, _T("%s"), (LPCTSTR)xml.GetData());
+		xml.FindElem(_T("GROUPNO"));
+		CString str = xml.GetData();
+		wininfo.groupno = _wtoi(xml.GetData());
 		xml.FindElem(_T("GROUP"));
 		swprintf_s(wininfo.groupname, mNameSize, _T("%s"), (LPCTSTR)xml.GetData());
-		xml.FindElem(_T("GROUPNO"));
-		wininfo.groupno = _wtoi(xml.GetData());
-		if (HIWORD(wininfo.groupno) == 0) {
-			swprintf_s(wininfo.groupname, mNameSize, _T("99999"));
-		}
+		//if (HIWORD(wininfo.groupno) == 0) {
+		//	swprintf_s(wininfo.groupname, mNameSize, mNoGroupText);
+		//}
 		xml.FindElem(_T("MONITOR"));
 		wininfo.monitor = _wtoi(xml.GetData());
 		wininfo.placement.length = sizeof(WINDOWPLACEMENT);
