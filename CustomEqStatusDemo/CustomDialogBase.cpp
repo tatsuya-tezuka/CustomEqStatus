@@ -145,6 +145,7 @@ void CCustomDialogBase::OnMoving(UINT fwSide, LPRECT pRect)
 	if (pnode == NULL || HIWORD(pnode->GetWindowInfo().groupno) == 0)
 		return;
 
+	TRACE("# OnMoving : GroupNo=%d, GroupName=%s\n", HIWORD(pnode->GetWindowInfo().groupno), CStringA(pnode->GetWindowInfo().groupname));
 	CRect rect;
 	pnode->GetWindowInfo().wnd->GetWindowRect(rect);
 	theApp.GetCustomControl().GetCustomManager().GetCustomSyncWindow().Move(pnode->GetWindowInfo().groupno, pnode->GetWindowInfo().wnd, &rect);

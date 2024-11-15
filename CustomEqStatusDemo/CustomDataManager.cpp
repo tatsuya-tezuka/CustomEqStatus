@@ -638,7 +638,7 @@ bool CTreeNode::SaveTreeNode(CArchive& ar)
 		ar << wininfo.zorder;
 	}
 	//šwininfo.treeopen = ((CCustomDetail*)wininfo.wnd)->GetTreeExpandState(treeitem);
-	ar << wininfo.treeopen;
+	ar << 0/*wininfo.treeopen*/;
 
 	// ŠÄ‹§Œäî•ñ
 	ar << CString(monctrl.display);
@@ -784,7 +784,8 @@ bool CTreeNode::LoadTreeNode(CArchive& ar)
 		}
 		ar >> wininfo.zorder;
 	}
-	ar >> wininfo.treeopen;;
+	UINT temp;
+	ar >> temp;
 
 	// ŠÄ‹§Œäî•ñ
 	ar >> str;
@@ -1260,7 +1261,7 @@ bool CTreeNode::SaveTreeNodeXml(CMarkup& xml)
 		xml.AddElem(_T("ZORDER"), wininfo.zorder);
 	}
 	//šwininfo.treeopen = ((CCustomDetail*)wininfo.wnd)->GetTreeExpandState(treeitem);
-	xml.AddElem(_T("TREEOPEN"), wininfo.treeopen);
+	xml.AddElem(_T("TREEOPEN"), 0/*wininfo.treeopen*/);
 	xml.OutOfElem();
 
 	// ŠÄ‹§Œäî•ñ
@@ -1415,8 +1416,8 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 		xml.FindElem(_T("ZORDER"));
 		wininfo.zorder = _wtoi(xml.GetData());
 	}
-	xml.FindElem(_T("TREEOPEN"));
-	wininfo.treeopen = _wtoi(xml.GetData());
+	//xml.FindElem(_T("TREEOPEN"));
+	//wininfo.treeopen = 0;// _wtoi(xml.GetData());
 	xml.OutOfElem();
 
 	// ŠÄ‹§Œäî•ñ

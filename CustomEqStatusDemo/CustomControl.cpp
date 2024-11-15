@@ -41,8 +41,10 @@ void CCustomControl::Initialize(CWnd* pParent, CString appPath)
 	/// 全てのウィンドウハンドル、ノードの削除
 	GetDataManager().DeleteAll();
 
+#if _DEMO_PHASE >= 40
 	/// マスタ設備詳細データを読み込む
 	createMasterEquipment();
+#endif
 
 	/// ユーザ設備詳細データを読み込む
 	createUserEquipment();

@@ -458,7 +458,7 @@ void CCustomGroupListCtrl::SortGroup()
 		int nGroupId = getRowGroupId(nRow);
 		if (nGroupId != -1 && groupsort.m_GroupNames.FindKey(nGroupId) == -1) {
 			groupsort.m_GroupNames.Add(nGroupId, getGroupHeader(nGroupId));
-			TRACE("# SortGroup ; GroupName=[%d]%s\n", nGroupId, CStringA(getGroupHeader(nGroupId)));
+			//TRACE("# SortGroup ; GroupName=[%d]%s\n", nGroupId, CStringA(getGroupHeader(nGroupId)));
 		}
 	}
 	Invalidate(FALSE);
@@ -633,6 +633,8 @@ void CCustomGroupListCtrl::CreateGroupControl(CWnd* parent)
 /*============================================================================*/
 BOOL CCustomGroupListCtrl::GroupByColumn(int nCol, BOOL bEnableGroup/* = TRUE*/)
 {
+	TRACE("##### GroupByColumn\n");
+
 	CWaitCursor waitCursor;
 
 	SetRedraw(FALSE);
@@ -641,6 +643,8 @@ BOOL CCustomGroupListCtrl::GroupByColumn(int nCol, BOOL bEnableGroup/* = TRUE*/)
 
 	//EnableGroupView(bEnableGroup && GetItemCount() > 0);
 	EnableGroupView(bEnableGroup);
+
+	BOOL ret = FALSE;
 
 	if (IsGroupViewEnabled()){
 		// グループ表示の場合
@@ -710,6 +714,7 @@ BOOL CCustomGroupListCtrl::GroupByColumn(int nCol, BOOL bEnableGroup/* = TRUE*/)
 			groups.GetValueAt(nGroupId).Add(nRow);
 			pnode->GetWindowInfo().groupno = MAKELONG(0, nGroupId);
 			swprintf_s(pnode->GetWindowInfo().groupname, mNameSize, _T("%s"), (LPCTSTR)cellText);
+			TRACE("# GroupByColumn : GroupNo=%d, GroupName=%s\n", nGroupId, CStringA(cellText));
 
 			CString strFooter = cellText;
 			if (footers.size() < (UINT)(nGroupId + 1)) {
@@ -741,14 +746,19 @@ BOOL CCustomGroupListCtrl::GroupByColumn(int nCol, BOOL bEnableGroup/* = TRUE*/)
 			}
 		}
 		SetColumnWidth(nCol, 0);
-		SetRedraw(TRUE);
-		Invalidate(FALSE);
-		return TRUE;
+		ret = TRUE;
 	}
 
 	SetRedraw(TRUE);
 	Invalidate(FALSE);
-	return FALSE;
+
+	vector<CTreeNode*>& treedata = theApp.GetCustomControl().GetDataManager().GetTreeNode();
+	vector<CTreeNode*>::iterator itr;
+	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
+		TRACE("# GroupByColumn Dump : GroupNo=%d, GroupName=%s\n", HIWORD((*itr)->GetWindowInfo().groupno), CStringA((*itr)->GetWindowInfo().groupname));
+	}
+
+	return ret;
 }
 
 /*============================================================================*/
@@ -1603,4 +1613,17 @@ int CCustomGroupListCtrl::GroupHitTest(const CPoint& point)
 	}
 
 	return nGroupId;
+}
+
+
+void CCustomGroupListCtrl::PreSubclassWindow()
+{
+	// TODO: ここに特定なコードを追加するか、もしくは基底クラスを呼び出してください。
+
+	CListCtrl::PreSubclassWindow();
+
+	//SetExtendedStyle(LVS_EX_DOUBLEBUFFER | GetExtendedStyle());
+	//SetExtendedStyle(GetExtendedStyle() | LVS_EX_FULLROWSELECT);
+	//SetExtendedStyle(GetExtendedStyle() | LVS_EX_HEADERDRAGDROP);
+	//SetExtendedStyle(GetExtendedStyle() | LVS_EX_GRIDLINES);
 }

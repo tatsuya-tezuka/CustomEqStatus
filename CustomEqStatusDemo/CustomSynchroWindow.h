@@ -76,6 +76,8 @@ public:
 	BOOL	IsSync(UINT group, CWnd* pbase);
 	int		Size(UINT group);
 	UINT	Group(CWnd* pbase);
+	map< UINT, vector<GroupInfo> >& GetGroupWindowList() { return mGroupWindowList; }
+	void	Dump();
 
 protected:
 

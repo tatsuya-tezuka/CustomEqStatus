@@ -259,15 +259,16 @@ void CCustomDetail::OnMenudetailClose()
 
 	//bool ret = mBackupNode->Equal(pnode);
 	bool ret = theApp.GetCustomControl().GetDataManager().CompareEditNode(this);
-	if (ret == true) {
+	if (ret == true && CString(pnode->GetXmlFileName()).IsEmpty() == false) {
 		TRACE("Same Data\b");
 	}
 	else {
 		TRACE("Different Data\n");
 		int retmsg = CustomSaveDifferentMessageBoxHooked(m_hWnd, mMessage_DetailSaveDifferentData, pnode->GetWindowInfo().title, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1, CString(pnode->GetXmlFileName()).IsEmpty() ? false : true);
 
-		if (retmsg == IDCANCEL)
+		if (retmsg == IDCANCEL) {
 			return;
+		}
 
 		if (retmsg == IDYES) {
 			// 変更内容を保存する
@@ -275,12 +276,25 @@ void CCustomDetail::OnMenudetailClose()
 		}
 	}
 
-	// 編集用ノードの削除
-	theApp.GetCustomControl().GetDataManager().DeleteEditNode(this);
-
 	CCustomDialogBase::OnClose();
 
+	// 編集用ノードの削除
+	// 画面連結対応
+	vector<CTreeNode*>& treedata = theApp.GetCustomControl().GetDataManager().GetTreeNode();
+	vector<CTreeNode*>::iterator itr;
+	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
+		if ((*itr)->GetWindowInfo().wnd != pnode->GetWindowInfo().wnd &&
+			HIWORD((*itr)->GetWindowInfo().groupno) == HIWORD(pnode->GetWindowInfo().groupno)) {
+			CWnd* pwnd = (*itr)->GetWindowInfo().wnd;
+			theApp.GetCustomControl().GetDataManager().DeleteEditNode(pwnd);
+			theApp.GetCustomControl().GetDataManager().DeleteItemWnd(pwnd);
+		}
+	}
+
+	theApp.GetCustomControl().GetDataManager().DeleteEditNode(this);
+
 	// 新規作成時のウィンドウ時、保存しない場合は削除する
+	pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 	theApp.GetCustomControl().GetCustomManager().SendMessage(eUserMessage_Manager_Delete, CString(pnode->GetXmlFileName()).IsEmpty() == true ? 1 : 0, (LPARAM)this);
 }
 

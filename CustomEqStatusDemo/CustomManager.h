@@ -136,6 +136,7 @@ protected:
 	void	showCustomDetail(int nItem, bool bDblClick);
 	UINT	GetGroupMaxNo();
 	bool	IsSameGroupName(CString groupName);
+	void	SyncEditMode();
 
 	/* ------------------------------------------------------------------------------------ */
 

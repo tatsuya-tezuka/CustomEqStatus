@@ -23,7 +23,7 @@ static HHOOK CustomHookHandle;	// フックハンドル変数
 static HHOOK CustomMsgHookHandle;	// フックハンドル変数
 static LPCWSTR mMsgCustomOK = L"実行";				// OKボタンの文字
 static LPCWSTR mMsgCustomYes = L"保存";	// キャンセルボタンの文字
-static LPCWSTR mMsgCustomNo = L"保存しない";	// キャンセルボタンの文字
+static LPCWSTR mMsgCustomNo = L"保存しない";	// NOボタンの文字
 static LPCWSTR mMsgCustomCancel = L"キャンセル";	// キャンセルボタンの文字
 static BOOL    mMsgCustomSaveEnable=TRUE;
 // プロトタイプ宣言

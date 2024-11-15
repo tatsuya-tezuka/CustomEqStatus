@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "CustomEqStatusDemo.h"
 #include "CustomSynchroWindow.h"
 
 CCustomSynchroWindow::CCustomSynchroWindow()
@@ -40,6 +41,12 @@ void CCustomSynchroWindow::Set(UINT group, CWnd* pbase)
 		temp.push_back(search);
 		mGroupWindowList.insert(map<UINT, vector<GroupInfo>>::value_type(HIWORD(group), temp));
 		itr = mGroupWindowList.find(HIWORD(group));
+	}
+
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(pbase);
+	if (pnode != NULL) {
+		TRACE("# Set : %d Node(GroupNo=%d, GroupName=%s)\n", HIWORD(group), HIWORD(pnode->GetWindowInfo().groupno), CStringA(pnode->GetWindowInfo().groupname));
+
 	}
 
 	sort((*itr).second.begin(), (*itr).second.end());
@@ -109,12 +116,14 @@ void CCustomSynchroWindow::Move(UINT group, CWnd* pbase, CRect rectbase)
 	rect = rectbase;
 	for (itrRight = (*itr).second.rbegin(); itrRight != (*itr).second.rend(); itrRight++) {
 		if (bfind == true) {
-			(*itrRight).wnd->GetWindowRect(rc);
-			rect.right = rect.left + (GetSystemMetrics(SM_CXSIZEFRAME) * 3);
-			rect.left = rect.right - rc.Width();
-			(*itrRight).wnd->MoveWindow(rect.left, rect.top, rc.Width(), rc.Height());
-			SetWindowPos((*itrRight).wnd->m_hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE| SWP_NOACTIVATE);
-			//rect.right -= rc.Width();
+			if ((*itrRight).wnd->GetSafeHwnd()) {
+				(*itrRight).wnd->GetWindowRect(rc);
+				rect.right = rect.left + (GetSystemMetrics(SM_CXSIZEFRAME) * 3);
+				rect.left = rect.right - rc.Width();
+				(*itrRight).wnd->MoveWindow(rect.left, rect.top, rc.Width(), rc.Height());
+				SetWindowPos((*itrRight).wnd->m_hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+				//rect.right -= rc.Width();
+			}
 		}
 		else {
 			if ((*itrRight).wnd == pbase) {
@@ -128,11 +137,13 @@ void CCustomSynchroWindow::Move(UINT group, CWnd* pbase, CRect rectbase)
 	rect = rectbase;
 	for (itrLeft = (*itr).second.begin(); itrLeft != (*itr).second.end(); itrLeft++) {
 		if (bfind == true) {
-			(*itrLeft).wnd->GetWindowRect(rc);
-			rect.right -= (GetSystemMetrics(SM_CXSIZEFRAME) * 3);
-			(*itrLeft).wnd->MoveWindow(rect.right, rect.top, rc.Width(), rc.Height());
-			SetWindowPos((*itrLeft).wnd->m_hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE| SWP_NOACTIVATE);
-			rect.right += rc.Width();
+			if ((*itrLeft).wnd->GetSafeHwnd()) {
+				(*itrLeft).wnd->GetWindowRect(rc);
+				rect.right -= (GetSystemMetrics(SM_CXSIZEFRAME) * 3);
+				(*itrLeft).wnd->MoveWindow(rect.right, rect.top, rc.Width(), rc.Height());
+				SetWindowPos((*itrLeft).wnd->m_hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+				rect.right += rc.Width();
+			}
 		}
 		else {
 			if ((*itrLeft).wnd == pbase) {
@@ -164,10 +175,13 @@ void CCustomSynchroWindow::Close(UINT group, CWnd* pbase)
 
 	vector<GroupInfo>::iterator itrlist;
 	for (itrlist = (*itr).second.begin(); itrlist != (*itr).second.end(); itrlist++) {
-		if ((*itrlist).wnd != pbase) {
-			(*itrlist).wnd->PostMessageW(WM_CLOSE, 0, 0);
-		}
+		//theApp.GetCustomControl().GetDataManager().DeleteItemWnd((*itrlist).wnd);
+		//if ((*itrlist).wnd!= NULL && (*itrlist).wnd != pbase) {
+		//	(*itrlist).wnd->PostMessageW(WM_CLOSE, 0, 0);
+		//	(*itrlist).wnd = NULL;
+		//}
 	}
+	mGroupWindowList.erase(itr);
 }
 
 /*============================================================================*/
@@ -279,4 +293,33 @@ UINT CCustomSynchroWindow::Group(CWnd* pbase)
 
 	}
 	return 0; // グループなし
+}
+
+/*============================================================================*/
+/*! ウィンドウ連動
+
+-# 任意のウィンドウのグループ番号取得
+
+@param	pbase		移動対象のウィンドウ
+
+@retval
+*/
+/*============================================================================*/
+void CCustomSynchroWindow::Dump()
+{
+	map< UINT, vector<GroupInfo> >::iterator itr;
+	for (itr = mGroupWindowList.begin(); itr != mGroupWindowList.end(); itr++) {
+		vector<GroupInfo>::iterator itrlist;
+		for (itrlist = (*itr).second.begin(); itrlist != (*itr).second.end(); itrlist++) {
+			CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode((*itrlist).wnd);
+			if (pnode == NULL) {
+				TRACE("# Dump : No Data\n");
+			}
+			else {
+				TRACE("# Dump : GroupNo=%d @ Node(GroupNo=%d, GroupName=%s)\n", (*itr).first, HIWORD(pnode->GetWindowInfo().groupno), CStringA(pnode->GetWindowInfo().groupname));
+
+			}
+		}
+
+	}
 }

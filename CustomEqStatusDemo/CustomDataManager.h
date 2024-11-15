@@ -20,7 +20,7 @@
 //	グローバル定義
 //------------------------------------------------------------------------------------
 static const CString m_strAppName = _T("StationControl LayoutFile");		// 端末アプリ名の設定
-static const double m_nVersionCustom = 2.1;										// レイアウト対応アプリバージョンの設定
+static const double m_nVersionCustom = 2.1;									// レイアウト対応アプリバージョンの設定
 enum eFileVersionMajor
 {
 	EN_FILE_VERSION_MAJOR = 100, /*1.00*/
@@ -143,7 +143,7 @@ enum eTreeItemSubType{
 };
 
 enum eColorType {
-	eColorType_Window,
+	eColorType_Window = 0,
 	eColorType_TitleBack,
 	eColorType_TitleText,
 	eColorType_MainBack,
@@ -170,7 +170,7 @@ typedef struct{
 	TCHAR			groupname[mNameSize];	// グループ
 	UINT			groupno;			// グループ番号(下位ワード：グループ内番号　上位ワード：グループ番号)
 	WINDOWPLACEMENT	placement;			// ウィンドウ位置情報
-	UINT			treeopen;			// ツリーアイテムの開閉状態
+	//UINT			treeopen;			// ツリーアイテムの開閉状態
 	UINT			hwidth[mHeaderSize]; // 詳細画面ヘッダー幅
 	UINT			zorder;				// Zオーダー
 	UINT			monitor;			// モニタ識別
@@ -471,6 +471,7 @@ public:
 				return (*itr);
 			}
 		}
+
 		return NULL;
 	}
 
