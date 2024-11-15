@@ -85,6 +85,9 @@ BOOL CCustomManager::OnInitDialog()
 
 	CenterWindow(GetDesktopWindow());
 
+	SetWindowText(mMessage_Title_CustomManager);
+
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
 }
@@ -406,7 +409,7 @@ void CCustomManager::OnManagerDelete()
 {
 	CString msg;
 	msg.Format(mMessage_ManagerDelete);
-	if (MessageBox(msg, mMessage_Title_CustomDetail, MB_YESNO | MB_ICONQUESTION) == IDNO) {
+	if (MessageBox(msg, mMessage_Title_CustomManager, MB_YESNO | MB_ICONQUESTION) == IDNO) {
 		return;
 	}
 
@@ -508,7 +511,7 @@ void CCustomManager::OnManagerCreate()
 			return;
 
 		if (IsSameGroupName(dlg.mGroupName) == true) {
-			MessageBox(mMessage_SameGroupName, mMessage_Title_CustomDetail, MB_OK | MB_ICONWARNING);
+			MessageBox(mMessage_SameGroupName, mMessage_Title_CustomManager, MB_OK | MB_ICONWARNING);
 			continue;
 		}
 		break;
@@ -673,7 +676,7 @@ bool CCustomManager::IsSameGroupName(CString groupName)
 /*============================================================================*/
 void CCustomManager::UpdateGroup()
 {
-#if _DEMO_PHASE < 110
+#if _DEMO_PHASE < 30
 	return;
 #endif
 	// 登録されているカスタム画面のグループ更新

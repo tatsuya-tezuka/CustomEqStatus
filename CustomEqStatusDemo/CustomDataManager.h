@@ -63,11 +63,11 @@ static const UINT mSortRange = 20;
 static const UINT mGroupRange = 10;
 
 /// タイトル
-static const TCHAR* mMessage_Title_CustomManager = { _T("カスタム管理画面") };
+static const TCHAR* mMessage_Title_CustomManager = { _T("カスタマイズ管理画面") };
 static const TCHAR* mMessage_Title_CustomDetail = { _T("カスタム画面") };
 
 /// メッセージ
-static const TCHAR* mMessage_ManagerDelete = { _T("選択されたカスタム情報を削除します。\nよろしいですか？") };
+static const TCHAR* mMessage_ManagerDelete = { _T("選択された設備詳細情報を削除します。\nよろしいですか？") };
 static const TCHAR* mMessage_DetailSaveDifferentData = { _T("設備詳細の変更内容を保存しますか？") };
 static const TCHAR* mMessage_DetailDelete = { _T("%sを削除します。\nよろしいですか？") };
 static const TCHAR* mMessage_LoadLayout = { _T("表示されている全ての設備詳細画面の変更内容を破棄します。\nよろしいですか？") };

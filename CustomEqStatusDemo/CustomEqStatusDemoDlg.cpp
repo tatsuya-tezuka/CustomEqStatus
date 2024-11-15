@@ -115,6 +115,8 @@ BOOL CCustomEqStatusDemoDlg::OnInitDialog()
 	::SetWindowPos(m_hWnd, HWND_TOP, rect.left, 0, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
 #endif
 
+	GetDlgItem(IDC_MFCBUTTON__MANAGER)->SetWindowText(mMessage_Title_CustomManager);
+
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
 
