@@ -676,7 +676,7 @@ bool CCustomManager::IsSameGroupName(CString groupName)
 /*============================================================================*/
 void CCustomManager::UpdateGroup()
 {
-#if _DEMO_PHASE < 30
+#if _DEMO_PHASE < 110
 	return;
 #endif
 	// 登録されているカスタム画面のグループ更新
