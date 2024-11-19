@@ -197,7 +197,7 @@ void CCustomDetail::OnNMRClickTreeCtrl(NMHDR *pNMHDR, LRESULT *pResult)
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, mMenuItem);
 	// ここでツリーノード種別によってメニューの活性、非活性を行う
 	if (pnode != NULL) {
-		switch (pnode->GetWindowInfo().type) {
+		switch (pnode->GetEquipment().type) {
 		case	eTreeItemType_Title:
 			pMenu->EnableMenuItem(ID_DETAIL_DELETE, MF_BYCOMMAND | MF_GRAYED);
 			break;
@@ -211,7 +211,7 @@ void CCustomDetail::OnNMRClickTreeCtrl(NMHDR *pNMHDR, LRESULT *pResult)
 		}
 
 		pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
-		if (pnode->GetWindowInfo().mode == eTreeItemMode_Monitor) {
+		if (pnode->GetEquipment().mode == eTreeItemMode_Monitor) {
 			pMenu->EnableMenuItem(ID_DETAIL_ADD, MF_BYCOMMAND | MF_GRAYED);
 			pMenu->EnableMenuItem(ID_DETAIL_DELETE, MF_BYCOMMAND | MF_GRAYED);
 			pMenu->EnableMenuItem(ID_DETAIL_RENAME, MF_BYCOMMAND | MF_GRAYED);
@@ -264,7 +264,7 @@ void CCustomDetail::OnMenudetailClose()
 	}
 	else {
 		TRACE("Different Data\n");
-		int retmsg = CustomSaveDifferentMessageBoxHooked(m_hWnd, mMessage_DetailSaveDifferentData, pnode->GetWindowInfo().title, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1, CString(pnode->GetXmlFileName()).IsEmpty() ? false : true);
+		int retmsg = CustomSaveDifferentMessageBoxHooked(m_hWnd, mMessage_DetailSaveDifferentData, pnode->GetEquipment().title, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1, CString(pnode->GetXmlFileName()).IsEmpty() ? false : true);
 
 		if (retmsg == IDCANCEL) {
 			return;
@@ -283,9 +283,9 @@ void CCustomDetail::OnMenudetailClose()
 	vector<CTreeNode*>& treedata = theApp.GetCustomControl().GetDataManager().GetTreeNode();
 	vector<CTreeNode*>::iterator itr;
 	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
-		if ((*itr)->GetWindowInfo().wnd != pnode->GetWindowInfo().wnd &&
-			HIWORD((*itr)->GetWindowInfo().groupno) == HIWORD(pnode->GetWindowInfo().groupno)) {
-			CWnd* pwnd = (*itr)->GetWindowInfo().wnd;
+		if ((*itr)->GetEquipment().wnd != pnode->GetEquipment().wnd &&
+			HIWORD((*itr)->GetManager().groupno) == HIWORD(pnode->GetManager().groupno)) {
+			CWnd* pwnd = (*itr)->GetEquipment().wnd;
 			theApp.GetCustomControl().GetDataManager().DeleteEditNode(pwnd);
 			theApp.GetCustomControl().GetDataManager().DeleteItemWnd(pwnd);
 		}
@@ -328,8 +328,8 @@ void CCustomDetail::OnMenudetailSave()
 	theApp.GetCustomControl().GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, pnode->GetXmlFileName(), this);
 
 	// カスタム管理画面へ通知してタイトルを更新する
-	if (pnode->GetWindowInfo().manager->GetSafeHwnd())
-		pnode->GetWindowInfo().manager->SendMessage(eUserMessage_Manager_Update, 0, (LPARAM)this);
+	if (pnode->GetEquipment().manager->GetSafeHwnd())
+		pnode->GetEquipment().manager->SendMessage(eUserMessage_Manager_Update, 0, (LPARAM)this);
 }
 
 /*============================================================================*/
@@ -387,7 +387,7 @@ void CCustomDetail::saveHeaderWidth()
 {
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 
-	mTreeCtrl.GetHeaderWidth(pnode->GetWindowInfo().hwidth, mHeaderSize);
+	mTreeCtrl.GetHeaderWidth(pnode->GetEquipment().hwidth, mHeaderSize);
 }
 
 /*============================================================================*/
@@ -407,7 +407,7 @@ void CCustomDetail::OnMenudetailEdit()
 #endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 	if (pnode != NULL) {
-		pnode->GetWindowInfo().mode = eTreeItemMode_Edit;
+		pnode->GetEquipment().mode = eTreeItemMode_Edit;
 		updateMode();
 	}
 }
@@ -429,7 +429,7 @@ void CCustomDetail::OnMenudetailMonitor()
 #endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 	if (pnode != NULL) {
-		pnode->GetWindowInfo().mode = eTreeItemMode_Monitor;
+		pnode->GetEquipment().mode = eTreeItemMode_Monitor;
 		updateMode();
 	}
 }
@@ -600,11 +600,11 @@ void CCustomDetail::createRoot()
 	CTreeNode* newnode = new CTreeNode(rootItem, this, &mTreeCtrl);
 	setNodeWindowInfo(newnode, eTreeItemType_Title, (LPWSTR)mDefaultCustomTitle, NULL);
 	// デフォルトフォントの設定
-	mTreeCtrl.SetFontEx(newnode->GetWindowInfo().type, mTreeLogFont);
+	mTreeCtrl.SetFontEx(newnode->GetEquipment().type, mTreeLogFont);
 	// 論理フォントの取得
 	mTreeCtrl.GetFontEx(eTreeItemType_Window).GetLogFont(&newnode->GetColor().font);
 
-	newnode->GetWindowInfo().mode = eTreeItemMode_Edit;
+	newnode->GetEquipment().mode = eTreeItemMode_Edit;
 
 	theApp.GetCustomControl().GetDataManager().AddTreeNode(newnode);
 
@@ -639,7 +639,7 @@ void CCustomDetail::createMainNode(HTREEITEM parentitem, CTreeNode* parentnode)
 		item_node->CopyItem(pcopyitem, true);
 	setNodeWindowInfo(item_node, eTreeItemType_Main, (LPWSTR)mDefaultCustomMainText, parentnode);
 	// デフォルトフォントの設定
-	mTreeCtrl.SetFontEx(item_node->GetWindowInfo().type, mTreeLogFont);
+	mTreeCtrl.SetFontEx(item_node->GetEquipment().type, mTreeLogFont);
 	// 論理フォントの取得
 	mTreeCtrl.GetFontEx(eTreeItemType_Window).GetLogFont(&item_node->GetColor().font);
 
@@ -669,7 +669,7 @@ void CCustomDetail::createSubNode(HTREEITEM parentitem, CTreeNode* parentnode)
 		item_node->CopyItem(pcopyitem, true);
 	setNodeWindowInfo(item_node, eTreeItemType_Sub, (LPWSTR)mDefaultCustomSubText, parentnode);
 	// デフォルトフォントの設定
-	mTreeCtrl.SetFontEx(item_node->GetWindowInfo().type, mTreeLogFont);
+	mTreeCtrl.SetFontEx(item_node->GetEquipment().type, mTreeLogFont);
 	// 論理フォントの取得
 	mTreeCtrl.GetFontEx(eTreeItemType_Window).GetLogFont(&item_node->GetColor().font);
 
@@ -699,7 +699,7 @@ void CCustomDetail::createLeaf(HTREEITEM parentitem, CTreeNode* parentnode)
 		item_node->CopyItem(pcopyitem, true);
 	setNodeWindowInfo(item_node, eTreeItemType_Item, (LPWSTR)mDefaultCustomItemText, parentnode);
 	// デフォルトフォントの設定
-	mTreeCtrl.SetFontEx(item_node->GetWindowInfo().type, mTreeLogFont);
+	mTreeCtrl.SetFontEx(item_node->GetEquipment().type, mTreeLogFont);
 	// 論理フォントの取得
 	mTreeCtrl.GetFontEx(eTreeItemType_Window).GetLogFont(&item_node->GetColor().font);
 
@@ -765,13 +765,13 @@ void CCustomDetail::restoreRoot()
 #endif
 
 	// ルート復元
-	HTREEITEM rootItem = mTreeCtrl.InsertItem(pnode->GetWindowInfo().title, NULL, NULL, TVI_ROOT);
+	HTREEITEM rootItem = mTreeCtrl.InsertItem(pnode->GetEquipment().title, NULL, NULL, TVI_ROOT);
 	mTreeCtrl.SetItemData(rootItem, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_TITLE, 0));
 
 	pnode->SetTreeItem(rootItem);
 	mTreeLogFont = pnode->GetColor().font;
 
-	setNodeWindowInfo(pnode, eTreeItemType_Title, pnode->GetWindowInfo().title, NULL);
+	setNodeWindowInfo(pnode, eTreeItemType_Title, pnode->GetEquipment().title, NULL);
 	// フォントの設定
 	mTreeCtrl.SetFontEx(eTreeItemType_Title, pnode->GetColor().font);
 
@@ -790,11 +790,11 @@ void CCustomDetail::restoreRoot()
 	}
 
 	// ウィンドウ状態の復元
-	SetWindowPlacement(&(pnode->GetWindowInfo().placement));
-	ShowWindow(pnode->GetWindowInfo().placement.showCmd);
+	SetWindowPlacement(&(pnode->GetEquipment().placement));
+	ShowWindow(pnode->GetEquipment().placement.showCmd);
 
 	// ヘッダー幅再設定
-	mTreeCtrl.SetHeaderWidth(pnode->GetWindowInfo().hwidth, mHeaderSize);
+	mTreeCtrl.SetHeaderWidth(pnode->GetEquipment().hwidth, mHeaderSize);
 	mTreeCtrl.UpdateColumns();
 }
 
@@ -816,7 +816,7 @@ void CCustomDetail::restoreNode(CTreeNode* pnode, HTREEITEM ptree)
 		CString str;
 		str = generateTreeText((*itr));
 		HTREEITEM item = mTreeCtrl.InsertItem(str, NULL, NULL, ptree);
-		switch ((*itr)->GetWindowInfo().type) {
+		switch ((*itr)->GetEquipment().type) {
 		case	eTreeItemType_Main:
 			mTreeCtrl.SetItemData(item, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_MAINNODE, 0));
 			break;
@@ -831,10 +831,10 @@ void CCustomDetail::restoreNode(CTreeNode* pnode, HTREEITEM ptree)
 		if (abs(mTreeLogFont.lfHeight) < abs(pnode->GetColor().font.lfHeight))
 			mTreeLogFont.lfHeight = pnode->GetColor().font.lfHeight;
 		// フォントの設定
-		mTreeCtrl.SetFontEx((*itr)->GetWindowInfo().type, (*itr)->GetColor().font);
+		mTreeCtrl.SetFontEx((*itr)->GetEquipment().type, (*itr)->GetColor().font);
 		(*itr)->SetTreeItem(item);
-		(*itr)->GetWindowInfo().tree = &mTreeCtrl;
-		(*itr)->GetWindowInfo().wnd = this;
+		(*itr)->GetEquipment().tree = &mTreeCtrl;
+		(*itr)->GetEquipment().wnd = this;
 		restoreNode((*itr), item);
 
 		// 常に展開モードとする
@@ -860,10 +860,10 @@ void CCustomDetail::restoreNode(CTreeNode* pnode, HTREEITEM ptree)
 void CCustomDetail::setNodeWindowInfo(CTreeNode* pnode, UINT type, TCHAR* text, CTreeNode* parent)
 {
 	pnode->SetParentNode(parent);
-	pnode->GetWindowInfo().wnd = this;
-	pnode->GetWindowInfo().tree = &mTreeCtrl;
-	pnode->GetWindowInfo().type = type;
-	swprintf_s(pnode->GetWindowInfo().title, mTitleSize, _T("%s"), text);
+	pnode->GetEquipment().wnd = this;
+	pnode->GetEquipment().tree = &mTreeCtrl;
+	pnode->GetEquipment().type = type;
+	swprintf_s(pnode->GetEquipment().title, mTitleSize, _T("%s"), text);
 	if (type == eTreeItemType_Title){
 		SetWindowText(text);
 	}
@@ -944,7 +944,7 @@ void CCustomDetail::OnDetailAdd()
 	return;
 #endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, mMenuItem);
-	switch (pnode->GetWindowInfo().type) {
+	switch (pnode->GetEquipment().type) {
 	case	eTreeItemType_Title:
 		// メインノードアイテムの設定
 		createMainNode(mMenuItem, pnode);
@@ -987,7 +987,7 @@ void CCustomDetail::OnDetailDelete()
 	CString msg;
 	msg.Format(mMessage_DetailDelete, pparent->GetMonCtrl().display);
 	if (MessageBox(msg, mMessage_Title_CustomDetail, MB_YESNO | MB_ICONQUESTION) == IDYES) {
-		switch (pnode->GetWindowInfo().type) {
+		switch (pnode->GetEquipment().type) {
 		case	eTreeItemType_Main:
 		case	eTreeItemType_Sub:
 		case	eTreeItemType_Item:
@@ -1019,7 +1019,7 @@ void CCustomDetail::OnDetailRename()
 	ScreenToClient(&point);
 
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, mMenuItem);
-	switch (pnode->GetWindowInfo().type) {
+	switch (pnode->GetEquipment().type) {
 	case	eTreeItemType_Title:
 	case	eTreeItemType_Main:
 	case	eTreeItemType_Sub:
@@ -1073,7 +1073,7 @@ void CCustomDetail::OnDetailConfig()
 
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, mMenuItem);
 
-	CCustomDetailConfig config(this, pnode->GetWindowInfo().type);
+	CCustomDetailConfig config(this, pnode->GetEquipment().type);
 
 	// 設定されている色情報を設定ダイアログに取得する
 	for (int i = 0; i < sizeof(mColorConfig) / sizeof(mColorConfig[0]); i++) {
@@ -1216,7 +1216,7 @@ void CCustomDetail::OnTvnGetInfoTipTreeCtrl(NMHDR* pNMHDR, LRESULT* pResult)
 	if (pnode == NULL) {
 		return;
 	}
-	if (pnode->GetWindowInfo().type != eTreeItemType_Item) {
+	if (pnode->GetEquipment().type != eTreeItemType_Item) {
 		return;
 	}
 
@@ -1228,7 +1228,7 @@ void CCustomDetail::OnTvnGetInfoTipTreeCtrl(NMHDR* pNMHDR, LRESULT* pResult)
 		strcon = pnode->GetMonCtrl().cname;
 	}
 #ifdef _DEBUG
-	mToolText.Format(_T("%s\n%s\nSORT(%d)"), (LPCTSTR)strmon, (LPCTSTR)strcon, pnode->GetWindowInfo().sortno);
+	mToolText.Format(_T("%s\n%s\nSORT(%d)"), (LPCTSTR)strmon, (LPCTSTR)strcon, pnode->GetEquipment().sortno);
 #else
 	mToolText.Format(_T("%s\n%s"), (LPCTSTR)strmon, (LPCTSTR)strcon);
 #endif
@@ -1274,8 +1274,8 @@ void CCustomDetail::setTreeTitle(LPARAM lParam)
 {
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, (HTREEITEM)lParam);
 
-	if (pnode->GetWindowInfo().type == eTreeItemType_Title) {
-		swprintf_s(pnode->GetWindowInfo().title, mNameSize, _T("%s"), pnode->GetMonCtrl().display);
+	if (pnode->GetEquipment().type == eTreeItemType_Title) {
+		swprintf_s(pnode->GetEquipment().title, mNameSize, _T("%s"), pnode->GetMonCtrl().display);
 		updateMode();
 	}
 }
@@ -1293,9 +1293,9 @@ void CCustomDetail::setTreeTitle(LPARAM lParam)
 void CCustomDetail::updateMode()
 {
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
-	CString title = pnode->GetWindowInfo().title;
+	CString title = pnode->GetEquipment().title;
 	mTreeCtrl.ModifyStyle(TVS_EDITLABELS, 0);
-	if (pnode->GetWindowInfo().mode == eTreeItemMode_Edit) {
+	if (pnode->GetEquipment().mode == eTreeItemMode_Edit) {
 		title += CString(mEditModeString);
 		mTreeCtrl.ModifyStyle(0, TVS_EDITLABELS);
 	}
@@ -1365,10 +1365,10 @@ bool CCustomDetail::updateMenuItem(MENUITEMINFO* pMenuItemInfo)
 	switch (pMenuItemInfo->wID)
 	{
 	case ID_MENUDETAIL_EDIT:
-		pMenuItemInfo->fState = pnode->GetWindowInfo().mode == eTreeItemMode_Edit ? MFS_CHECKED : MFS_UNCHECKED;
+		pMenuItemInfo->fState = pnode->GetEquipment().mode == eTreeItemMode_Edit ? MFS_CHECKED : MFS_UNCHECKED;
 		return true;
 	case ID_MENUDETAIL_MONITOR:
-		pMenuItemInfo->fState = pnode->GetWindowInfo().mode == eTreeItemMode_Monitor ? MFS_CHECKED : MFS_UNCHECKED;
+		pMenuItemInfo->fState = pnode->GetEquipment().mode == eTreeItemMode_Monitor ? MFS_CHECKED : MFS_UNCHECKED;
 		return true;
 	case ID_MENUDETAIL_SAVE:
 		pMenuItemInfo->fState = CString(pnode->GetXmlFileName()).IsEmpty() == true ? MFS_GRAYED : MF_ENABLED;
@@ -1391,7 +1391,7 @@ CString CCustomDetail::generateTreeText(CTreeNode* pnode)
 {
 	CString ret;
 
-	if (pnode->GetWindowInfo().type == eTreeItemType_Item) {
+	if (pnode->GetEquipment().type == eTreeItemType_Item) {
 		ret = createLeafText(pnode->GetMonCtrl().display, pnode->GetMonCtrl().unit, pnode->GetMonCtrl().cname);
 	}
 	else {
@@ -1416,12 +1416,12 @@ void CCustomDetail::UpdateSortNo(HTREEITEM hItem)
 	while (hSubItem) {
 		UpdateSortNo(hSubItem);
 		CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, hSubItem);
-		if (pnode->GetWindowInfo().type == eTreeItemType_Sub) {
+		if (pnode->GetEquipment().type == eTreeItemType_Sub) {
 			HTREEITEM hItem = mTreeCtrl.GetChildItem(hSubItem);
 			UINT pos = 1;
 			while (hItem) {
 				CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, hItem);
-				pnode->GetWindowInfo().sortno = pos * mSortRange;
+				pnode->GetEquipment().sortno = pos * mSortRange;
 				pos++;
 				hItem = mTreeCtrl.GetNextSiblingItem(hItem);
 			}

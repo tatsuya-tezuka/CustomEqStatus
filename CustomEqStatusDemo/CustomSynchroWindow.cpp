@@ -45,7 +45,7 @@ void CCustomSynchroWindow::Set(UINT group, CWnd* pbase)
 
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(pbase);
 	if (pnode != NULL) {
-		TRACE("# Set : %d Node(GroupNo=%d, GroupName=%s)\n", HIWORD(group), HIWORD(pnode->GetWindowInfo().groupno), CStringA(pnode->GetWindowInfo().groupname));
+		TRACE("# Set : %d Node(GroupNo=%d, GroupName=%s)\n", HIWORD(group), HIWORD(pnode->GetManager().groupno), CStringA(pnode->GetManager().groupname));
 
 	}
 
@@ -316,7 +316,7 @@ void CCustomSynchroWindow::Dump()
 				TRACE("# Dump : No Data\n");
 			}
 			else {
-				TRACE("# Dump : GroupNo=%d @ Node(GroupNo=%d, GroupName=%s)\n", (*itr).first, HIWORD(pnode->GetWindowInfo().groupno), CStringA(pnode->GetWindowInfo().groupname));
+				TRACE("# Dump : GroupNo=%d @ Node(GroupNo=%d, GroupName=%s)\n", (*itr).first, HIWORD(pnode->GetManager().groupno), CStringA(pnode->GetManager().groupname));
 
 			}
 		}

@@ -60,7 +60,7 @@ static const TCHAR* mCOntrolSignString = { _T("#CNTL#") };
 static const TCHAR* mCOntrolSignStringDisplay = { _T("制御") };
 static const TCHAR* mEditModeString = { _T("（編集中）") };
 static const UINT mSortRange = 20;
-static const UINT mGroupRange = 10;
+static const UINT mGroupRange = 20;
 
 /// タイトル
 static const TCHAR* mMessage_Title_CustomManager = { _T("カスタマイズ管理画面") };
@@ -158,7 +158,7 @@ enum eColorType {
 	eColorType_Max,
 };
 
-typedef struct{
+typedef struct {
 	CWnd*			wnd;				// 設備詳細ウィンドウハンドル
 	CWnd*			tree;				// 設備詳細ツリーハンドルドル
 	CWnd*			manager;			// 管理ウィンドウハンドル（CCustomManagerでセット）
@@ -166,17 +166,18 @@ typedef struct{
 	UINT			kind;				// 表示種別：eTreeItemKind
 	UINT			type;				// 表示名種別：eTreeItemType
 	TCHAR			title[mTitleSize];	// ウィンドウタイトル
-	TCHAR			memo[mTitleSize];	// ウィンドメモ
-	TCHAR			groupname[mNameSize];	// グループ
-	UINT			groupno;			// グループ番号(下位ワード：グループ内番号　上位ワード：グループ番号)
 	WINDOWPLACEMENT	placement;			// ウィンドウ位置情報
-	//UINT			treeopen;			// ツリーアイテムの開閉状態
 	UINT			hwidth[mHeaderSize]; // 詳細画面ヘッダー幅
 	UINT			zorder;				// Zオーダー
 	UINT			monitor;			// モニタ識別
-	UINT			group;				// グループ番号
 	UINT			sortno;				// ソート番号
-} stWindowInfo;
+} stEquipmentInfo;
+
+typedef struct {
+	TCHAR			memo[mTitleSize];	// ウィンドメモ
+	TCHAR			groupname[mNameSize];	// グループ
+	UINT			groupno;			// グループ番号(下位ワード：グループ内番号　上位ワード：グループ番号)
+} stManagerInfo;
 
 typedef struct{
 	TCHAR			display[mNameSize];	// 表示名
@@ -234,7 +235,8 @@ protected:
 	CTreeNode*			parent;				// 親ノード
 
 	TCHAR				xmlfile[_MAX_PATH];	// XMLファイル名
-	stWindowInfo		wininfo;			// 設備詳細ウィンドウ情報
+	stEquipmentInfo		equipment;			// 設備詳細ウィンドウ情報
+	stManagerInfo		manager;			// 設備詳細ウィンドウ情報
 	stMonCtrlData		monctrl;			// 監視制御データ
 	stColorData			color;				// 色・フォント情報
 	vector<CTreeNode*>	children;			// 子アイテムリスト
@@ -250,7 +252,8 @@ public:
 	{
 		swprintf_s(xmlfile, _MAX_PATH, _T("%s"), (LPCTSTR)xml);
 	}
-	stWindowInfo&		GetWindowInfo() { return wininfo; }
+	stEquipmentInfo&	GetEquipment() { return equipment; }
+	stManagerInfo&		GetManager() { return manager; }
 	stMonCtrlData&		GetMonCtrl() { return monctrl; }
 	stColorData&		GetColor() { return color; }
 	CTreeNode*			GetParentNode() { return parent; }
@@ -278,14 +281,16 @@ public:
 	void	CopyItem(CTreeNode* copyNode, bool bColorOnly = false)
 	{
 		if (bColorOnly == false) {
-			memcpy(&wininfo, &(copyNode->wininfo), sizeof(stWindowInfo));
+			memcpy(&equipment, &(copyNode->equipment), sizeof(stEquipmentInfo));
+			memcpy(&manager, &(copyNode->manager), sizeof(stManagerInfo));
 			memcpy(&monctrl, &(copyNode->monctrl), sizeof(stMonCtrlData));
 		}
 		memcpy(&color, &(copyNode->color), sizeof(stColorData));
 	}
 	void	DropCopyItem(CTreeNode* copyNode)
 	{
-		memcpy(&wininfo, &(copyNode->wininfo), sizeof(stWindowInfo));
+		memcpy(&equipment, &(copyNode->equipment), sizeof(stEquipmentInfo));
+		memcpy(&manager, &(copyNode->manager), sizeof(stManagerInfo));
 		memcpy(&monctrl, &(copyNode->monctrl), sizeof(stMonCtrlData));
 	}
 
@@ -300,7 +305,8 @@ public:
 
 	//bool operator==(CTreeNode* data);
 	bool Equal(CTreeNode* data);
-	bool Equal(stWindowInfo& data);
+	bool Equal(stEquipmentInfo& data);
+	bool Equal(stManagerInfo& data);
 	bool Equal(stMonCtrlData& data);
 	bool Equal(stColorData& data);
 	bool Equal(LOGFONT& data);
@@ -467,7 +473,7 @@ public:
 
 		vector<CTreeNode*>::iterator itr;
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
-			if ((*itr)->GetWindowInfo().wnd == pTarget) {
+			if ((*itr)->GetEquipment().wnd == pTarget) {
 				return (*itr);
 			}
 		}
@@ -487,7 +493,7 @@ public:
 
 		vector<CTreeNode*>::iterator itr;
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++){
-			if ((*itr)->GetWindowInfo().wnd == pTarget){
+			if ((*itr)->GetEquipment().wnd == pTarget){
 				return (*itr)->SearchTreeNode(target);
 			}
 		}
@@ -505,7 +511,7 @@ public:
 
 		vector<CTreeNode*>::iterator itr;
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++){
-			if ((*itr)->GetWindowInfo().wnd == pTarget){
+			if ((*itr)->GetEquipment().wnd == pTarget){
 				return (*itr)->SearchTreeNodeType(target);
 			}
 		}
@@ -522,9 +528,9 @@ public:
 	{
 		vector<CTreeNode*>::iterator itr;
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
-			if ((*itr)->GetWindowInfo().wnd != NULL) {
-				delete (*itr)->GetWindowInfo().wnd;
-				(*itr)->GetWindowInfo().wnd = NULL;
+			if ((*itr)->GetEquipment().wnd != NULL) {
+				delete (*itr)->GetEquipment().wnd;
+				(*itr)->GetEquipment().wnd = NULL;
 			}
 		}
 	}
@@ -533,9 +539,9 @@ public:
 	{
 		vector<CTreeNode*>::iterator itr;
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
-			if ((*itr)->GetWindowInfo().wnd != NULL && (*itr)->GetWindowInfo().kind == kind) {
-				delete (*itr)->GetWindowInfo().wnd;
-				(*itr)->GetWindowInfo().wnd = NULL;
+			if ((*itr)->GetEquipment().wnd != NULL && (*itr)->GetEquipment().kind == kind) {
+				delete (*itr)->GetEquipment().wnd;
+				(*itr)->GetEquipment().wnd = NULL;
 			}
 		}
 	}
@@ -544,10 +550,10 @@ public:
 	{
 		vector<CTreeNode*>::iterator itr;
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++){
-			if ((*itr)->GetWindowInfo().wnd == p){
-				if ((*itr)->GetWindowInfo().wnd != NULL){
-					delete (*itr)->GetWindowInfo().wnd;
-					(*itr)->GetWindowInfo().wnd = NULL;
+			if ((*itr)->GetEquipment().wnd == p){
+				if ((*itr)->GetEquipment().wnd != NULL){
+					delete (*itr)->GetEquipment().wnd;
+					(*itr)->GetEquipment().wnd = NULL;
 				}
 				break;
 			}
@@ -570,9 +576,9 @@ public:
 	{
 		vector<CTreeNode*>::iterator itr;
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
-			if ((*itr) != NULL && (*itr)->GetWindowInfo().wnd != NULL && (*itr)->GetWindowInfo().kind == kind) {
-				delete (*itr)->GetWindowInfo().wnd;
-				(*itr)->GetWindowInfo().wnd = NULL;
+			if ((*itr) != NULL && (*itr)->GetEquipment().wnd != NULL && (*itr)->GetEquipment().kind == kind) {
+				delete (*itr)->GetEquipment().wnd;
+				(*itr)->GetEquipment().wnd = NULL;
 				delete (*itr);
 			}
 		}
@@ -622,7 +628,7 @@ public:
 		UINT count = 0;
 		vector<CTreeNode*>::iterator itr;
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
-			if ((*itr)->GetWindowInfo().wnd != NULL && (*itr)->GetWindowInfo().kind == kind) {
+			if ((*itr)->GetEquipment().wnd != NULL && (*itr)->GetEquipment().kind == kind) {
 				count++;
 			}
 		}
@@ -712,7 +718,7 @@ public:
 		dest = CloneItemNode((*itrwnd).second, dest);
 		AddTreeNode(dest);
 		CTreeNode* pnode = SearchWndNode(pWnd, false);
-		pnode->GetWindowInfo().wnd = NULL;
+		pnode->GetEquipment().wnd = NULL;
 	}
 
 	/// 編集ノードとノードリスト内のノードを比較する

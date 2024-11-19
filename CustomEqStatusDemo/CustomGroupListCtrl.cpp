@@ -335,8 +335,9 @@ namespace
 		HWND m_hWnd;
 		int  m_ColumnIndex;
 		bool m_Ascending;
-		CSimpleMap<int, CString> m_GroupNames;
-		CSimpleMap<int, CString> m_ItemNames;
+		CSimpleMap<int, CString>	m_GroupNames;
+		CSimpleMap<int, UINT>		m_GroupIndexs;
+		CSimpleMap<int, CString>	m_ItemNames;
 
 		const CString& LookupGroupName(int nGroupId)
 		{
@@ -347,6 +348,17 @@ namespace
 				return emptyStr;
 			}
 			return m_GroupNames.GetValueAt(groupIdx);
+		}
+
+		const UINT& LookupGroupIndex(int nGroupId)
+		{
+			int groupIdx = m_GroupIndexs.FindKey(nGroupId);
+			if (groupIdx == -1)
+			{
+				static const UINT empty;
+				return empty;
+			}
+			return m_GroupIndexs.GetValueAt(groupIdx);
 		}
 
 		const CString& LookupItemName(int nItemId)
@@ -381,48 +393,79 @@ namespace
 		else
 			return _tcscmp(right, left);
 	}
+	
 	int CALLBACK SortFuncGroupEx(int nLeftId, int nRightId, void* lParamSort)
 	{
 		GROUPSORT& ps = *(GROUPSORT*)lParamSort;
 
-		const CString& left = ps.LookupGroupName(nLeftId);
-		const CString& right = ps.LookupGroupName(nRightId);
+		const UINT& left = ps.LookupGroupIndex(nLeftId);
+		const UINT& right = ps.LookupGroupIndex(nRightId);
+
+		if (ps.m_Ascending) {
+			if (left < right)
+				return -1;
+			else if (left > right)
+				return 1;
+			return 0;
+		}
+		else {
+			if (left > right)
+				return -1;
+			else if (left < right)
+				return 1;
+			return 0;
+		}
+	}
+
+	int CALLBACK SortFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+	{
+		GROUPSORT& ps = *reinterpret_cast<GROUPSORT*>(lParamSort);
+
+		TCHAR left[256] = _T(""), right[256] = _T("");
+		ListView_GetItemText(ps.m_hWnd, lParam1, ps.m_ColumnIndex, left, sizeof(left));
+		ListView_GetItemText(ps.m_hWnd, lParam2, ps.m_ColumnIndex, right, sizeof(right));
 
 		if (ps.m_Ascending)
 			return _tcscmp(left, right);
 		else
 			return _tcscmp(right, left);
 	}
-	int CALLBACK SortFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+
+	int CALLBACK SortFuncEx(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 	{
 		GROUPSORT& ps = *reinterpret_cast<GROUPSORT*>(lParamSort);
 
 		int leftno = static_cast<int>(lParam1);
 		int rightno = static_cast<int>(lParam2);
-		const CString& left = ps.LookupItemName(leftno);
-		const CString& right = ps.LookupItemName(rightno);
+		LVITEM leftitem, rightitem;
+		leftitem.iItem = leftno;
+		leftitem.mask = LVIF_PARAM;
+		leftitem.iSubItem = 0;
+		ListView_GetItem(ps.m_hWnd, &leftitem);
+		rightitem.iItem = rightno;
+		rightitem.mask = LVIF_PARAM;
+		rightitem.iSubItem = 0;
+		ListView_GetItem(ps.m_hWnd, &rightitem);
+		CTreeNode* pleft = (CTreeNode*)leftitem.lParam;
+		CTreeNode* pright = (CTreeNode*)rightitem.lParam;
 
-		return _tcscmp(left, right);
+		const UINT& left = LOWORD(pleft->GetManager().groupno);
+		const UINT& right = LOWORD(pright->GetManager().groupno);
 
-		//TCHAR leftText[256] = _T(""), rightText[256] = _T("");
-
-		//LVITEM leftItem = { 0 };
-		//leftItem.iItem = static_cast<int>(lParam1);
-		//leftItem.iSubItem = ps.m_ColumnIndex;
-		//leftItem.mask = LVIF_IMAGE | LVIF_TEXT | LVIF_PARAM;
-		//leftItem.pszText = leftText;
-		//leftItem.cchTextMax = sizeof(leftText) / sizeof(TCHAR);
-		//ListView_GetItem(ps.m_hWnd, &leftItem);
-
-		//LVITEM rightItem = { 0 };
-		//rightItem.iItem = static_cast<int>(lParam2);
-		//rightItem.iSubItem = ps.m_ColumnIndex;
-		//rightItem.mask = LVIF_IMAGE | LVIF_TEXT | LVIF_PARAM;
-		//rightItem.pszText = rightText;
-		//rightItem.cchTextMax = sizeof(rightText) / sizeof(TCHAR);
-		//ListView_GetItem(ps.m_hWnd, &rightItem);
-
-		//return 1;// ps.m_pTrait->OnSortRows(leftItem, rightItem, ps.m_Ascending);
+		if (ps.m_Ascending) {
+			if (left < right)
+				return -1;
+			else if (left > right)
+				return 1;
+			return 0;
+		}
+		else {
+			if (left > right)
+				return -1;
+			else if (left < right)
+				return 1;
+			return 0;
+		}
 	}
 }
 
@@ -439,26 +482,20 @@ namespace
 void CCustomGroupListCtrl::SortItem()
 {
 	GROUPSORT groupsort(m_hWnd, 0, true);
-	for (int nRow = 0; nRow < GetItemCount(); ++nRow)
-	{
-		int nGroupId = getRowGroupId(nRow);
-		if (nGroupId != -1 && groupsort.m_GroupNames.FindKey(nGroupId) == -1)
-			groupsort.m_GroupNames.Add(nGroupId, getGroupHeader(nGroupId));
-		groupsort.m_ItemNames.Add(nRow, GetItemText(nRow, 0));
-	}
-	//ListView_SortGroups(m_hWnd, SortFuncGroup, &groupsort);
-	//SortGroups(&SortFuncGroupEx, &groupsort);
-	ListView_SortItemsEx(m_hWnd, SortFunc, &groupsort);
+	ListView_SortItemsEx(m_hWnd, SortFuncEx, &groupsort);
 }
+
 void CCustomGroupListCtrl::SortGroup()
 {
 	GROUPSORT groupsort(m_hWnd, 0, true);
-	for (int nRow = 0; nRow < GetItemCount(); ++nRow)
-	{
-		int nGroupId = getRowGroupId(nRow);
-		if (nGroupId != -1 && groupsort.m_GroupNames.FindKey(nGroupId) == -1) {
-			groupsort.m_GroupNames.Add(nGroupId, getGroupHeader(nGroupId));
-			//TRACE("# SortGroup ; GroupName=[%d]%s\n", nGroupId, CStringA(getGroupHeader(nGroupId)));
+	for (int nRow = 0; nRow < GetItemCount(); ++nRow){
+		CTreeNode* pnode = (CTreeNode*)GetItemData(nRow);
+		int nGroupId = pnode->GetManager().groupno;
+		if (groupsort.m_GroupNames.FindKey(HIWORD(nGroupId)) == -1) {
+			groupsort.m_GroupNames.Add(HIWORD(nGroupId), getGroupHeader(HIWORD(nGroupId)));
+		}
+		if (groupsort.m_GroupIndexs.FindKey(HIWORD(nGroupId)) == -1) {
+			groupsort.m_GroupIndexs.Add(HIWORD(nGroupId), LOWORD(nGroupId));
 		}
 	}
 	Invalidate(FALSE);
@@ -659,7 +696,7 @@ BOOL CCustomGroupListCtrl::GroupByColumn(int nCol, BOOL bEnableGroup/* = TRUE*/)
 		for (int nRow = 0; nRow < GetItemCount(); ++nRow) {
 			// データのグループ番号から対象カラムのテキストを設定する
 			CTreeNode* pnode = (CTreeNode*)GetItemData(nRow);
-			if (HIWORD(pnode->GetWindowInfo().groupno) != 0) {
+			if (HIWORD(pnode->GetManager().groupno) != 0) {
 				continue;
 			}
 			SetItemText(nRow, nCol, mNoGroupText);
@@ -675,8 +712,8 @@ BOOL CCustomGroupListCtrl::GroupByColumn(int nCol, BOOL bEnableGroup/* = TRUE*/)
 				nGroupId = groups.FindKey(cellText);
 			}
 			groups.GetValueAt(nGroupId).Add(nRow);
-			pnode->GetWindowInfo().groupno = MAKELONG(0, nGroupId);
-			swprintf_s(pnode->GetWindowInfo().groupname, mNameSize, _T("%s"), (LPCTSTR)cellText);
+			pnode->GetManager().groupno = MAKELONG(LOWORD(pnode->GetManager().groupno), nGroupId);
+			swprintf_s(pnode->GetManager().groupname, mNameSize, _T("%s"), (LPCTSTR)cellText);
 
 			CString strFooter = cellText;
 			if (footers.size() < (UINT)(nGroupId + 1)) {
@@ -690,14 +727,14 @@ BOOL CCustomGroupListCtrl::GroupByColumn(int nCol, BOOL bEnableGroup/* = TRUE*/)
 		for (int nRow = 0; nRow < GetItemCount(); ++nRow) {
 			// データのグループ番号から対象カラムのテキストを設定する
 			CTreeNode* pnode = (CTreeNode*)GetItemData(nRow);
-			if (HIWORD(pnode->GetWindowInfo().groupno) == 0) {
+			if (HIWORD(pnode->GetManager().groupno) == 0) {
 				continue;
 			}
 			else {
 				CString str;
-				str.Format(_T("Group_%d"), HIWORD(pnode->GetWindowInfo().groupno));
-				if (wcslen(pnode->GetWindowInfo().groupname) != 0 && CString(pnode->GetWindowInfo().groupname).IsEmpty() == false) {
-					str = CString(pnode->GetWindowInfo().groupname);
+				str.Format(_T("Group_%d"), HIWORD(pnode->GetManager().groupno));
+				if (wcslen(pnode->GetManager().groupname) != 0 && CString(pnode->GetManager().groupname).IsEmpty() == false) {
+					str = CString(pnode->GetManager().groupname);
 				}
 				SetItemText(nRow, nCol, str);
 			}
@@ -712,8 +749,8 @@ BOOL CCustomGroupListCtrl::GroupByColumn(int nCol, BOOL bEnableGroup/* = TRUE*/)
 				nGroupId = groups.FindKey(cellText);
 			}
 			groups.GetValueAt(nGroupId).Add(nRow);
-			pnode->GetWindowInfo().groupno = MAKELONG(0, nGroupId);
-			swprintf_s(pnode->GetWindowInfo().groupname, mNameSize, _T("%s"), (LPCTSTR)cellText);
+			pnode->GetManager().groupno = MAKELONG(LOWORD(pnode->GetManager().groupno), nGroupId);
+			swprintf_s(pnode->GetManager().groupname, mNameSize, _T("%s"), (LPCTSTR)cellText);
 			TRACE("# GroupByColumn : GroupNo=%d, GroupName=%s\n", nGroupId, CStringA(cellText));
 
 			CString strFooter = cellText;
@@ -755,7 +792,7 @@ BOOL CCustomGroupListCtrl::GroupByColumn(int nCol, BOOL bEnableGroup/* = TRUE*/)
 	vector<CTreeNode*>& treedata = theApp.GetCustomControl().GetDataManager().GetTreeNode();
 	vector<CTreeNode*>::iterator itr;
 	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
-		TRACE("# GroupByColumn Dump : GroupNo=%d, GroupName=%s\n", HIWORD((*itr)->GetWindowInfo().groupno), CStringA((*itr)->GetWindowInfo().groupname));
+		TRACE("# GroupByColumn Dump : GroupNo=%d, GroupName=%s\n", HIWORD((*itr)->GetManager().groupno), CStringA((*itr)->GetManager().groupname));
 	}
 
 	return ret;
@@ -1270,7 +1307,7 @@ void CCustomGroupListCtrl::OnLvnBegindrag(NMHDR* pNMHDR, LRESULT* pResult)
 		while (pos) {
 			int item = GetNextSelectedItem(pos);
 			CTreeNode* pnode = (CTreeNode*)GetItemData(item);
-			mDragData.group = HIWORD(pnode->GetWindowInfo().groupno);
+			mDragData.group = HIWORD(pnode->GetManager().groupno);
 			break;
 		}
 
@@ -1279,7 +1316,7 @@ void CCustomGroupListCtrl::OnLvnBegindrag(NMHDR* pNMHDR, LRESULT* pResult)
 		while (pos) {
 			int item = (int)GetNextSelectedItem(pos);
 			CTreeNode* pnode = (CTreeNode*)GetItemData(item);
-			if (mDragData.group == HIWORD(pnode->GetWindowInfo().groupno)) {
+			if (mDragData.group == HIWORD(pnode->GetManager().groupno)) {
 				mDragData.indexes.push_back(item);
 			}
 			else {
@@ -1325,7 +1362,7 @@ void CCustomGroupListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 		SetRedraw(FALSE);
 		UINT flags = 0;
 		int index = HitTest(point, &flags);
-
+		int group;
 		if (index >= 0) {
 			TRACE("# OnMouseMove : Drop Item(%d)\n", index);
 			SetItemState(-1, 0, LVIS_DROPHILITED);
@@ -1333,7 +1370,13 @@ void CCustomGroupListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
 		}
 		else {
-			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
+			group = GroupHitTest(point);
+			if (group >= 0) {
+				SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+			}
+			else {
+				SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
+			}
 		}
 
 		SetRedraw(TRUE);
@@ -1361,7 +1404,9 @@ void CCustomGroupListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 
 		delete mpDragImage;
 		mpDragImage = NULL;
+
 		dropItem(point);
+
 		SetItemState(-1, 0, LVIS_DROPHILITED);
 	}
 
@@ -1473,19 +1518,19 @@ void CCustomGroupListCtrl::dropItem(CPoint point)
 {
 	SetRedraw(FALSE);
 
+	// 先ずは選択項目のノード情報を取得する
+	vector<CTreeNode*> nodeList;
+	vector<int>::iterator itr;
+	for (itr = mDragData.indexes.begin(); itr != mDragData.indexes.end(); itr++) {
+		CTreeNode* node = (CTreeNode*)GetItemData((*itr));
+		nodeList.push_back(node);
+	}
+
 	UINT flags = 0;
 	int index = HitTest(point, &flags);
-	vector<CTreeNode*> nodeList;
 	if (index >= 0) {
 		// ドロップ先のノード情報を取得する
 		CTreeNode* masternode = (CTreeNode*)GetItemData(index);
-
-		// 先ずは選択項目のノード情報を取得する
-		vector<int>::iterator itr;
-		for (itr = mDragData.indexes.begin(); itr != mDragData.indexes.end(); itr++) {
-			CTreeNode* node = (CTreeNode*)GetItemData((*itr));
-			nodeList.push_back(node);
-		}
 
 		// 選択項目を削除する
 		POSITION pos;
@@ -1496,13 +1541,37 @@ void CCustomGroupListCtrl::dropItem(CPoint point)
 			DeleteItem(item);
 		}
 
-		// グループ内番号の最大を取得
-		UINT max = theApp.GetCustomControl().GetDataManager().GetMaxInnerNo(masternode->GetWindowInfo().groupno);
-		// ドロップ先のグループ情報に変更する
+		// ドロップされたアイテムを追加する
 		vector<CTreeNode*>::iterator itrnode;
+		UINT index = 1;
 		for (itrnode = nodeList.begin(); itrnode != nodeList.end(); itrnode++) {
-			(*itrnode)->GetWindowInfo().groupno = HIWORD(masternode->GetWindowInfo().groupno)<<16 | max+1;
-			max++;
+			(*itrnode)->GetManager().groupno = MAKELONG(LOWORD(masternode->GetManager().groupno)+ index, HIWORD(masternode->GetManager().groupno));
+			swprintf_s((*itrnode)->GetManager().groupname, mNameSize, _T("%s"), (LPCTSTR)masternode->GetManager().groupname);
+			index++;
+		}
+	}
+	else {
+		// グループフォルダにドロップされた
+		int group = GroupHitTest(point);
+		if (group >= 0) {
+			// 選択項目を削除する
+			POSITION pos;
+			pos = GetFirstSelectedItemPosition();
+			while (pos) {
+				pos = GetFirstSelectedItemPosition();
+				int item = GetNextSelectedItem(pos);
+				DeleteItem(item);
+			}
+			// ドロップ先がグループヘッダー
+			UINT min;
+			UINT max = GetGroupInner(group, min);
+			vector<CTreeNode*>::iterator itrnode;
+			UINT index = min - mGroupRange + 1;
+			for (itrnode = nodeList.begin(); itrnode != nodeList.end(); itrnode++) {
+				(*itrnode)->GetManager().groupno = MAKELONG(index, group);
+				swprintf_s((*itrnode)->GetManager().groupname, mNameSize, _T("%s"), (LPCTSTR)getGroupHeader(group));
+				index++;
+			}
 		}
 	}
 
@@ -1626,4 +1695,30 @@ void CCustomGroupListCtrl::PreSubclassWindow()
 	//SetExtendedStyle(GetExtendedStyle() | LVS_EX_FULLROWSELECT);
 	//SetExtendedStyle(GetExtendedStyle() | LVS_EX_HEADERDRAGDROP);
 	//SetExtendedStyle(GetExtendedStyle() | LVS_EX_GRIDLINES);
+}
+
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# グループ内番号の最大値、最小値を取得する
+
+@param	nGroup		グループ番号
+@param	nMin		グループ内番号の最小値
+
+@retval	グループ内番号の最大値
+*/
+/*============================================================================*/
+UINT CCustomGroupListCtrl::GetGroupInner(UINT nGroup, UINT& min)
+{
+	UINT max = 0;
+	min = 9999;
+	for (UINT item = 0; item < (UINT)GetItemCount(); item++) {
+		// データのグループ番号から対象カラムのテキストを設定する
+		CTreeNode* pnode = (CTreeNode*)GetItemData(item);
+		if (pnode->GetEquipment().kind == eTreeItemKind_User && HIWORD(pnode->GetManager().groupno) == nGroup) {
+			min = __min(min, LOWORD(pnode->GetManager().groupno));
+			max = __max(max, LOWORD(pnode->GetManager().groupno));
+		}
+	}
+	return max;
 }

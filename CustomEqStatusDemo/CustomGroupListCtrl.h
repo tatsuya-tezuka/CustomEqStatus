@@ -182,6 +182,7 @@ public:
 	int		GetRowGroupId(int nRow) { return getRowGroupId(nRow); }
 	CString	GetGroupHeader(int nRow) { return getGroupHeader(nRow); }
 	BOOL	SetGroupHeader(int nGroupID, const CString& header);
+	UINT	GetGroupInner(UINT nGroup, UINT& min);
 
 protected:
 	LRESULT	insertGroupHeader(int nIndex, int nGroupId, const CString& strHeader, DWORD dwState = LVGS_NORMAL, DWORD dwAlign = LVGA_HEADER_LEFT);

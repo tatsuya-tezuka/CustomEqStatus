@@ -332,7 +332,7 @@ void CCustomEqStatusDemoDlg::OnBnClickedButtonNodeoutput()
 	for (itr = theApp.GetCustomControl().GetDataManager().GetTreeNode().begin(); itr != theApp.GetCustomControl().GetDataManager().GetTreeNode().end(); itr++) {
 		//=====================================================//
 		//«««««««««««« Log ««««««««««««//
-		msg.Format(_T("%s"), (*itr)->GetWindowInfo().title);
+		msg.Format(_T("%s"), (*itr)->GetEquipment().title);
 		CLogTraceEx::Write(_T("***"), _T("***"), _T("***"), _T("*"), msg, nLogEx::debug);
 		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
 		//=====================================================//
@@ -344,7 +344,7 @@ void CCustomEqStatusDemoDlg::OnBnClickedButtonNodeoutput()
 	for (itre = theApp.GetCustomControl().GetDataManager().GetEditTreeNode().begin(); itre != theApp.GetCustomControl().GetDataManager().GetEditTreeNode().end(); itre++) {
 		//=====================================================//
 		//«««««««««««« Log ««««««««««««//
-		msg.Format(_T("%s"), (*itre).second->GetWindowInfo().title);
+		msg.Format(_T("%s"), (*itre).second->GetEquipment().title);
 		CLogTraceEx::Write(_T("###"), _T("###"), _T("###"), _T("#"), msg, nLogEx::debug);
 		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
 		//=====================================================//
@@ -359,9 +359,9 @@ void CCustomEqStatusDemoDlg::PrintChild(CTreeNode* pnode)
 	for (itr = pnode->GetChildren().begin(); itr != pnode->GetChildren().end(); itr++) {
 		//=====================================================//
 		//«««««««««««« Log ««««««««««««//
-		msg.Format(_T("%s\t%s\t%s\t%s (%d)"), (*itr)->GetMonCtrl().display, (*itr)->GetMonCtrl().mname, (*itr)->GetMonCtrl().cname, (*itr)->GetMonCtrl().unit, (*itr)->GetWindowInfo().sortno);
+		msg.Format(_T("%s\t%s\t%s\t%s (%d)"), (*itr)->GetMonCtrl().display, (*itr)->GetMonCtrl().mname, (*itr)->GetMonCtrl().cname, (*itr)->GetMonCtrl().unit, (*itr)->GetEquipment().sortno);
 		CString sep = _T("*");
-		switch ((*itr)->GetWindowInfo().type) {
+		switch ((*itr)->GetEquipment().type) {
 		case	eTreeItemType_Main:	sep = _T("**"); break;
 		case	eTreeItemType_Sub:	sep = _T("***"); break;
 		case	eTreeItemType_Item:	sep = _T("****"); break;
@@ -380,9 +380,9 @@ void CCustomEqStatusDemoDlg::PrintChildEdit(CTreeNode* pnode)
 	for (itr = pnode->GetChildren().begin(); itr != pnode->GetChildren().end(); itr++) {
 		//=====================================================//
 		//«««««««««««« Log ««««««««««««//
-		msg.Format(_T("%s\t%s\t%s\t%s (%d)"), (*itr)->GetMonCtrl().display, (*itr)->GetMonCtrl().mname, (*itr)->GetMonCtrl().cname, (*itr)->GetMonCtrl().unit, (*itr)->GetWindowInfo().sortno);
+		msg.Format(_T("%s\t%s\t%s\t%s (%d)"), (*itr)->GetMonCtrl().display, (*itr)->GetMonCtrl().mname, (*itr)->GetMonCtrl().cname, (*itr)->GetMonCtrl().unit, (*itr)->GetEquipment().sortno);
 		CString sep = _T("*");
-		switch ((*itr)->GetWindowInfo().type) {
+		switch ((*itr)->GetEquipment().type) {
 		case	eTreeItemType_Main:	sep = _T("##"); break;
 		case	eTreeItemType_Sub:	sep = _T("###"); break;
 		case	eTreeItemType_Item:	sep = _T("####"); break;

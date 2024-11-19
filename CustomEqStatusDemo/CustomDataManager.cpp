@@ -16,7 +16,8 @@
 CTreeNode::CTreeNode(HTREEITEM id, CWnd* pwnd, CWnd* ptree)
 : treeitem(id)
 {
-	memset(&wininfo, 0, sizeof(stWindowInfo));
+	memset(&equipment, 0, sizeof(stEquipmentInfo));
+	memset(&manager, 0, sizeof(stManagerInfo));
 	memset(&monctrl, 0, sizeof(stMonCtrlData));
 	memset(&color, 0, sizeof(stColorData));
 	color.back = GetSysColor(COLOR_WINDOW);
@@ -32,8 +33,8 @@ CTreeNode::CTreeNode(HTREEITEM id, CWnd* pwnd, CWnd* ptree)
 		font.DeleteObject();
 	}
 
-	wininfo.wnd = pwnd;
-	wininfo.tree = ptree;
+	equipment.wnd = pwnd;
+	equipment.tree = ptree;
 	parent = NULL;
 	children.clear();
 }
@@ -72,7 +73,9 @@ CTreeNode::~CTreeNode()
 
 bool CTreeNode::Equal(CTreeNode* data)
 {
-	if (Equal(data->GetWindowInfo()) == false)
+	if (Equal(data->GetEquipment()) == false)
+		return false;
+	if (Equal(data->GetManager()) == false)
 		return false;
 	if (Equal(data->GetMonCtrl()) == false)
 		return false;
@@ -90,11 +93,15 @@ bool CTreeNode::Equal(CTreeNode* data)
 
 	return true;
 }
-bool CTreeNode::Equal(stWindowInfo& data)
+bool CTreeNode::Equal(stEquipmentInfo& data)
 {
-	if (CString(wininfo.title) != CString(data.title))
+	if (CString(equipment.title) != CString(data.title))
 		return false;
 
+	return true;
+}
+bool CTreeNode::Equal(stManagerInfo& data)
+{
 	return true;
 }
 bool CTreeNode::Equal(stMonCtrlData& data)
@@ -178,7 +185,7 @@ CTreeNode* CTreeNode::CreateTreeNode(HTREEITEM parent, HTREEITEM child, HTREEITE
 	}
 
 	// 子アイテムリストに存在しないので新たに作成する
-	CTreeNode *childitem = new CTreeNode(child, wininfo.wnd, wininfo.tree);
+	CTreeNode *childitem = new CTreeNode(child, equipment.wnd, equipment.tree);
 	childitem->parent = this;
 	if (hInsertAfter == TVI_LAST){
 		children.push_back(childitem);
@@ -193,7 +200,7 @@ CTreeNode* CTreeNode::CreateTreeNode(HTREEITEM parent, HTREEITEM child, HTREEITE
 #include <algorithm>
 static bool procSort(CTreeNode* left, CTreeNode* right)
 {
-	return left->GetWindowInfo().sortno < right->GetWindowInfo().sortno;
+	return left->GetEquipment().sortno < right->GetEquipment().sortno;
 }
 /*============================================================================*/
 /*! ツリーノード
@@ -236,7 +243,7 @@ bool CTreeNode::DeleteTreeNode(HTREEITEM target)
 
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
-	CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("DeleteTreeNode"), pnode->wininfo.title, _T(""), nLogEx::debug);
+	CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("DeleteTreeNode"), pnode->equipment.title, _T(""), nLogEx::debug);
 	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 	//=====================================================//
 
@@ -316,7 +323,8 @@ void CTreeNode::deleteNode(CTreeNode* pnode)
 /*============================================================================*/
 void CTreeNode::CopyTreeNode(CTreeNode* copyNode)
 {
-	memcpy(&wininfo, &(copyNode->wininfo), sizeof(stWindowInfo));
+	memcpy(&equipment, &(copyNode->equipment), sizeof(stEquipmentInfo));
+	memcpy(&manager, &(copyNode->manager), sizeof(stManagerInfo));
 	memcpy(&monctrl, &(copyNode->monctrl), sizeof(stMonCtrlData));
 	memcpy(&color, &(copyNode->color), sizeof(stColorData));
 	swprintf_s(xmlfile, _MAX_PATH, _T("%s"), (LPCTSTR)copyNode->xmlfile);
@@ -371,13 +379,13 @@ CTreeNode* CTreeNode::SearchTreeNode(HTREEITEM target)
 /*============================================================================*/
 CTreeNode* CTreeNode::SearchTreeNodeType(UINT target)
 {
-	if (wininfo.type == target)
+	if (equipment.type == target)
 		return this;
 
 	// 子アイテムリストに存在するか確認する
 	vector<CTreeNode *>::iterator itr;
 	for (itr = children.begin(); itr != children.end(); itr++) {
-		if ((*itr)->GetWindowInfo().type == target) {
+		if ((*itr)->GetEquipment().type == target) {
 			// 既に子アイテムリストに存在する
 			return (*itr);
 		}
@@ -484,7 +492,7 @@ bool CCustomDataManager::SetNodeColor(CWnd* pwnd, UINT type, stColorData& color)
 /*============================================================================*/
 bool CCustomDataManager::getNodeTypeColor(CTreeNode* pnode, UINT type, stColorData& color)
 {
-	if (pnode->GetWindowInfo().type == type){
+	if (pnode->GetEquipment().type == type){
 		color = pnode->GetColor();
 		return true;
 	}
@@ -513,7 +521,7 @@ bool CCustomDataManager::getNodeTypeColor(CTreeNode* pnode, UINT type, stColorDa
 /*============================================================================*/
 bool CCustomDataManager::setNodeTypeColor(CTreeNode* pnode, UINT type, stColorData& color)
 {
-	if (pnode->GetWindowInfo().type == type){
+	if (pnode->GetEquipment().type == type){
 		pnode->GetColor() = color;
 		return true;
 	}
@@ -569,10 +577,10 @@ bool CCustomDataManager::SaveTreeData(CString strFile, CWnd* pTargetWnd/* = NULL
 		// 個々のデータを保存
 		vector<CTreeNode*>::iterator itr;
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
-			if (pTargetWnd != NULL && pTargetWnd != (*itr)->GetWindowInfo().wnd) {
+			if (pTargetWnd != NULL && pTargetWnd != (*itr)->GetEquipment().wnd) {
 				continue;
 			}
-			if ((*itr)->GetWindowInfo().kind != eTreeItemKind_User)
+			if ((*itr)->GetEquipment().kind != eTreeItemKind_User)
 				continue;
 
 			(*itr)->SaveTreeNode(mArc);
@@ -606,43 +614,44 @@ bool CCustomDataManager::SaveTreeData(CString strFile, CWnd* pTargetWnd/* = NULL
 bool CTreeNode::SaveTreeNode(CArchive& ar)
 {
 	// ウィンドウ位置情報取得
-	if (wininfo.wnd != NULL) {
-		memset(&wininfo.placement, 0, sizeof(WINDOWPLACEMENT));
-		wininfo.placement.length = sizeof(WINDOWPLACEMENT);
-		wininfo.wnd->GetWindowPlacement(&wininfo.placement);
+	if (equipment.wnd != NULL) {
+		memset(&equipment.placement, 0, sizeof(WINDOWPLACEMENT));
+		equipment.placement.length = sizeof(WINDOWPLACEMENT);
+		equipment.wnd->GetWindowPlacement(&equipment.placement);
 		//★((CCustomDetail*)wininfo.wnd)->GetHeaderWidth(wininfo.hwidth, mHeaderSize);
 	}
 
 	// ウィンドウ情報
-	ar << wininfo.mode;
-	ar << wininfo.kind;
-	ar << wininfo.type;
-	if (wininfo.type == eTreeItemType_Title) {
-		ar << CString(wininfo.title);
-		ar << CString(wininfo.memo);
-		ar << CString(wininfo.groupname);
-		ar << wininfo.groupno;
-		ar << wininfo.monitor;
-		ar << wininfo.placement.flags;
-		if (wininfo.wnd == NULL)
+	ar << equipment.mode;
+	ar << equipment.kind;
+	ar << equipment.type;
+	if (equipment.type == eTreeItemType_Title) {
+		ar << CString(equipment.title);
+		ar << equipment.monitor;
+		ar << equipment.placement.flags;
+		if (equipment.wnd == NULL)
 			ar << FALSE;
 		else
-			ar << wininfo.wnd->IsWindowVisible();
-		savePoint(ar, wininfo.placement.ptMinPosition);
-		savePoint(ar, wininfo.placement.ptMaxPosition);
-		saveRect(ar, wininfo.placement.rcNormalPosition);
+			ar << equipment.wnd->IsWindowVisible();
+		savePoint(ar, equipment.placement.ptMinPosition);
+		savePoint(ar, equipment.placement.ptMaxPosition);
+		saveRect(ar, equipment.placement.rcNormalPosition);
 		ar << (UINT)mHeaderSize;
 		for (int i = 0; i < mHeaderSize; i++) {
-			ar << wininfo.hwidth[i];
+			ar << equipment.hwidth[i];
 		}
-		ar << wininfo.zorder;
+		ar << equipment.zorder;
+		// Manager
+		ar << CString(manager.memo);
+		ar << CString(manager.groupname);
+		ar << manager.groupno;
 	}
 	//★wininfo.treeopen = ((CCustomDetail*)wininfo.wnd)->GetTreeExpandState(treeitem);
 	ar << 0/*wininfo.treeopen*/;
 
 	// 監視制御情報
 	ar << CString(monctrl.display);
-	if (wininfo.type == eTreeItemType_Item) {
+	if (equipment.type == eTreeItemType_Item) {
 		ar << CString(monctrl.mname);
 		ar << CString(monctrl.cname);
 		ar << CString(monctrl.unit);
@@ -758,31 +767,32 @@ bool CTreeNode::LoadTreeNode(CArchive& ar)
 {
 	CString str;
 	// ウィンドウ情報
-	ar >> wininfo.mode;
-	wininfo.mode = eTreeItemMode_Monitor; // ロード時は常に監視モード
-	ar >> wininfo.kind;
-	ar >> wininfo.type;
-	if (wininfo.type == eTreeItemType_Title) {
+	ar >> equipment.mode;
+	equipment.mode = eTreeItemMode_Monitor; // ロード時は常に監視モード
+	ar >> equipment.kind;
+	ar >> equipment.type;
+	if (equipment.type == eTreeItemType_Title) {
 		ar >> str;
-		swprintf_s(wininfo.title, mTitleSize, _T("%s"), (LPCTSTR)str);
-		ar >> str;
-		swprintf_s(wininfo.memo, mTitleSize, _T("%s"), (LPCTSTR)str);
-		ar >> str;
-		swprintf_s(wininfo.groupname, mNameSize, _T("%s"), (LPCTSTR)str);
-		ar >> wininfo.groupno;
-		ar >> wininfo.monitor;
-		wininfo.placement.length = sizeof(WINDOWPLACEMENT);
-		ar >> wininfo.placement.flags;
-		ar >> wininfo.placement.showCmd;
-		loadPoint(ar, wininfo.placement.ptMinPosition);
-		loadPoint(ar, wininfo.placement.ptMaxPosition);
-		loadRect(ar, wininfo.placement.rcNormalPosition);
+		swprintf_s(equipment.title, mTitleSize, _T("%s"), (LPCTSTR)str);
+		ar >> equipment.monitor;
+		equipment.placement.length = sizeof(WINDOWPLACEMENT);
+		ar >> equipment.placement.flags;
+		ar >> equipment.placement.showCmd;
+		loadPoint(ar, equipment.placement.ptMinPosition);
+		loadPoint(ar, equipment.placement.ptMaxPosition);
+		loadRect(ar, equipment.placement.rcNormalPosition);
 		UINT hsize;
 		ar >> hsize;
 		for (int i = 0; i < (int)hsize; i++) {
-			ar >> wininfo.hwidth[i];
+			ar >> equipment.hwidth[i];
 		}
-		ar >> wininfo.zorder;
+		ar >> equipment.zorder;
+		// Manager
+		ar >> str;
+		swprintf_s(manager.memo, mTitleSize, _T("%s"), (LPCTSTR)str);
+		ar >> str;
+		swprintf_s(manager.groupname, mNameSize, _T("%s"), (LPCTSTR)str);
+		ar >> manager.groupno;
 	}
 	UINT temp;
 	ar >> temp;
@@ -790,7 +800,7 @@ bool CTreeNode::LoadTreeNode(CArchive& ar)
 	// 監視制御情報
 	ar >> str;
 	swprintf_s(monctrl.display, mNameSize, _T("%s"), (LPCTSTR)str);
-	if (wininfo.type == eTreeItemType_Item) {
+	if (equipment.type == eTreeItemType_Item) {
 		ar >> str;
 		swprintf_s(monctrl.mname, mNameSize, _T("%s"), (LPCTSTR)str);
 		ar >> str;
@@ -857,10 +867,10 @@ bool CCustomDataManager::SaveCustomLayout(CArchive& ar)
 	UINT count = 0;
 	vector<CTreeNode*>::iterator itr;
 	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
-		if ((*itr)->GetWindowInfo().wnd == NULL) {
+		if ((*itr)->GetEquipment().wnd == NULL) {
 			continue;
 		}
-		if ((*itr)->GetWindowInfo().wnd->IsWindowVisible() == FALSE) {
+		if ((*itr)->GetEquipment().wnd->IsWindowVisible() == FALSE) {
 			continue;
 		}
 
@@ -879,21 +889,21 @@ bool CCustomDataManager::SaveCustomLayout(CArchive& ar)
 		compWnd = pWnd;
 		//itr = std::find_if(mTreeNode.begin(), mTreeNode.end(), [](CTreeNode* p) { return (p->GetWindowInfo().wnd == compWnd); });
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
-			if ((*itr)->GetWindowInfo().wnd == NULL) {
+			if ((*itr)->GetEquipment().wnd == NULL) {
 				continue;
 			}
-			if ((*itr)->GetWindowInfo().wnd->IsWindowVisible() == FALSE) {
+			if ((*itr)->GetEquipment().wnd->IsWindowVisible() == FALSE) {
 				continue;
 			}
 
-			if (pWnd != (*itr)->GetWindowInfo().wnd) {
+			if (pWnd != (*itr)->GetEquipment().wnd) {
 				continue;
 			}
 
 			//=====================================================//
 			//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
-			TRACE("Save Title:%s\n", CStringA((*itr)->GetWindowInfo().title));
-			CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveCustomLayout"), (*itr)->GetWindowInfo().title, _T(""), nLogEx::debug);
+			TRACE("Save Title:%s\n", CStringA((*itr)->GetEquipment().title));
+			CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveCustomLayout"), (*itr)->GetEquipment().title, _T(""), nLogEx::debug);
 			//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 			//=====================================================//
 
@@ -928,9 +938,9 @@ bool CTreeNode::SaveCustomLayout()
 		return false;
 
 	// ウィンドウ位置情報の取得
-	memset(&wininfo.placement, 0, sizeof(WINDOWPLACEMENT));
-	wininfo.placement.length = sizeof(WINDOWPLACEMENT);
-	wininfo.wnd->GetWindowPlacement(&wininfo.placement);
+	memset(&equipment.placement, 0, sizeof(WINDOWPLACEMENT));
+	equipment.placement.length = sizeof(WINDOWPLACEMENT);
+	equipment.wnd->GetWindowPlacement(&equipment.placement);
 
 	CMarkup xml;
 	xml.Load(xmlfile);
@@ -938,16 +948,16 @@ bool CTreeNode::SaveCustomLayout()
 	xml.IntoElem();
 	xml.FindElem(_T("EQUIPMENT"));
 	xml.IntoElem();
-	xml.FindElem(_T("WINDOWINFO"));
+	xml.FindElem(_T("EQUIPMENTINFO"));
 	xml.IntoElem();
 
 	xml.FindElem(_T("FLAGS"));
-	xml.SetData(wininfo.placement.flags);
+	xml.SetData(equipment.placement.flags);
 	xml.FindElem(_T("SHOWCMD"));
-	xml.SetData(wininfo.wnd->IsWindowVisible());
-	setPointXml(xml, wininfo.placement.ptMinPosition);
-	setPointXml(xml, wininfo.placement.ptMaxPosition);
-	setRectXml(xml, wininfo.placement.rcNormalPosition);
+	xml.SetData(equipment.wnd->IsWindowVisible());
+	setPointXml(xml, equipment.placement.ptMinPosition);
+	setPointXml(xml, equipment.placement.ptMaxPosition);
+	setRectXml(xml, equipment.placement.rcNormalPosition);
 
 	xml.Save(xmlfile);
 
@@ -1008,22 +1018,22 @@ bool CCustomDataManager::LoadCustomLayout(CArchive& ar)
 		vector<CTreeNode*>::iterator itr;
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
 			if (CString((*itr)->GetXmlFileName()).MakeLower() == (*itrr).MakeLower()) {
-				if ((*itr)->GetWindowInfo().wnd == NULL) {
+				if ((*itr)->GetEquipment().wnd == NULL) {
 					CCustomDetail* pitem = theApp.GetCustomControl().CreateEquipment((*itr));
 					if (pitem == NULL)
 						return false;
 
 					// ウィンドウハンドルの設定
-					(*itr)->GetWindowInfo().wnd = pitem;
+					(*itr)->GetEquipment().wnd = pitem;
 				}
-				(*itr)->GetWindowInfo().wnd->ShowWindow(SW_SHOWNA);
-				(*itr)->GetWindowInfo().wnd->SetActiveWindow();
+				(*itr)->GetEquipment().wnd->ShowWindow(SW_SHOWNA);
+				(*itr)->GetEquipment().wnd->SetActiveWindow();
 				// 常に監視モードとする
-				(*itr)->GetWindowInfo().mode = eTreeItemMode_Monitor;
+				(*itr)->GetEquipment().mode = eTreeItemMode_Monitor;
 				//=====================================================//
 				//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
-				TRACE("Load Title:%s\n", CStringA((*itr)->GetWindowInfo().title));
-				CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("LoadCustomLayout"), (*itr)->GetWindowInfo().title, _T(""), nLogEx::debug);
+				TRACE("Load Title:%s\n", CStringA((*itr)->GetEquipment().title));
+				CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("LoadCustomLayout"), (*itr)->GetEquipment().title, _T(""), nLogEx::debug);
 				//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 				//=====================================================//
 				break;
@@ -1061,9 +1071,9 @@ bool CTreeNode::LoadCustomLayout()
 		return false;
 
 	// ウィンドウ位置情報の取得
-	memset(&wininfo.placement, 0, sizeof(WINDOWPLACEMENT));
-	wininfo.placement.length = sizeof(WINDOWPLACEMENT);
-	wininfo.wnd->GetWindowPlacement(&wininfo.placement);
+	memset(&equipment.placement, 0, sizeof(WINDOWPLACEMENT));
+	equipment.placement.length = sizeof(WINDOWPLACEMENT);
+	equipment.wnd->GetWindowPlacement(&equipment.placement);
 
 	CMarkup xml;
 	xml.Load(xmlfile);
@@ -1071,16 +1081,16 @@ bool CTreeNode::LoadCustomLayout()
 	xml.IntoElem();
 	xml.FindElem(_T("EQUIPMENT"));
 	xml.IntoElem();
-	xml.FindElem(_T("WINDOWINFO"));
+	xml.FindElem(_T("EQUIPMENTINFO"));
 	xml.IntoElem();
 
 	xml.FindElem(_T("FLAGS"));
-	xml.SetData(wininfo.placement.flags);
+	xml.SetData(equipment.placement.flags);
 	xml.FindElem(_T("SHOWCMD"));
-	xml.SetData(wininfo.wnd->IsWindowVisible());
-	setPointXml(xml, wininfo.placement.ptMinPosition);
-	setPointXml(xml, wininfo.placement.ptMaxPosition);
-	setRectXml(xml, wininfo.placement.rcNormalPosition);
+	xml.SetData(equipment.wnd->IsWindowVisible());
+	setPointXml(xml, equipment.placement.ptMinPosition);
+	setPointXml(xml, equipment.placement.ptMaxPosition);
+	setRectXml(xml, equipment.placement.rcNormalPosition);
 
 	xml.Save(xmlfile);
 
@@ -1133,7 +1143,7 @@ bool CCustomDataManager::SaveTreeDataXml(CString strFile, CWnd* pTargetWnd/* = N
 
 	vector<CTreeNode*>::iterator itr;
 	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
-		if (pTargetWnd != NULL && pTargetWnd != (*itr)->GetWindowInfo().wnd) {
+		if (pTargetWnd != NULL && pTargetWnd != (*itr)->GetEquipment().wnd) {
 			continue;
 		}
 		xml.AddElem(_T("EQUIPMENT"));
@@ -1229,36 +1239,37 @@ bool CTreeNode::SaveTreeNodeXml(CMarkup& xml)
 	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 	//=====================================================//
 	// ウィンドウ位置情報取得
-	if (wininfo.wnd != NULL){
-		memset(&wininfo.placement, 0, sizeof(WINDOWPLACEMENT));
-		wininfo.placement.length = sizeof(WINDOWPLACEMENT);
-		wininfo.wnd->GetWindowPlacement(&wininfo.placement);
+	if (equipment.wnd != NULL){
+		memset(&equipment.placement, 0, sizeof(WINDOWPLACEMENT));
+		equipment.placement.length = sizeof(WINDOWPLACEMENT);
+		equipment.wnd->GetWindowPlacement(&equipment.placement);
 		//★((CCustomDetail*)wininfo.wnd)->GetHeaderWidth(wininfo.hwidth, mHeaderSize);
 	}
 
-	// ウィンドウ情報
-	xml.AddElem(_T("WINDOWINFO"));
+	// 設備詳細画面情報
+	xml.AddElem(_T("EQUIPMENTINFO"));
 	xml.IntoElem();
-	xml.AddElem(_T("MODE"), wininfo.mode);
-	xml.AddElem(_T("KIND"), wininfo.kind);
-	xml.AddElem(_T("TYPE"), wininfo.type);
-	if (wininfo.type == eTreeItemType_Title){
-		xml.AddElem(_T("TITLE"), wininfo.title);
-		xml.AddElem(_T("MEMO"), wininfo.memo);
-		xml.AddElem(_T("GROUPNO"), wininfo.groupno);
-		xml.AddElem(_T("GROUP"), wininfo.groupname);
-		xml.AddElem(_T("MONITOR"), wininfo.monitor);
-		xml.AddElem(_T("FLAGS"), wininfo.placement.flags);
-		xml.AddElem(_T("SHOWCMD"), (wininfo.wnd == NULL) ? 0 : wininfo.wnd->IsWindowVisible()/*wininfo.placement.showCmd*/);
-		savePointXml(xml, wininfo.placement.ptMinPosition);
-		savePointXml(xml, wininfo.placement.ptMaxPosition);
-		saveRectXml(xml, wininfo.placement.rcNormalPosition);
+	xml.AddElem(_T("MODE"), equipment.mode);
+	xml.AddElem(_T("KIND"), equipment.kind);
+	xml.AddElem(_T("TYPE"), equipment.type);
+	if (equipment.type == eTreeItemType_Title){
+		xml.AddElem(_T("TITLE"), equipment.title);
+		xml.AddElem(_T("MONITOR"), equipment.monitor);
+		xml.AddElem(_T("FLAGS"), equipment.placement.flags);
+		xml.AddElem(_T("SHOWCMD"), (equipment.wnd == NULL) ? 0 : equipment.wnd->IsWindowVisible()/*wininfo.placement.showCmd*/);
+		savePointXml(xml, equipment.placement.ptMinPosition);
+		savePointXml(xml, equipment.placement.ptMaxPosition);
+		saveRectXml(xml, equipment.placement.rcNormalPosition);
 		for (int i = 0; i < mHeaderSize; i++){
 			CString str;
 			str.Format(_T("HWIDTH%d"), i + 1);
-			xml.AddElem(str, wininfo.hwidth[i]);
+			xml.AddElem(str, equipment.hwidth[i]);
 		}
-		xml.AddElem(_T("ZORDER"), wininfo.zorder);
+		xml.AddElem(_T("ZORDER"), equipment.zorder);
+		// 設備詳細管理画面情報
+		xml.AddElem(_T("MEMO"), manager.memo);
+		xml.AddElem(_T("GROUPNO"), manager.groupno);
+		xml.AddElem(_T("GROUPNAME"), manager.groupname);
 	}
 	//★wininfo.treeopen = ((CCustomDetail*)wininfo.wnd)->GetTreeExpandState(treeitem);
 	xml.AddElem(_T("TREEOPEN"), 0/*wininfo.treeopen*/);
@@ -1268,7 +1279,7 @@ bool CTreeNode::SaveTreeNodeXml(CMarkup& xml)
 	xml.AddElem(_T("MONCTRLINFO"));
 	xml.IntoElem();
 	xml.AddElem(_T("DISPLAY"), monctrl.display);
-	if (wininfo.type == eTreeItemType_Item){
+	if (equipment.type == eTreeItemType_Item){
 		xml.AddElem(_T("MONNAME"), monctrl.mname);
 		xml.AddElem(_T("CTRLNAME"), monctrl.cname);
 		xml.AddElem(_T("UNIT"), monctrl.unit);
@@ -1354,7 +1365,7 @@ CTreeNode* CCustomDataManager::LoadTreeDataXml(CString strFile, UINT kind/* = UI
 
 		swprintf_s(pnode->GetXmlFileName(), _MAX_PATH, _T("%s"), (LPCTSTR)strFile);
 		if (kind != UINT_MAX) {
-			pnode->GetWindowInfo().kind = kind;
+			pnode->GetEquipment().kind = kind;
 		}
 		mTreeNode.push_back(pnode);
 		xml.OutOfElem();
@@ -1375,46 +1386,47 @@ CTreeNode* CCustomDataManager::LoadTreeDataXml(CString strFile, UINT kind/* = UI
 bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 {
 	// ウィンドウ情報
-	xml.FindElem(_T("WINDOWINFO"));
+	xml.FindElem(_T("EQUIPMENTINFO"));
 	xml.IntoElem();
 	xml.FindElem(_T("MODE"));
-	wininfo.mode = _wtoi(xml.GetData());
-	wininfo.mode = eTreeItemMode_Monitor; // ロード時は常に監視モード
+	equipment.mode = _wtoi(xml.GetData());
+	equipment.mode = eTreeItemMode_Monitor; // ロード時は常に監視モード
 	xml.FindElem(_T("KIND"));
-	wininfo.kind = _wtoi(xml.GetData());
+	equipment.kind = _wtoi(xml.GetData());
 	xml.FindElem(_T("TYPE"));
-	wininfo.type = _wtoi(xml.GetData());
-	if (wininfo.type == eTreeItemType_Title){
+	equipment.type = _wtoi(xml.GetData());
+	if (equipment.type == eTreeItemType_Title){
 		xml.FindElem(_T("TITLE"));
-		swprintf_s(wininfo.title, mTitleSize, _T("%s"), (LPCTSTR)xml.GetData());
-		xml.FindElem(_T("MEMO"));
-		swprintf_s(wininfo.memo, mTitleSize, _T("%s"), (LPCTSTR)xml.GetData());
-		xml.FindElem(_T("GROUPNO"));
-		CString str = xml.GetData();
-		wininfo.groupno = _wtoi(xml.GetData());
-		xml.FindElem(_T("GROUP"));
-		swprintf_s(wininfo.groupname, mNameSize, _T("%s"), (LPCTSTR)xml.GetData());
+		swprintf_s(equipment.title, mTitleSize, _T("%s"), (LPCTSTR)xml.GetData());
 		//if (HIWORD(wininfo.groupno) == 0) {
 		//	swprintf_s(wininfo.groupname, mNameSize, mNoGroupText);
 		//}
 		xml.FindElem(_T("MONITOR"));
-		wininfo.monitor = _wtoi(xml.GetData());
-		wininfo.placement.length = sizeof(WINDOWPLACEMENT);
+		equipment.monitor = _wtoi(xml.GetData());
+		equipment.placement.length = sizeof(WINDOWPLACEMENT);
 		xml.FindElem(_T("FLAGS"));
-		wininfo.placement.flags = _wtoi(xml.GetData());
+		equipment.placement.flags = _wtoi(xml.GetData());
 		xml.FindElem(_T("SHOWCMD"));
-		wininfo.placement.showCmd = _wtoi(xml.GetData());
-		loadPointXml(xml, wininfo.placement.ptMinPosition);
-		loadPointXml(xml, wininfo.placement.ptMaxPosition);
-		loadRectXml(xml, wininfo.placement.rcNormalPosition);
+		equipment.placement.showCmd = _wtoi(xml.GetData());
+		loadPointXml(xml, equipment.placement.ptMinPosition);
+		loadPointXml(xml, equipment.placement.ptMaxPosition);
+		loadRectXml(xml, equipment.placement.rcNormalPosition);
 		for (int i = 0; i < mHeaderSize; i++){
 			CString str;
 			str.Format(_T("HWIDTH%d"), i + 1);
 			xml.FindElem(str);
-			wininfo.hwidth[i] = _wtoi(xml.GetData());
+			equipment.hwidth[i] = _wtoi(xml.GetData());
 		}
 		xml.FindElem(_T("ZORDER"));
-		wininfo.zorder = _wtoi(xml.GetData());
+		equipment.zorder = _wtoi(xml.GetData());
+		// Manager
+		xml.FindElem(_T("MEMO"));
+		swprintf_s(manager.memo, mTitleSize, _T("%s"), (LPCTSTR)xml.GetData());
+		xml.FindElem(_T("GROUPNO"));
+		CString str = xml.GetData();
+		manager.groupno = _wtoi(xml.GetData());
+		xml.FindElem(_T("GROUPNAME"));
+		swprintf_s(manager.groupname, mNameSize, _T("%s"), (LPCTSTR)xml.GetData());
 	}
 	//xml.FindElem(_T("TREEOPEN"));
 	//wininfo.treeopen = 0;// _wtoi(xml.GetData());
@@ -1425,7 +1437,7 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 	xml.IntoElem();
 	xml.FindElem(_T("DISPLAY"));
 	swprintf_s(monctrl.display, mNameSize, _T("%s"), (LPCTSTR)xml.GetData());
-	if (wininfo.type == eTreeItemType_Item){
+	if (equipment.type == eTreeItemType_Item){
 		xml.FindElem(_T("MONNAME"));
 		swprintf_s(monctrl.mname, mNameSize, _T("%s"), (LPCTSTR)xml.GetData());
 		xml.FindElem(_T("CTRLNAME"));
@@ -1473,7 +1485,7 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 		//CTreeNode* child = new CTreeNode((HTREEITEM)i, NULL, NULL);
 		CTreeNode* child = new CTreeNode((HTREEITEM)NULL, NULL, NULL);
 		child->LoadTreeNodeXml(xml);
-		child->GetWindowInfo().sortno = (i+1) * mSortRange;
+		child->GetEquipment().sortno = (i+1) * mSortRange;
 		children.push_back(child);
 		xml.OutOfElem();
 	}
@@ -1497,8 +1509,8 @@ void CCustomDataManager::SetTreeZorder()
 	while (pWnd){
 		vector<CTreeNode*>::iterator itr;
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++){
-			if (pWnd == (*itr)->GetWindowInfo().wnd){
-				(*itr)->GetWindowInfo().zorder = pos++;
+			if (pWnd == (*itr)->GetEquipment().wnd){
+				(*itr)->GetEquipment().zorder = pos++;
 				break;
 			}
 		}
@@ -1520,7 +1532,7 @@ void CCustomDataManager::ResetTreeZorder()
 	map<UINT, CWnd*> winmap;
 	vector<CTreeNode*>::iterator itr;
 	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++){
-		winmap.insert(map<UINT, CWnd*>::value_type((*itr)->GetWindowInfo().zorder, (*itr)->GetWindowInfo().wnd));
+		winmap.insert(map<UINT, CWnd*>::value_type((*itr)->GetEquipment().zorder, (*itr)->GetEquipment().wnd));
 	}
 
 	map<UINT, CWnd*>::reverse_iterator ritr;
@@ -1576,7 +1588,7 @@ void CCustomDataManager::LoadEquipmentData(UINT typeLayout, CString strfile, boo
 	vector<CTreeNode*>& treedata = GetTreeNode();
 	vector<CTreeNode*>::iterator itr;
 	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
-		if (bClear == false && (*itr)->GetWindowInfo().wnd != NULL)
+		if (bClear == false && (*itr)->GetEquipment().wnd != NULL)
 			continue;
 
 		// 設備詳細画面の作成
@@ -1677,8 +1689,8 @@ UINT CCustomDataManager::GetMaxInnerNo(UINT group)
 	vector<CTreeNode*>::iterator itr;
 	UINT max = 0;
 	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
-		if (HIWORD((*itr)->GetWindowInfo().groupno) == HIWORD(group)) {
-			max = __max(max, LOWORD((*itr)->GetWindowInfo().groupno));
+		if (HIWORD((*itr)->GetManager().groupno) == HIWORD(group)) {
+			max = __max(max, LOWORD((*itr)->GetManager().groupno));
 		}
 	}
 	return max;
@@ -1698,13 +1710,13 @@ bool CCustomDataManager::IsVisibleEditMode()
 {
 	vector<CTreeNode*>::iterator itr;
 	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
-		if ((*itr)->GetWindowInfo().wnd != NULL && (*itr)->GetWindowInfo().mode == eTreeItemMode_Edit)
+		if ((*itr)->GetEquipment().wnd != NULL && (*itr)->GetEquipment().mode == eTreeItemMode_Edit)
 			return true;
 	}
 
 	map<CWnd*, CTreeNode*>::iterator itrwnd;
 	for (itrwnd = mEditTreeNode.begin(); itrwnd != mEditTreeNode.end(); itrwnd++) {
-		if ((*itrwnd).second->GetWindowInfo().wnd != NULL && (*itrwnd).second->GetWindowInfo().mode == eTreeItemMode_Edit)
+		if ((*itrwnd).second->GetEquipment().wnd != NULL && (*itrwnd).second->GetEquipment().mode == eTreeItemMode_Edit)
 			return true;
 	}
 

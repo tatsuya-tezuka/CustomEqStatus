@@ -319,7 +319,7 @@ bool CCustomCsvToXmlDlg::SaveNodeScl(CArchive& ar, CNode* cur)
 		}
 		ar << (UINT)1;
 	}
-	ar << (UINT)32;
+	ar << (UINT)0;
 
 	// 監視制御情報
 	ar << CString(cur->getName());
@@ -392,16 +392,13 @@ bool CCustomCsvToXmlDlg::SaveNodeXml(CMarkup& xml, CNode* cur)
 {
 	// ウィンドウ位置情報取得
 	// ウィンドウ情報
-	xml.AddElem(_T("WINDOWINFO"));
+	xml.AddElem(_T("EQUIPMENTINFO"));
 	xml.IntoElem();
 	xml.AddElem(_T("MODE"), 0);
 	xml.AddElem(_T("KIND"), 0);
 	xml.AddElem(_T("TYPE"), cur->getLevel());
 	if (cur->getLevel() == 1) {
 		xml.AddElem(_T("TITLE"), cur->getName());
-		xml.AddElem(_T("MEMO"), _T(""));
-		xml.AddElem(_T("GROUP"), _T("0"));
-		xml.AddElem(_T("GROUPNO"), 0);
 		xml.AddElem(_T("MONITOR"), 0);
 		xml.AddElem(_T("FLAGS"), 0);
 		xml.AddElem(_T("SHOWCMD"), 1);
@@ -414,8 +411,12 @@ bool CCustomCsvToXmlDlg::SaveNodeXml(CMarkup& xml, CNode* cur)
 			xml.AddElem(str, 100);
 		}
 		xml.AddElem(_T("ZORDER"), 1);
+		// 設備詳細管理画面情報
+		xml.AddElem(_T("MEMO"), _T(""));
+		xml.AddElem(_T("GROUPNO"), 0);
+		xml.AddElem(_T("GROUPNAME"), _T(""));
 	}
-	xml.AddElem(_T("TREEOPEN"), 32);
+	xml.AddElem(_T("TREEOPEN"), 0);
 	xml.OutOfElem();
 
 	// 監視制御情報

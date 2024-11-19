@@ -571,7 +571,7 @@ void CCustomTreeListCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
 			return;
 		}
 		CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(mTreeParent);
-		if (pnode != NULL && pnode->GetWindowInfo().mode == eTreeItemMode_Edit) {
+		if (pnode != NULL && pnode->GetEquipment().mode == eTreeItemMode_Edit) {
 			UINT mask = 1 << eTreeItemSubType_Item | 1 << eTreeItemSubType_Unit;
 			if ((1 << col) & mask) {
 				if (hItem != NULL /*&& col != 0*/) {
@@ -623,7 +623,7 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 			*pResult = CDRF_DODEFAULT | CDRF_NOTIFYPOSTPAINT;
 			break;
 		}
-		switch (pnode->GetWindowInfo().type) {
+		switch (pnode->GetEquipment().type) {
 		case	eTreeItemType_Window:
 		case	eTreeItemType_Title:
 			SelectObject(pNMCustomDraw->hdc, mNodeTitleFont);
@@ -670,7 +670,7 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		CDC dc;
 		dc.Attach(pNMCustomDraw->hdc);
 
-		switch (pnode->GetWindowInfo().type) {
+		switch (pnode->GetEquipment().type) {
 		case	eTreeItemType_Window:
 		case	eTreeItemType_Title:
 			dc.SelectObject(mNodeTitleFont);
@@ -822,7 +822,7 @@ void CCustomTreeListCtrl::OnTvnBeginlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, pTVDispInfo->item.hItem);
 	if (pnode != NULL){
-		UINT type = pnode->GetWindowInfo().type;
+		UINT type = pnode->GetEquipment().type;
 		if (type == eTreeItemType_Item){
 			// マウス位置からセル場所を取得する
 			HTREEITEM hItem;
@@ -870,7 +870,7 @@ void CCustomTreeListCtrl::OnTvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 		return;
 	}
 
-	UINT type = pnode->GetWindowInfo().type;
+	UINT type = pnode->GetEquipment().type;
 
 	if (!(pTVDispInfo->item.mask & TVIF_TEXT)) {
 		if (mpEdit != NULL) {
@@ -1752,7 +1752,7 @@ void CCustomTreeListCtrl::DragDrop_Initialize(CWnd* parent)
 {
 	CCustomDetail* p = (CCustomDetail*)parent;
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(p);
-	if (pnode != NULL && pnode->GetWindowInfo().kind == eTreeItemKind_Master) {
+	if (pnode != NULL && pnode->GetEquipment().kind == eTreeItemKind_Master) {
 		mDragFormat = CCustomDropObject::DF_MASTER;
 		mDropFormat = CCustomDropObject::DF_NONE;
 	}
@@ -2294,7 +2294,7 @@ void CCustomTreeListCtrl::PrepareChildItem(HTREEITEM hItem, CNode* root)
 BOOL CCustomTreeListCtrl::IsDropTarget(HTREEITEM hItem, CCustomDropObject* pDataObject)
 {
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(mTreeParent);
-	if (pnode != NULL && pnode->GetWindowInfo().mode != eTreeItemMode_Edit) {
+	if (pnode != NULL && pnode->GetEquipment().mode != eTreeItemMode_Edit) {
 		return FALSE;
 	}
 
@@ -2415,12 +2415,12 @@ BOOL CCustomTreeListCtrl::DataObjectToList(HTREEITEM hDropItem, CCustomDropObjec
 					}
 					new_node->SetParentNode(pnodeDrop);
 					new_node->SetTreeItem(item);
-					new_node->GetWindowInfo().tree = this;
-					new_node->GetWindowInfo().wnd = mTreeParent;
-					new_node->GetWindowInfo().type = eTreeItemType_Item;
+					new_node->GetEquipment().tree = this;
+					new_node->GetEquipment().wnd = mTreeParent;
+					new_node->GetEquipment().type = eTreeItemType_Item;
 
 					stColorData color;
-					theApp.GetCustomControl().GetDataManager().GetNodeColor(mTreeParent, new_node->GetWindowInfo().type, color);
+					theApp.GetCustomControl().GetDataManager().GetNodeColor(mTreeParent, new_node->GetEquipment().type, color);
 					memcpy(&(new_node->GetColor()), &color, sizeof(stColorData));
 				}
 				else {
@@ -2506,25 +2506,25 @@ bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node, bo
 	for (::std::vector<CNode*>::const_iterator itr = node->getChildren().begin(); itr != node->getChildren().end(); itr++) {
 		CTreeNode* pnode = (*itr)->getNodeData();
 		CString text = pnode->GetMonCtrl().display;
-		if (pnode->GetWindowInfo().type == eTreeItemType_Item) {
+		if (pnode->GetEquipment().type == eTreeItemType_Item) {
 			// リーフ用のテキストを作成
 			text = CreateLeafText(pnode->GetMonCtrl().display, pnode->GetMonCtrl().unit, pnode->GetMonCtrl().cname);
 		}
 		if (dw == CCustomDropObject::DK_LEAF) {
 			// ドロップ先がリーフの場合
 			HTREEITEM item = InsertItem(text, NULL, NULL, hParent, TVI_SORT);
-			SetItemData(item, MAKEDATA(dw + 1, pnodeDrop->GetWindowInfo().sortno + 1));
+			SetItemData(item, MAKEDATA(dw + 1, pnodeDrop->GetEquipment().sortno + 1));
 			CTreeNode* new_node = pnodeParent->CreateTreeNode(hParent, item, TVI_FIRST);
 			new_node->DropCopyItem(pnode);
 			stColorData color;
-			theApp.GetCustomControl().GetDataManager().GetNodeColor(mTreeParent, new_node->GetWindowInfo().type, color);
+			theApp.GetCustomControl().GetDataManager().GetNodeColor(mTreeParent, new_node->GetEquipment().type, color);
 			memcpy(&(new_node->GetColor()), &color, sizeof(stColorData));
 			hSortItem = hParent;
 		}
 		else {
 			// ドロップ先がリーフ以外の場合
 			HTREEITEM item;
-			if (pnode->GetWindowInfo().type == eTreeItemType_Item) {
+			if (pnode->GetEquipment().type == eTreeItemType_Item) {
 				item = InsertItem(text, NULL, NULL, hDropItem, TVI_SORT);
 				hSortItem = hDropItem;
 			}
@@ -2535,7 +2535,7 @@ bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node, bo
 			CTreeNode* new_node = pnodeDrop->CreateTreeNode(hDropItem, item, (bFirst) ? TVI_FIRST : TVI_LAST);
 			new_node->DropCopyItem(pnode);
 			stColorData color;
-			theApp.GetCustomControl().GetDataManager().GetNodeColor(mTreeParent, new_node->GetWindowInfo().type, color);
+			theApp.GetCustomControl().GetDataManager().GetNodeColor(mTreeParent, new_node->GetEquipment().type, color);
 			memcpy(&(new_node->GetColor()), &color, sizeof(stColorData));
 			DropCopyChildItem(item, (*itr), false);
 		}
@@ -2610,7 +2610,7 @@ void CCustomTreeListCtrl::UpdateSortNo(HTREEITEM item)
 	while (child != NULL) {
 		SetItemData(child, MAKEDATA(CCustomDropObject::DK_LEAF, pos * mSortRange));
 		CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, child);
-		pnode->GetWindowInfo().sortno = (pos * mSortRange);
+		pnode->GetEquipment().sortno = (pos * mSortRange);
 		child = GetNextItem(child, TVGN_NEXT);
 		pos++;
 	}

@@ -78,7 +78,7 @@ BOOL CCustomManager::OnInitDialog()
 
 	// リストに登録
 	if (theApp.GetCustomControl().GetDataManager().GetTreeNode().size() != 0){
-		createItem((int)eSelectUser);
+		createItem((int)eSelectUser, true);
 	}
 
 	//UpdateGroup();
@@ -304,10 +304,10 @@ void CCustomManager::OnNMRClickListManager(NMHDR *pNMHDR, LRESULT *pResult)
 	if(item >= 0){
 		// アイテムからノード情報を取得する
 		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(item);
-		if (HIWORD(pnode->GetWindowInfo().groupno) != 0) {
+		if (HIWORD(pnode->GetManager().groupno) != 0) {
 			nMenuRes = IDR_POPUP_MANAGER_GROUP;
 		}
-		TRACE("[MANAGER]Rclick Item=%d Group=%08X)\n", item, pnode->GetWindowInfo().groupno);
+		TRACE("[MANAGER]Rclick Item=%d Group=%08X)\n", item, pnode->GetManager().groupno);
 	}
 	else {
 		TRACE("[MANAGER]Rclick Item=--)\n");
@@ -355,11 +355,11 @@ void CCustomManager::OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult)
 	if (pnode == NULL)
 		return;
 
-	if (HIWORD(pnode->GetWindowInfo().groupno) != 0) {
+	if (HIWORD(pnode->GetManager().groupno) != 0) {
 		UINT nGroup = 0;
 		for (UINT item = 0; item < (UINT)mManagerList.GetItemCount(); item++) {
 			CTreeNode* group = (CTreeNode*)mManagerList.GetItemData(item);
-			if (HIWORD(group->GetWindowInfo().groupno) == HIWORD(pnode->GetWindowInfo().groupno)) {
+			if (HIWORD(group->GetManager().groupno) == HIWORD(pnode->GetManager().groupno)) {
 				showCustomDetail(item, true);
 			}
 		}
@@ -424,14 +424,14 @@ void CCustomManager::OnManagerDelete()
 			continue;
 
 		CString msg;
-		msg.Format(mMessage_DetailDelete, pnode->GetWindowInfo().title);
+		msg.Format(mMessage_DetailDelete, pnode->GetEquipment().title);
 		if (MessageBox(msg, mMessage_Title_CustomManager, MB_YESNO | MB_ICONQUESTION) == IDNO) {
 			continue;
 		}
 
 		// 設備制御画面の削除
 		CString xmlfile = CString(pnode->GetXmlFileName());
-		theApp.GetCustomControl().GetDataManager().DeleteItemWnd(pnode->GetWindowInfo().wnd);
+		theApp.GetCustomControl().GetDataManager().DeleteItemWnd(pnode->GetEquipment().wnd);
 		theApp.GetCustomControl().GetDataManager().DeleteItemNode(pnode);
 		DeleteFile(xmlfile);
 
@@ -517,15 +517,14 @@ void CCustomManager::OnManagerCreate()
 		break;
 	}
 
-	UINT maxGroup = 100;// GetGroupMaxNo();
-	UINT nGroup = 0;
+	// グループ番号は最大値を設定しても、再度グループIDは振りなおす
+	UINT maxGroup = 100;
 	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
 	while (pos) {
 		int nItem = mManagerList.GetNextSelectedItem(pos);
 		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
-		pnode->GetWindowInfo().groupno = MAKELONG(nGroup, maxGroup + 1);
-		swprintf_s(pnode->GetWindowInfo().groupname, mNameSize, _T("%s"), (LPCTSTR)dlg.mGroupName);
-		nGroup++;
+		pnode->GetManager().groupno = MAKELONG(LOWORD(pnode->GetManager().groupno), maxGroup + 1);
+		swprintf_s(pnode->GetManager().groupname, mNameSize, _T("%s"), (LPCTSTR)dlg.mGroupName);
 	}
 	createItem((int)eSelectUser);
 	UpdateGroup();
@@ -562,7 +561,7 @@ void CCustomManager::OnMangroupRename()
 		int item = mManagerList.GetNextSelectedItem(pos);
 		if (mMenuSelectGroupID == mManagerList.GetRowGroupId(item)) {
 			CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(item);
-			swprintf_s(pnode->GetWindowInfo().groupname, mNameSize, _T("%s"), (LPCTSTR)dlg.mGroupName);
+			swprintf_s(pnode->GetManager().groupname, mNameSize, _T("%s"), (LPCTSTR)dlg.mGroupName);
 		}
 	}
 }
@@ -584,8 +583,8 @@ void CCustomManager::OnMangroupReset()
 #endif
 	for (UINT item = 0; item < (UINT)mManagerList.GetItemCount(); item++) {
 		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(item);
-		if (HIWORD(pnode->GetWindowInfo().groupno) == mMenuSelectGroupID) {
-			pnode->GetWindowInfo().groupno = MAKELONG(0, 0);
+		if (HIWORD(pnode->GetManager().groupno) == mMenuSelectGroupID) {
+			pnode->GetManager().groupno = MAKELONG(LOWORD(pnode->GetManager().groupno), 0);
 		}
 	}
 	createItem((int)eSelectUser);
@@ -637,9 +636,34 @@ UINT CCustomManager::GetGroupMaxNo()
 	for (UINT item = 0; item < (UINT)mManagerList.GetItemCount(); item++) {
 		// データのグループ番号から対象カラムのテキストを設定する
 		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(item);
-		nGroup = __max(nGroup, HIWORD(pnode->GetWindowInfo().groupno));
+		if (pnode->GetEquipment().kind == eTreeItemKind_User) {
+			nGroup = __max(nGroup, HIWORD(pnode->GetManager().groupno));
+		}
 	}
 	return nGroup;
+}
+
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# グループ内番号の最大値を取得する
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+UINT CCustomManager::GetGroupInnerMaxNo()
+{
+	UINT nInnerNo = 0;
+	for (UINT item = 0; item < (UINT)mManagerList.GetItemCount(); item++) {
+		// データのグループ番号から対象カラムのテキストを設定する
+		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(item);
+		if (pnode->GetEquipment().kind == eTreeItemKind_User) {
+			nInnerNo = __max(nInnerNo, LOWORD(pnode->GetManager().groupno));
+		}
+	}
+	return nInnerNo;
 }
 
 /*============================================================================*/
@@ -657,7 +681,7 @@ bool CCustomManager::IsSameGroupName(CString groupName)
 	for (UINT item = 0; item < (UINT)mManagerList.GetItemCount(); item++) {
 		// データのグループ番号から対象カラムのテキストを設定する
 		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(item);
-		CString str = CString(pnode->GetWindowInfo().groupname);
+		CString str = CString(pnode->GetManager().groupname);
 		if (str.MakeLower() == groupName.MakeLower())
 			return true;
 	}
@@ -667,7 +691,7 @@ bool CCustomManager::IsSameGroupName(CString groupName)
 /*============================================================================*/
 /*! 設備詳細管理
 
--# 設備詳細の作成
+-# グループ番号の更新
 
 @param
 
@@ -685,12 +709,12 @@ void CCustomManager::UpdateGroup()
 	// 全てのグループ情報を削除
 	mSyncWindow.Clear(0);
 	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
-		if ((*itr)->GetWindowInfo().wnd == NULL)
+		if ((*itr)->GetEquipment().wnd == NULL)
 			continue;
 
-		if ((*itr)->GetWindowInfo().kind == eTreeItemKind_User && HIWORD((*itr)->GetWindowInfo().groupno) != 0) {
-			TRACE("# UpdateGroup(Set) : GroupNo=%d, GroupName=%s\n", HIWORD((*itr)->GetWindowInfo().groupno), CStringA((*itr)->GetWindowInfo().groupname));
-			mSyncWindow.Set((*itr)->GetWindowInfo().groupno, (*itr)->GetWindowInfo().wnd);
+		if ((*itr)->GetEquipment().kind == eTreeItemKind_User && HIWORD((*itr)->GetManager().groupno) != 0) {
+			TRACE("# UpdateGroup(Set) : GroupNo=%d, GroupName=%s\n", HIWORD((*itr)->GetManager().groupno), CStringA((*itr)->GetManager().groupname));
+			mSyncWindow.Set((*itr)->GetManager().groupno, (*itr)->GetEquipment().wnd);
 		}
 	}
 
@@ -704,7 +728,7 @@ void CCustomManager::UpdateGroup()
 		if ((*witr).second.size() != 0) {
 			if ((*witr).second[0].wnd != 0) {
 				(*witr).second[0].wnd->GetWindowRect(rect);
-				mSyncWindow.Move(MAKELONG(0, (*witr).first), (*witr).second[0].wnd, rect);
+				mSyncWindow.Move(MAKELONG((*witr).second[0].innerno, (*witr).first), (*witr).second[0].wnd, rect);
 			}
 		}
 	}
@@ -716,7 +740,7 @@ void CCustomManager::UpdateGroup()
 /*============================================================================*/
 /*! 設備詳細管理
 
--# グループ内部番号のリセット
+-# 通し番号のリセット
 
 @param
 
@@ -725,29 +749,22 @@ void CCustomManager::UpdateGroup()
 /*============================================================================*/
 void CCustomManager::ResetGroupInnerNo()
 {
-	map<UINT, UINT>	maxlist;
-	vector<CTreeNode*>& treedata = theApp.GetCustomControl().GetDataManager().GetTreeNode();
-	vector<CTreeNode*>::iterator itr;
-	// 全てのグループ情報を削除
-	UINT groupno;
-	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
-		if ((*itr)->GetWindowInfo().kind == eTreeItemKind_User) {
-			groupno = HIWORD((*itr)->GetWindowInfo().groupno);
-			map<UINT, UINT>::iterator itrmax = maxlist.find((UINT)groupno);
-			if (itrmax == maxlist.end()) {
-				maxlist.insert(map<UINT, UINT>::value_type(groupno, 0));
-				(*itr)->GetWindowInfo().groupno = MAKELONG(0, groupno);
+	UINT groupno = mGroupRange;
+	UINT maxgroup = GetGroupMaxNo() + 1;
+	for (UINT group = 0; group < maxgroup; group++) {
+		// 対象グループのグループ内番号を更新する
+		int count = mManagerList.GetItemCount();
+		for (int pos = 0; pos < count; pos++) {
+			CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(pos);
+			if (pnode->GetEquipment().kind == eTreeItemKind_User) {
+				if (HIWORD(pnode->GetManager().groupno) == group) {
+					pnode->GetManager().groupno = MAKELONG(groupno, group);
+					groupno += mGroupRange;
+				}
 			}
-			else {
-				// ワークのグループ番号を更新する
-				(*itrmax).second += mGroupRange;
-				// ノードのグループ番号を更新する
-				(*itr)->GetWindowInfo().groupno = MAKELONG((*itrmax).second, groupno);
-			}
-
-			//TRACE("# ResetGroupInnerNo : GroupNo=%d\n", HIWORD((*itr)->GetWindowInfo().groupno));
 		}
 	}
+
 	SyncEditMode();
 
 	TRACE("##### ResetGroupInnerNo\n");
@@ -760,11 +777,12 @@ void CCustomManager::ResetGroupInnerNo()
 -# 設備詳細をリストへ登録する
 
 @param	nSelect		ユーザorマスタ
+@param	bResetInner	グループ内番号のリセット
 
 @retval
 */
 /*============================================================================*/
-void CCustomManager::createItem(UINT nSelect)
+void CCustomManager::createItem(UINT nSelect, bool bResetInner/* = false*/)
 {
 	mManagerList.SetRedraw(FALSE);
 
@@ -775,28 +793,39 @@ void CCustomManager::createItem(UINT nSelect)
 	vector<CTreeNode*>::iterator itr;
 	for (itr = treedata.begin(); itr != treedata.end(); itr++){
 		int count = mManagerList.GetItemCount();
-		if ((*itr)->GetWindowInfo().kind == nSelect){
-			mManagerList.AddItem(count, 0, (*itr)->GetWindowInfo().title, (LPARAM)(*itr));
-			mManagerList.AddItem(count, 1, (*itr)->GetWindowInfo().memo);
-			mManagerList.AddItem(count, 2, (*itr)->GetWindowInfo().groupname);
+		if ((*itr)->GetEquipment().kind == nSelect){
+			mManagerList.AddItem(count, 0, (*itr)->GetEquipment().title, (LPARAM)(*itr));
+			mManagerList.AddItem(count, 1, (*itr)->GetManager().memo);
+			mManagerList.AddItem(count, 2, (*itr)->GetManager().groupname);
 			mManagerList.SetItemData(count, (LPARAM)(*itr));
-			(*itr)->GetWindowInfo().manager = this;
+			(*itr)->GetEquipment().manager = this;
 		}
 	}
 
 	mManagerList.SetRedraw(TRUE);
 
+	// グループの再作成を行う（グループ番号も振りなおす）
 	mManagerList.GroupByColumn(eManagerGroup, (nSelect == eSelectUser) ? TRUE : FALSE);
 	SyncEditMode();
 
-	ResetGroupInnerNo();
+	if (nSelect == eSelectUser) {
+		mManagerList.SortItem();
+		mManagerList.SortGroup();
+	}
+
+	// グループ内番号を振りなおす
+	if (bResetInner == true) {
+		ResetGroupInnerNo();
+	}
 
 	UpdateGroup();
 
-
-	if (nSelect == eSelectUser) {
-		mManagerList.SortGroup();
+#ifdef _DEBUG
+	for (int pos = 0; pos < mManagerList.GetItemCount(); pos++){
+		CTreeNode* pnode = (CTreeNode*)(mManagerList.GetItemData(pos));
+		TRACE("# createItem Dump : [%d] Name=%s, GroupNo=%d, Inner=%d\n", pos, CStringA(pnode->GetEquipment().title), HIWORD(pnode->GetManager().groupno), LOWORD(pnode->GetManager().groupno));
 	}
+#endif
 
 	mSelectType = nSelect;
 	UpdateData(FALSE);
@@ -841,12 +870,18 @@ void CCustomManager::createEqDetail(CTreeNode* node/*=NULL*/)
 	// 設備詳細画面の作成
 	CCustomDetail* pitem = theApp.GetCustomControl().CreateEquipment(NULL, eTreeItemMode_Edit);
 
-	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(pitem);
+	CTreeNode* pedit = theApp.GetCustomControl().GetDataManager().SearchWndNode(pitem);
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(pitem, false);
+	if (pnode != NULL) {
+		UINT maxno = GetGroupInnerMaxNo();
+		pnode->GetManager().groupno = MAKELONG(maxno + mGroupRange, 0);
+		SyncEditMode();
+	}
 	// createItemを実行することで管理画面に表示される
 	createItem((int)mSelectType);
-	if (pnode->GetWindowInfo().wnd != NULL) {
+	if (pedit->GetEquipment().wnd != NULL) {
 		CPoint point = theApp.GetCustomControl().GetCascadePoint();
-		pnode->GetWindowInfo().wnd->SetWindowPos(NULL, point.x, point.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+		pedit->GetEquipment().wnd->SetWindowPos(NULL, point.x, point.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
 	}
 }
 /*============================================================================*/
@@ -937,7 +972,7 @@ LRESULT CCustomManager::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 		if (lParam == 1 && mSelectType != eSelectUser) {
 			break;
 		}
-		createItem((int)eSelectUser);
+		createItem((int)eSelectUser, true);
 		UpdateGroup();
 		break;
 	case	eUserMessage_Manager_Delete:
@@ -970,7 +1005,7 @@ void CCustomManager::updateItemData(LPARAM lParam)
 	int count = mManagerList.GetItemCount();
 	for (int i = 0; i < count; i++) {
 		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(i);
-		mManagerList.SetItemText(i, 0, pnode->GetWindowInfo().title);
+		mManagerList.SetItemText(i, 0, pnode->GetEquipment().title);
 	}
 	mManagerList.Invalidate();
 }
@@ -1008,7 +1043,7 @@ void CCustomManager::updateXmlFile()
 	int count = mManagerList.GetItemCount();
 	for (int i = 0; i < count; i++) {
 		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(i);
-		swprintf_s(pnode->GetWindowInfo().memo, mTitleSize, _T("%s"), (LPCTSTR)mManagerList.GetItemText(i, 1));
+		swprintf_s(pnode->GetManager().memo, mTitleSize, _T("%s"), (LPCTSTR)mManagerList.GetItemText(i, 1));
 
 		CMarkup xml;
 		xml.Load(pnode->GetXmlFileName());
@@ -1016,7 +1051,7 @@ void CCustomManager::updateXmlFile()
 		xml.IntoElem();
 		xml.FindElem(_T("EQUIPMENT"));
 		xml.IntoElem();
-		xml.FindElem(_T("WINDOWINFO"));
+		xml.FindElem(_T("EQUIPMENTINFO"));
 		xml.IntoElem();
 
 		xml.FindElem(_T("TYPE"));
@@ -1032,17 +1067,17 @@ void CCustomManager::updateXmlFile()
 			}
 			// グループ番号保存
 			if (xml.FindElem(_T("GROUPNO")) == false) {
-				xml.AddElem(_T("GROUPNO"), pnode->GetWindowInfo().groupno);
+				xml.AddElem(_T("GROUPNO"), pnode->GetManager().groupno);
 			}
 			else {
-				xml.SetData(pnode->GetWindowInfo().groupno);
+				xml.SetData(pnode->GetManager().groupno);
 			}
 			// グループ名称保存
-			if (xml.FindElem(_T("GROUP")) == false) {
-				xml.AddElem(_T("GROUP"), pnode->GetWindowInfo().groupname);
+			if (xml.FindElem(_T("GROUPNAME")) == false) {
+				xml.AddElem(_T("GROUPNAME"), pnode->GetManager().groupname);
 			}
 			else {
-				xml.SetData(pnode->GetWindowInfo().groupname);
+				xml.SetData(pnode->GetManager().groupname);
 			}
 		}
 
@@ -1065,33 +1100,33 @@ void CCustomManager::showCustomDetail(int nItem, bool bDblClick)
 	CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
-	CLogTraceEx::Write(_T("***"), _T("CCustomManager"), _T("showCustomDetail"), CString(pnode->GetWindowInfo().title), _T(""), nLogEx::info);
+	CLogTraceEx::Write(_T("***"), _T("CCustomManager"), _T("showCustomDetail"), CString(pnode->GetEquipment().title), _T(""), nLogEx::info);
 	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 	//=====================================================//
 	bool bEditMode = false;
 	if (pnode != NULL) {
-		if (pnode->GetWindowInfo().wnd == NULL) {
+		if (pnode->GetEquipment().wnd == NULL) {
 			CCustomDetail* pitem = theApp.GetCustomControl().CreateEquipment(pnode);
 			if (pitem == NULL)
 				return;
 
-			pnode->GetWindowInfo().wnd = pitem;
-			if(pnode->GetWindowInfo().kind == eTreeItemKind_User)
+			pnode->GetEquipment().wnd = pitem;
+			if(pnode->GetEquipment().kind == eTreeItemKind_User)
 				bEditMode = true;
 
 			if (bDblClick == true) {
 				// ダブルクリック時はカスケード表示
 				CPoint point = theApp.GetCustomControl().GetCascadePoint();
-				if (pnode->GetWindowInfo().wnd != NULL) {
-					pnode->GetWindowInfo().wnd->SetWindowPos(NULL, point.x, point.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+				if (pnode->GetEquipment().wnd != NULL) {
+					pnode->GetEquipment().wnd->SetWindowPos(NULL, point.x, point.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
 				}
 			}
 		}
-		pnode->GetWindowInfo().wnd->ShowWindow(SW_SHOWNA);
-		pnode->GetWindowInfo().wnd->SetActiveWindow();
+		pnode->GetEquipment().wnd->ShowWindow(SW_SHOWNA);
+		pnode->GetEquipment().wnd->SetActiveWindow();
 		if (bEditMode == true) {
 			// ダブルクリック時は常に編集モードとする
-			pnode->GetWindowInfo().wnd->PostMessageW(eUserMessage_Detail_Mode, 0, (LPARAM)eTreeItemMode_Edit);
+			pnode->GetEquipment().wnd->PostMessageW(eUserMessage_Detail_Mode, 0, (LPARAM)eTreeItemMode_Edit);
 		}
 	}
 }
@@ -1124,7 +1159,7 @@ void CCustomManager::OnLvnGetInfoTipListManager(NMHDR* pNMHDR, LRESULT* pResult)
 	}
 #ifdef _DEBUG
 	int nGroupId = mManagerList.GetRowGroupId(pGetInfoTip->iItem);
-	mToolText.Format(_T("(%d)NODE_GROUP=%d NODE_NO=%d NODE_GROUP_NAME=%s"), nGroupId, HIWORD(pnode->GetWindowInfo().groupno), LOWORD(pnode->GetWindowInfo().groupno), pnode->GetWindowInfo().groupname);
+	mToolText.Format(_T("(%d)NODE_GROUP=%d NODE_NO=%d NODE_GROUP_NAME=%s NAME=%s"), nGroupId, HIWORD(pnode->GetManager().groupno), LOWORD(pnode->GetManager().groupno), pnode->GetManager().groupname, pnode->GetEquipment().title);
 	TRACE("%s\n", CStringA(mToolText));
 #endif
 	pGetInfoTip->pszText = (LPWSTR)(LPCTSTR)mToolText;
@@ -1148,14 +1183,14 @@ void CCustomManager::SyncEditMode()
 	vector<CTreeNode*>& treedata = theApp.GetCustomControl().GetDataManager().GetTreeNode();
 	vector<CTreeNode*>::iterator itr;
 	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
-		if ((*itr)->GetWindowInfo().wnd == NULL)
+		if ((*itr)->GetEquipment().wnd == NULL)
 			continue;
 
-		CTreeNode* pedit = theApp.GetCustomControl().GetDataManager().SearchWndNode((*itr)->GetWindowInfo().wnd, true);
+		CTreeNode* pedit = theApp.GetCustomControl().GetDataManager().SearchWndNode((*itr)->GetEquipment().wnd, true);
 		if (pedit == NULL)
 			continue;
 
-		pedit->GetWindowInfo().groupno = (*itr)->GetWindowInfo().groupno;
-		swprintf_s(pedit->GetWindowInfo().groupname, mNameSize, _T("%s"), (LPCTSTR)(*itr)->GetWindowInfo().groupname);
+		pedit->GetManager().groupno = (*itr)->GetManager().groupno;
+		swprintf_s(pedit->GetManager().groupname, mNameSize, _T("%s"), (LPCTSTR)(*itr)->GetManager().groupname);
 	}
 }

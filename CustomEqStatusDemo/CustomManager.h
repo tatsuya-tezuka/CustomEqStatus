@@ -127,7 +127,7 @@ public:
 	}
 
 protected:
-	void	createItem(UINT nSelect);
+	void	createItem(UINT nSelect, bool bResetInner=false);
 	void	createEquipment();
 	void	createEqDetail(CTreeNode* node = NULL);
 	void	updateMenuItemStatus(CMenu* pMenu, bool bUser, bool bGroup, bool bNoGroup);
@@ -135,6 +135,7 @@ protected:
 	void	updateXmlFile();
 	void	showCustomDetail(int nItem, bool bDblClick);
 	UINT	GetGroupMaxNo();
+	UINT	GetGroupInnerMaxNo();
 	bool	IsSameGroupName(CString groupName);
 	void	SyncEditMode();
 

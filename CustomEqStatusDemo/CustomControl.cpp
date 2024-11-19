@@ -75,22 +75,22 @@ CCustomDetail* CCustomControl::CreateEquipment(CTreeNode* pnode, UINT mode/* = e
 	// 設備詳細画面の作成
 	CCustomDetail* pitem = new CCustomDetail(theApp.GetMainWnd(), (pnode == NULL) ? false : true);
 	if (pnode != NULL) {
-		pnode->GetWindowInfo().wnd = pitem;
-		pnode->GetWindowInfo().manager = &mCustomManager;
+		pnode->GetEquipment().wnd = pitem;
+		pnode->GetEquipment().manager = &mCustomManager;
 	}
 	// 設備詳細画面の作成
 	pitem->Create(IDD_DIALOG_EQDETAIL, theApp.GetMainWnd());
-	pitem->ShowWindow((pnode == NULL) ? SW_SHOW : pnode->GetWindowInfo().placement.showCmd);
+	pitem->ShowWindow((pnode == NULL) ? SW_SHOW : pnode->GetEquipment().placement.showCmd);
 
 	// 管理ウィンドウの設定
 	if (pnode == NULL) {
 		CTreeNode* pnodeitem = GetDataManager().SearchWndNode(pitem);
-		pnodeitem->GetWindowInfo().wnd = pitem;
-		pnodeitem->GetWindowInfo().manager = &mCustomManager;
+		pnodeitem->GetEquipment().wnd = pitem;
+		pnodeitem->GetEquipment().manager = &mCustomManager;
 		//swprintf_s(pnodeitem->GetWindowInfo().groupname, mNameSize, _T("%s"), (LPCTSTR)mNoGroupText);
-		pnodeitem->GetWindowInfo().groupno = 0;
-		pnodeitem->GetWindowInfo().mode = mode;
-		pnodeitem->GetWindowInfo().kind = eTreeItemKind_User;
+		pnodeitem->GetManager().groupno = 0;
+		pnodeitem->GetEquipment().mode = mode;
+		pnodeitem->GetEquipment().kind = eTreeItemKind_User;
 	}
 	return pitem;
 }

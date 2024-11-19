@@ -117,10 +117,10 @@ void CCustomDialogBase::OnSize(UINT nType, int cx, int cy)
 	}
 
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
-	if (pnode != NULL && HIWORD(pnode->GetWindowInfo().groupno) != 0) {
+	if (pnode != NULL && HIWORD(pnode->GetManager().groupno) != 0) {
 		CRect rect;
-		pnode->GetWindowInfo().wnd->GetWindowRect(rect);
-		theApp.GetCustomControl().GetCustomManager().GetCustomSyncWindow().Move(pnode->GetWindowInfo().groupno, pnode->GetWindowInfo().wnd, &rect);
+		pnode->GetEquipment().wnd->GetWindowRect(rect);
+		theApp.GetCustomControl().GetCustomManager().GetCustomSyncWindow().Move(pnode->GetManager().groupno, pnode->GetEquipment().wnd, &rect);
 	}
 
 	mSaveCx = cx;
@@ -142,13 +142,13 @@ void CCustomDialogBase::OnMoving(UINT fwSide, LPRECT pRect)
 	CDialogEx::OnMoving(fwSide, pRect);
 
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
-	if (pnode == NULL || HIWORD(pnode->GetWindowInfo().groupno) == 0)
+	if (pnode == NULL || HIWORD(pnode->GetManager().groupno) == 0)
 		return;
 
-	TRACE("# OnMoving : GroupNo=%d, GroupName=%s\n", HIWORD(pnode->GetWindowInfo().groupno), CStringA(pnode->GetWindowInfo().groupname));
+	TRACE("# OnMoving : GroupNo=%d, GroupName=%s\n", HIWORD(pnode->GetManager().groupno), CStringA(pnode->GetManager().groupname));
 	CRect rect;
-	pnode->GetWindowInfo().wnd->GetWindowRect(rect);
-	theApp.GetCustomControl().GetCustomManager().GetCustomSyncWindow().Move(pnode->GetWindowInfo().groupno, pnode->GetWindowInfo().wnd, &rect);
+	pnode->GetEquipment().wnd->GetWindowRect(rect);
+	theApp.GetCustomControl().GetCustomManager().GetCustomSyncWindow().Move(pnode->GetManager().groupno, pnode->GetEquipment().wnd, &rect);
 }
 
 /*============================================================================*/
