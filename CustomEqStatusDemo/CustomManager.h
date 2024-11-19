@@ -55,6 +55,8 @@ public:
 	CCustomSynchroWindow& GetCustomSyncWindow() { return mSyncWindow; }
 	void	UpdateGroup();
 	void	ResetGroupInnerNo();
+	void	ShowGroup();
+	bool	IsGroupVisible(UINT nGroup);
 
 	void LoadRect(CArchive& ar, RECT& rect)
 	{
@@ -133,7 +135,7 @@ protected:
 	void	updateMenuItemStatus(CMenu* pMenu, bool bUser, bool bGroup, bool bNoGroup);
 	void	updateItemData(LPARAM lParam);
 	void	updateXmlFile();
-	void	showCustomDetail(int nItem, bool bDblClick);
+	void	showCustomDetail(int nItem, CPoint point);
 	UINT	GetGroupMaxNo();
 	UINT	GetGroupInnerMaxNo();
 	bool	IsSameGroupName(CString groupName);

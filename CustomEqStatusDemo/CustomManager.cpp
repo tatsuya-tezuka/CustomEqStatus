@@ -360,7 +360,7 @@ void CCustomManager::OnNMDblclkListManager(NMHDR *pNMHDR, LRESULT *pResult)
 		for (UINT item = 0; item < (UINT)mManagerList.GetItemCount(); item++) {
 			CTreeNode* group = (CTreeNode*)mManagerList.GetItemData(item);
 			if (HIWORD(group->GetManager().groupno) == HIWORD(pnode->GetManager().groupno)) {
-				showCustomDetail(item, true);
+				showCustomDetail(item, theApp.GetCustomControl().GetCascadePoint());
 			}
 		}
 		UpdateGroup();
@@ -471,7 +471,7 @@ void CCustomManager::OnManagerShow()
 		POSITION pos = mManagerList.GetFirstSelectedItemPosition();
 		while (pos) {
 			int nItem = mManagerList.GetNextSelectedItem(pos);
-			showCustomDetail(nItem, true);
+			showCustomDetail(nItem, theApp.GetCustomControl().GetCascadePoint());
 		}
 	}
 	else {
@@ -479,7 +479,7 @@ void CCustomManager::OnManagerShow()
 		for (nItem = 0; nItem < mManagerList.GetItemCount(); nItem++) {
 			int group = mManagerList.GetRowGroupId(nItem);
 			if (group == nGroupId) {
-				showCustomDetail(nItem, true);
+				showCustomDetail(nItem, theApp.GetCustomControl().GetCascadePoint());
 			}
 		}
 		UpdateGroup();
@@ -612,7 +612,7 @@ void CCustomManager::OnMangroupShow()
 	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
 	while (pos) {
 		int nItem = mManagerList.GetNextSelectedItem(pos);
-		showCustomDetail(nItem, true);
+		showCustomDetail(nItem, theApp.GetCustomControl().GetCascadePoint());
 	}
 	UpdateGroup();
 
@@ -703,6 +703,10 @@ void CCustomManager::UpdateGroup()
 #if _DEMO_PHASE < 110
 	return;
 #endif
+
+	// 1つでもグループウィンドウが表示されている場合は全てのグループウィンドウを表示させる
+	ShowGroup();
+
 	// 登録されているカスタム画面のグループ更新
 	vector<CTreeNode*>& treedata = theApp.GetCustomControl().GetDataManager().GetTreeNode();
 	vector<CTreeNode*>::iterator itr;
@@ -735,6 +739,53 @@ void CCustomManager::UpdateGroup()
 
 	TRACE("##### UpdateGroup\n");
 	mSyncWindow.Dump();
+}
+
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# グループウィンドウが1つでも表示されている場合は強制的に表示する
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomManager::ShowGroup()
+{
+	for (UINT item = 0; item < (UINT)mManagerList.GetItemCount(); item++) {
+		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(item);
+		if (pnode->GetEquipment().kind == eTreeItemKind_User && HIWORD(pnode->GetManager().groupno) != 0) {
+			if (IsGroupVisible(HIWORD(pnode->GetManager().groupno)) == true) {
+				if (pnode->GetEquipment().wnd == NULL || pnode->GetEquipment().wnd->IsWindowVisible() == false) {
+					showCustomDetail(item, theApp.GetCustomControl().GetCascadePoint());
+				}
+			}
+		}
+	}
+}
+
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# グループウィンドウが1つでも表示されているかをチェックする
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+bool CCustomManager::IsGroupVisible(UINT nGroup)
+{
+	vector<CTreeNode*>& treedata = theApp.GetCustomControl().GetDataManager().GetTreeNode();
+	vector<CTreeNode*>::iterator itr;
+	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
+		if ((*itr)->GetEquipment().kind == eTreeItemKind_User && HIWORD((*itr)->GetManager().groupno) == nGroup) {
+			if ((*itr)->GetEquipment().wnd != NULL && (*itr)->GetEquipment().wnd->IsWindowVisible())
+				return true;
+		}
+	}
+	return false;
 }
 
 /*============================================================================*/
@@ -1090,12 +1141,12 @@ void CCustomManager::updateXmlFile()
 -# 指定アイテムの設備詳細を開く
 
 @param	nItem		アイテム番号
-@param	bDblClick	ダブルクリックフラグ
+@param	point		表示開始位置
 
 @retval
 */
 /*============================================================================*/
-void CCustomManager::showCustomDetail(int nItem, bool bDblClick)
+void CCustomManager::showCustomDetail(int nItem, CPoint point)
 {
 	CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
 	//=====================================================//
@@ -1114,12 +1165,8 @@ void CCustomManager::showCustomDetail(int nItem, bool bDblClick)
 			if(pnode->GetEquipment().kind == eTreeItemKind_User)
 				bEditMode = true;
 
-			if (bDblClick == true) {
-				// ダブルクリック時はカスケード表示
-				CPoint point = theApp.GetCustomControl().GetCascadePoint();
-				if (pnode->GetEquipment().wnd != NULL) {
-					pnode->GetEquipment().wnd->SetWindowPos(NULL, point.x, point.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
-				}
+			if (pnode->GetEquipment().wnd != NULL) {
+				pnode->GetEquipment().wnd->SetWindowPos(NULL, point.x, point.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
 			}
 		}
 		pnode->GetEquipment().wnd->ShowWindow(SW_SHOWNA);
