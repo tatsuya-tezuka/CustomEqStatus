@@ -53,7 +53,7 @@ protected:
 	/* ------------------------------------------------------------------------------------ */
 public:
 	CCustomSynchroWindow& GetCustomSyncWindow() { return mSyncWindow; }
-	void	UpdateGroup();
+	void	UpdateGroup(UINT nGroupId=0, CPoint *point=NULL);
 	void	ResetGroupInnerNo();
 	void	ShowGroup();
 	bool	IsGroupVisible(UINT nGroup);

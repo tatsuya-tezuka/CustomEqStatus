@@ -789,12 +789,6 @@ BOOL CCustomGroupListCtrl::GroupByColumn(int nCol, BOOL bEnableGroup/* = TRUE*/)
 	SetRedraw(TRUE);
 	Invalidate(FALSE);
 
-	vector<CTreeNode*>& treedata = theApp.GetCustomControl().GetDataManager().GetTreeNode();
-	vector<CTreeNode*>::iterator itr;
-	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
-		TRACE("# GroupByColumn Dump : GroupNo=%d, GroupName=%s\n", HIWORD((*itr)->GetManager().groupno), CStringA((*itr)->GetManager().groupname));
-	}
-
 	return ret;
 }
 
@@ -1038,6 +1032,26 @@ CString CCustomGroupListCtrl::getGroupHeader(int nGroupId)
 	CComBSTR header(lg.pszHeader);
 	return (LPCTSTR)COLE2T(header);
 #endif
+}
+/*============================================================================*/
+/*! グループリスト
+
+-# グループIDの取得
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+int CCustomGroupListCtrl::getHeaderGroupId(CString& strHeader)
+{
+	for (int i = 0; i < GetGroupCount(); i++) {
+		CString str = getGroupHeader(i);
+		if (str.MakeLower() == strHeader.MakeLower()) {
+			return i;
+		}
+	}
+	return 0;
 }
 /*============================================================================*/
 /*! グループリスト
@@ -1364,14 +1378,27 @@ void CCustomGroupListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 		int index = HitTest(point, &flags);
 		int group;
 		if (index >= 0) {
-			TRACE("# OnMouseMove : Drop Item(%d)\n", index);
-			SetItemState(-1, 0, LVIS_DROPHILITED);
-			SetItemState(index, LVIS_DROPHILITED, LVIS_DROPHILITED);
-			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+			CTreeNode* pnode = (CTreeNode*)GetItemData(index);
+			group = HIWORD(pnode->GetManager().groupno);
+			//TRACE("# OnMouseMove : Drop Item(%d) DragGroup(%d) DropGroup(%d)\n", index, mDragData.group, group);
+			if (mDragData.group == 0) {
+				SetItemState(-1, 0, LVIS_DROPHILITED);
+				SetItemState(index, LVIS_DROPHILITED, LVIS_DROPHILITED);
+				SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+			}
+			else if (mDragData.group != 0 && group == mDragData.group) {
+				SetItemState(-1, 0, LVIS_DROPHILITED);
+				SetItemState(index, LVIS_DROPHILITED, LVIS_DROPHILITED);
+				SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+			}
+			else {
+				SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
+			}
 		}
 		else {
 			group = GroupHitTest(point);
-			if (group >= 0) {
+			//TRACE("# OnMouseMove : DragGroup(%d) DropGroup(%d)\n", mDragData.group, group);
+			if (mDragData.group == 0 || group == mDragData.group) {
 				SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
 			}
 			else {
@@ -1518,42 +1545,51 @@ void CCustomGroupListCtrl::dropItem(CPoint point)
 {
 	SetRedraw(FALSE);
 
+	int dragGroup = 0;
+	int dropGroup = 0;
+
 	// 先ずは選択項目のノード情報を取得する
 	vector<CTreeNode*> nodeList;
 	vector<int>::iterator itr;
 	for (itr = mDragData.indexes.begin(); itr != mDragData.indexes.end(); itr++) {
 		CTreeNode* node = (CTreeNode*)GetItemData((*itr));
 		nodeList.push_back(node);
+		dragGroup = HIWORD(node->GetManager().groupno);
 	}
 
+	bool bDropItem = false;
 	UINT flags = 0;
 	int index = HitTest(point, &flags);
 	if (index >= 0) {
 		// ドロップ先のノード情報を取得する
 		CTreeNode* masternode = (CTreeNode*)GetItemData(index);
+		dropGroup = HIWORD(masternode->GetManager().groupno);
 
-		// 選択項目を削除する
-		POSITION pos;
-		pos = GetFirstSelectedItemPosition();
-		while(pos){
+		if (dragGroup == 0 || (dragGroup != 0 && dropGroup == dragGroup)) {
+			// 選択項目を削除する
+			POSITION pos;
 			pos = GetFirstSelectedItemPosition();
-			int item = GetNextSelectedItem(pos);
-			DeleteItem(item);
-		}
+			while (pos) {
+				pos = GetFirstSelectedItemPosition();
+				int item = GetNextSelectedItem(pos);
+				DeleteItem(item);
+			}
 
-		// ドロップされたアイテムを追加する
-		vector<CTreeNode*>::iterator itrnode;
-		UINT index = 1;
-		for (itrnode = nodeList.begin(); itrnode != nodeList.end(); itrnode++) {
-			(*itrnode)->GetManager().groupno = MAKELONG(LOWORD(masternode->GetManager().groupno)+ index, HIWORD(masternode->GetManager().groupno));
-			swprintf_s((*itrnode)->GetManager().groupname, mNameSize, _T("%s"), (LPCTSTR)masternode->GetManager().groupname);
-			index++;
+			// ドロップされたアイテムを追加する
+			vector<CTreeNode*>::iterator itrnode;
+			UINT index = 1;
+			for (itrnode = nodeList.begin(); itrnode != nodeList.end(); itrnode++) {
+				(*itrnode)->GetManager().groupno = MAKELONG(LOWORD(masternode->GetManager().groupno) + index, HIWORD(masternode->GetManager().groupno));
+				swprintf_s((*itrnode)->GetManager().groupname, mNameSize, _T("%s"), (LPCTSTR)masternode->GetManager().groupname);
+				index++;
+			}
+			bDropItem = true;
 		}
 	}
 	else {
 		// グループフォルダにドロップされた
-		int group = GroupHitTest(point);
-		if (group >= 0) {
+		dropGroup = GroupHitTest(point);
+		if (dragGroup == 0 || dropGroup == dragGroup) {
 			// 選択項目を削除する
 			POSITION pos;
 			pos = GetFirstSelectedItemPosition();
@@ -1564,20 +1600,24 @@ void CCustomGroupListCtrl::dropItem(CPoint point)
 			}
 			// ドロップ先がグループヘッダー
 			UINT min;
-			UINT max = GetGroupInner(group, min);
+			UINT max = GetGroupInner(dropGroup, min);
 			vector<CTreeNode*>::iterator itrnode;
 			UINT index = min - mGroupRange + 1;
 			for (itrnode = nodeList.begin(); itrnode != nodeList.end(); itrnode++) {
-				(*itrnode)->GetManager().groupno = MAKELONG(index, group);
-				swprintf_s((*itrnode)->GetManager().groupname, mNameSize, _T("%s"), (LPCTSTR)getGroupHeader(group));
+				(*itrnode)->GetManager().groupno = MAKELONG(index, dropGroup);
+				swprintf_s((*itrnode)->GetManager().groupname, mNameSize, _T("%s"), (LPCTSTR)getGroupHeader(dropGroup));
 				index++;
 			}
+			bDropItem = true;
 		}
 	}
 
 	SetRedraw(TRUE);
 
-	mParent->PostMessage(eUserMessage_Manager_Reset, 0, 0);
+	if (bDropItem == true) {
+		TRACE("# dropItem : %d->%d\n", dragGroup, dropGroup);
+		mParent->PostMessage(eUserMessage_Manager_Reset, (WPARAM)(MAKELONG(dropGroup, dragGroup)), 1);
+	}
 }
 
 /*============================================================================*/
@@ -1608,6 +1648,16 @@ void CCustomGroupListCtrl::OnRButtonDown(UINT nFlags, CPoint point)
 				}
 			}
 		}
+	}
+
+	if (mpDragImage) {
+		::ReleaseCapture();
+		mpDragImage->DragLeave(CWnd::GetDesktopWindow());
+		mpDragImage->EndDrag();
+
+		delete mpDragImage;
+		mpDragImage = NULL;
+		SetItemState(-1, 0, LVIS_DROPHILITED);
 	}
 
 	CListCtrl::OnRButtonDown(nFlags, point);

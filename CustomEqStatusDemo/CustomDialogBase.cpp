@@ -212,7 +212,8 @@ void CCustomDialogBase::OnClose()
 	CString title;
 	GetWindowText(title);
 
-	if (IDCANCEL == CustomMessageBoxHooked(this->m_hWnd, _T("終了します。\nよろしいですか？"), title, MB_OKCANCEL | MB_ICONQUESTION | MB_DEFBUTTON2))
+	mMessageRet = CustomMessageBoxHooked(this->m_hWnd, _T("終了します。\nよろしいですか？"), title, MB_OKCANCEL | MB_ICONQUESTION | MB_DEFBUTTON2);
+	if (mMessageRet == IDCANCEL)
 		return;
 	//if (IDCANCEL == MessageBox(_T("終了します。\nよろしいですか？"), title, MB_OKCANCEL | MB_ICONQUESTION | MB_DEFBUTTON2))
 	//	return;

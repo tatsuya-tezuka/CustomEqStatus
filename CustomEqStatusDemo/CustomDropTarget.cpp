@@ -253,6 +253,7 @@ void CCustomDropTarget::OnDragBegin(CStringArray& items, UINT format, UINT dtype
         (*itr).second.mDataType = dtype;
         (*itr).second.CreateBuffer(items);
     }
+    mTargetWnd = NULL;
 }
 void CCustomDropTarget::OnDragBegin(CNode* items, UINT format, UINT dtype)
 {
@@ -262,6 +263,7 @@ void CCustomDropTarget::OnDragBegin(CNode* items, UINT format, UINT dtype)
         (*itr).second.mDataType = dtype;
         (*itr).second.CreateBuffer(items);
     }
+    mTargetWnd = NULL;
 }
 
 /*============================================================================*/

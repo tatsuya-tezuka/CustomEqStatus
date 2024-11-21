@@ -76,6 +76,7 @@ public:
 	BOOL	IsSync(UINT group, CWnd* pbase);
 	int		Size(UINT group);
 	UINT	Group(CWnd* pbase);
+	bool	GetTopPoint(UINT group, CPoint& point);
 	map< UINT, vector<GroupInfo> >& GetGroupWindowList() { return mGroupWindowList; }
 	void	Dump();
 

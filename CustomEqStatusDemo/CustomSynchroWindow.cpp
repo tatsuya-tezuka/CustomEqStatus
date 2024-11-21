@@ -43,12 +43,6 @@ void CCustomSynchroWindow::Set(UINT group, CWnd* pbase)
 		itr = mGroupWindowList.find(HIWORD(group));
 	}
 
-	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(pbase);
-	if (pnode != NULL) {
-		TRACE("# Set : %d Node(GroupNo=%d, GroupName=%s)\n", HIWORD(group), HIWORD(pnode->GetManager().groupno), CStringA(pnode->GetManager().groupname));
-
-	}
-
 	sort((*itr).second.begin(), (*itr).second.end());
 }
 
@@ -298,6 +292,37 @@ UINT CCustomSynchroWindow::Group(CWnd* pbase)
 /*============================================================================*/
 /*! ウィンドウ連動
 
+-# グループ先頭ウィンドウ位置の取得
+
+@param	group		グループ番号(1-)
+@param	point		ウィンドウ位置
+
+@retval
+*/
+/*============================================================================*/
+bool CCustomSynchroWindow::GetTopPoint(UINT group, CPoint& point)
+{
+	map< UINT, vector<GroupInfo> >::iterator itr;
+	itr = mGroupWindowList.find(HIWORD(group));
+	if (itr == mGroupWindowList.end()) {
+		// 対象グループが存在しないので何もしない
+		return false;
+	}
+
+	vector<GroupInfo>::iterator itrlist;
+	for (itrlist = (*itr).second.begin(); itrlist != (*itr).second.end(); itrlist++) {
+		CRect rect;
+		(*itrlist).wnd->GetWindowRect(rect);
+		point.x = rect.left;
+		point.y = rect.top;
+		break;
+	}
+	return true;
+}
+
+/*============================================================================*/
+/*! ウィンドウ連動
+
 -# 任意のウィンドウのグループ番号取得
 
 @param	pbase		移動対象のウィンドウ
@@ -316,7 +341,14 @@ void CCustomSynchroWindow::Dump()
 				TRACE("# Dump : No Data\n");
 			}
 			else {
-				TRACE("# Dump : GroupNo=%d @ Node(GroupNo=%d, GroupName=%s)\n", (*itr).first, HIWORD(pnode->GetManager().groupno), CStringA(pnode->GetManager().groupname));
+				//=====================================================//
+				//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
+				CString msg;
+				msg.Format(_T("GroupNo=%d : [%s] NodeInfo. GroupNo=%d, GroupName=%s)"), (*itr).first, pnode->GetEquipment().title, HIWORD(pnode->GetManager().groupno), CString(pnode->GetManager().groupname));
+				CLogTraceEx::Write(_T("***"), _T("CCustomSynchroWindow"), _T("Dump"), msg, _T(""), nLogEx::debug);
+				//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
+				//=====================================================//
+				TRACE("# Dump : %s\n", CStringA(msg));
 
 			}
 		}

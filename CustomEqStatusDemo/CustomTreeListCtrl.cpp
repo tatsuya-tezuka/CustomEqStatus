@@ -313,6 +313,7 @@ BEGIN_MESSAGE_MAP(CCustomTreeListCtrl, CTreeCtrl)
 	ON_NOTIFY_REFLECT(TVN_ENDLABELEDIT, &CCustomTreeListCtrl::OnTvnEndlabeledit)
 	ON_WM_LBUTTONDBLCLK()
 	ON_NOTIFY_REFLECT(NM_DBLCLK, &CCustomTreeListCtrl::OnNMDblclk)
+	ON_WM_RBUTTONDOWN()
 END_MESSAGE_MAP()
 
 
@@ -2116,6 +2117,32 @@ void CCustomTreeListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 #endif
 	CTreeCtrl::OnLButtonUp(nFlags, point);
 }
+
+/*============================================================================*/
+/*! ツリーリストコントロール（ドラッグ＆ドロップ関連）
+
+-# マウス右ボタンダウンイベント
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::OnRButtonDown(UINT nFlags, CPoint point)
+{
+	if (mpDragImage) {
+		::ReleaseCapture();
+		mpDragImage->DragLeave(NULL);
+		mpDragImage->EndDrag();
+		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+		delete mpDragImage;
+		mpDragImage = NULL;
+		theApp.GetCustomControl().GetCustomDragTarget().OnDragLeave(this);
+	}
+
+	CTreeCtrl::OnRButtonDown(nFlags, point);
+}
+
 /*============================================================================*/
 /*! ツリーリストコントロール（ドラッグ＆ドロップ関連）
 

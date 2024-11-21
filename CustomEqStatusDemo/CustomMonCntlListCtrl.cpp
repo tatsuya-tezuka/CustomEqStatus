@@ -18,6 +18,7 @@ BEGIN_MESSAGE_MAP(CCustomMonCntlListCtrl, CListCtrl)
 	ON_WM_MOUSEMOVE()
 	ON_WM_LBUTTONUP()
 #endif
+	ON_WM_RBUTTONDOWN()
 END_MESSAGE_MAP()
 
 #if _DEMO_PHASE >= 50
@@ -311,7 +312,6 @@ void CCustomMonCntlListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 	CListCtrl::OnMouseMove(nFlags, point);
 }
 
-
 /*============================================================================*/
 /*! リストコントロール
 
@@ -351,6 +351,30 @@ void CCustomMonCntlListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 	}
 
 	CListCtrl::OnLButtonUp(nFlags, point);
+}
+
+/*============================================================================*/
+/*! リストコントロール
+
+-# マウス右ボタンダウンイベント
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+void CCustomMonCntlListCtrl::OnRButtonDown(UINT nFlags, CPoint point)
+{
+	if (mpDragImage) {
+		::ReleaseCapture();
+		mpDragImage->DragLeave(CWnd::GetDesktopWindow());
+		mpDragImage->EndDrag();
+
+		delete mpDragImage;
+		mpDragImage = NULL;
+	}
+
+	CListCtrl::OnRButtonDown(nFlags, point);
 }
 
 /*============================================================================*/

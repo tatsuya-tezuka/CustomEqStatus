@@ -38,6 +38,7 @@ public:
 protected:
 	UINT	mIDD;
 	bool	mModal;
+	int		mMessageRet;
 
 	// コントロールのリサイズ
 	vector<DWORD>		mControl;

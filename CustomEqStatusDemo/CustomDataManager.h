@@ -61,6 +61,7 @@ static const TCHAR* mCOntrolSignStringDisplay = { _T("制御") };
 static const TCHAR* mEditModeString = { _T("（編集中）") };
 static const UINT mSortRange = 20;
 static const UINT mGroupRange = 20;
+static const UINT mMaxEqSyncNum = 5;
 
 /// タイトル
 static const TCHAR* mMessage_Title_CustomManager = { _T("カスタマイズ管理画面") };

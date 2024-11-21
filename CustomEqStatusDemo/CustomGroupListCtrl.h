@@ -183,6 +183,7 @@ public:
 	CString	GetGroupHeader(int nRow) { return getGroupHeader(nRow); }
 	BOOL	SetGroupHeader(int nGroupID, const CString& header);
 	UINT	GetGroupInner(UINT nGroup, UINT& min);
+	int		GetHeaderGroupId(CString& strHeader) { return getHeaderGroupId(strHeader); }
 
 protected:
 	LRESULT	insertGroupHeader(int nIndex, int nGroupId, const CString& strHeader, DWORD dwState = LVGS_NORMAL, DWORD dwAlign = LVGA_HEADER_LEFT);
@@ -193,6 +194,7 @@ protected:
 
 	int		getRowGroupId(int nRow);
 	CString	getGroupHeader(int nGroupId);
+	int		getHeaderGroupId(CString& strHeader);
 
 	CEdit*	editSubLabel(int item, int colnum);
 

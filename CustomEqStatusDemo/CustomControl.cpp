@@ -3,6 +3,32 @@
 #include "CustomControl.h"
 
 
+BOOL CALLBACK CCustomMonitors::CustomMonitorNumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
+{
+	CCustomMonitors* pmon = (CCustomMonitors*)dwData;
+
+	// モニタ情報の取得
+	MONITORINFOEX mInfo;
+	mInfo.cbSize = sizeof(MONITORINFOEX);
+	GetMonitorInfo(hMonitor, &mInfo);
+
+	// モニタ領域の取得
+	CRect rect(lprcMonitor);
+	pmon->AddMonitor(hMonitor, rect, &mInfo);
+
+	return TRUE;
+}
+
+CCustomMonitors::CCustomMonitors()
+{
+	// マルチモニタ対応
+	EnumDisplayMonitors(NULL, NULL, CustomMonitorNumProc, (LPARAM)this);
+}
+
+CCustomMonitors::~CCustomMonitors()
+{
+}
+
 //------------------------------------------------------------------------------------ 
 //	概要：
 //------------------------------------------------------------------------------------

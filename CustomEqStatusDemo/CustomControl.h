@@ -94,6 +94,55 @@ static int CustomMessageBoxHooked(HWND handle, LPCTSTR message, LPCTSTR title, U
 	return (MessageBox(handle, message, title, nType));
 }
 
+class CCustomMonitors
+{
+public:
+	CCustomMonitors();
+	virtual ~CCustomMonitors();
+
+private:
+	typedef struct {
+		RECT			rect;
+		HMONITOR		hMonitor;
+		MONITORINFOEX	info;
+	} mMonData;
+	vector<mMonData> m_MonitorList;
+
+	static BOOL CALLBACK CustomMonitorNumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData);
+
+public:
+	//CMonitor GetMonitor(const int index) const;
+	int		GetCount() const { return (int)m_MonitorList.size(); }
+	void	AddMonitor(HMONITOR hMonitor, CRect rect, MONITORINFOEX* info)
+	{
+		mMonData data;
+		data.rect.left = rect.left;
+		data.rect.top = rect.top;
+		data.rect.right = rect.right;
+		data.rect.bottom = rect.bottom;
+		data.hMonitor = hMonitor;
+		memcpy(&data.info, info, sizeof(MONITORINFOEX));
+		m_MonitorList.push_back(data);
+	}
+	bool	GetMonitor(const UINT nMonNo, RECT* prect, MONITORINFOEX* pinfo)
+	{
+		vector<mMonData>::iterator itr;
+		for (itr = m_MonitorList.begin(); itr != m_MonitorList.end(); itr++) {
+			if (nMonNo == 0 && (*itr).info.dwFlags == MONITORINFOF_PRIMARY) {
+				memcpy(prect, &((*itr).rect), sizeof(RECT));
+				memcpy(pinfo, &((*itr).info), sizeof(MONITORINFOEX));
+				return true;
+			}
+			if (nMonNo == 1 && (*itr).info.dwFlags != MONITORINFOF_PRIMARY) {
+				memcpy(prect, &((*itr).rect), sizeof(RECT));
+				memcpy(pinfo, &((*itr).info), sizeof(MONITORINFOEX));
+				return true;
+			}
+		}
+		return false;
+	}
+};
+
 
 class CCustomControl
 {
@@ -134,6 +183,9 @@ protected:
 	CPoint					mCascadePoint;
 	/// ドラッグ＆ドロップ
 	CCustomDropTarget		mCustomDragTarget;
+
+	// マルチモニタ情報
+	CCustomMonitors			mCustomMonitor;
 
 	/* ------------------------------------------------------------------------------------ */
 	/* メンバ関数                                                                           */
@@ -223,10 +275,31 @@ public:
 		int CYCAPTION = GetSystemMetrics(SM_CYCAPTION);
 		mCascadePoint.x += CYCAPTION;
 		mCascadePoint.y += CYCAPTION;
+
+		CWnd* pWnd = CWnd::GetDesktopWindow();
+		CRect rectDesktop;
+		pWnd->GetClientRect(rectDesktop);
+		RECT mrect;
+		MONITORINFOEX info;
+		if (mCustomMonitor.GetMonitor(0, &mrect, &info) == true) {
+			rectDesktop = CRect(info.rcWork);
+		}
+
+		if (point.x >= rectDesktop.right || point.y >= (rectDesktop.bottom - GetSystemMetrics(SM_CYCAPTION))) {
+			UpdateCustomManagerPoint(mManagerPoint);
+			point = mCascadePoint;
+			int CYCAPTION = GetSystemMetrics(SM_CYCAPTION);
+			mCascadePoint.x += CYCAPTION;
+			mCascadePoint.y += CYCAPTION;
+		}
+
 		return point;
 	}
 
 	CCustomDropTarget& GetCustomDragTarget() { return mCustomDragTarget; }
+
+	// マルチモニタ情報
+	CCustomMonitors& GetCustomMonitor() { return mCustomMonitor; }
 
 protected:
 	void	createMasterEquipment();

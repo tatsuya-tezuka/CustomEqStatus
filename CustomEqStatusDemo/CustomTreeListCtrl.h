@@ -364,5 +364,6 @@ public:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	virtual void PreSubclassWindow();
 	afx_msg void OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 };
 

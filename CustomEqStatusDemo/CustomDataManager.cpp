@@ -1039,11 +1039,6 @@ bool CCustomDataManager::LoadCustomLayout(CArchive& ar)
 				break;
 			}
 		}
-
-		//CTreeNode* pnode = LoadTreeDataXml(xmlfile);
-		//// Ý”õÚ×‰æ–Ê‚ð•œŒ³‚·‚é
-		//CCustomDetail* pitem = theApp.GetCustomControl().CreateEquipment(pnode);
-		//pitem->ShowWindow(SW_SHOW);
 	}
 
 	//=====================================================//

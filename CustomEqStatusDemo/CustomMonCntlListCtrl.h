@@ -128,5 +128,6 @@ protected:
 public:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 #endif
+	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 };
 
