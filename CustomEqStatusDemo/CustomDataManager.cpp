@@ -98,6 +98,18 @@ bool CTreeNode::Equal(stEquipmentInfo& data)
 	if (CString(equipment.title) != CString(data.title))
 		return false;
 
+	CRect rectBase = CRect(equipment.placement.rcNormalPosition);
+	CRect rectEdit = CRect(data.placement.rcNormalPosition);
+	if (rectBase.Width() != rectEdit.Width())
+		return false;
+	if (rectBase.Height() != rectEdit.Height())
+		return false;
+
+	for (int i = 0; i < mHeaderSize; i++) {
+		if (equipment.hwidth[i] != data.hwidth[i])
+			return false;
+	}
+
 	return true;
 }
 bool CTreeNode::Equal(stManagerInfo& data)

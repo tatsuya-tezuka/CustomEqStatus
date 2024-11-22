@@ -1053,6 +1053,31 @@ int CCustomGroupListCtrl::getHeaderGroupId(CString& strHeader)
 	}
 	return 0;
 }
+
+/*============================================================================*/
+/*! グループリスト
+
+-# グループ内アイテム数の取得
+
+@param		nGroupId	グループ番号
+
+@retval	グループ内アイテム数
+*/
+/*============================================================================*/
+int CCustomGroupListCtrl::GetGroupItemCount(UINT nGroupId)
+{
+	int count = 0;
+	for (int nRow = 0; nRow < GetItemCount(); ++nRow) {
+		// データのグループ番号から対象カラムのテキストを設定する
+		CTreeNode* pnode = (CTreeNode*)GetItemData(nRow);
+		if (HIWORD(pnode->GetManager().groupno) != nGroupId) {
+			continue;
+		}
+		count++;
+	}
+	return count;
+}
+
 /*============================================================================*/
 /*! グループリスト
 
@@ -1093,10 +1118,6 @@ void CCustomGroupListCtrl::OnHdnBegintrack(NMHDR *pNMHDR, LRESULT *pResult)
 /*============================================================================*/
 void CCustomGroupListCtrl::OnHdnDividerdblclick(NMHDR *pNMHDR, LRESULT *pResult)
 {
-#if _DEMO_PHASE < 50
-	* pResult = 1;
-	return;
-#endif
 	LPNMHEADER phdr = reinterpret_cast<LPNMHEADER>(pNMHDR);
 
 	int nCol = (int)phdr->iItem;
@@ -1192,9 +1213,6 @@ void CCustomGroupListCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
 /*============================================================================*/
 bool CCustomGroupListCtrl::EditExecute(int item, int colnum)
 {
-#if _DEMO_PHASE < 50
-	return false;
-#else
 	// 選択文字列の取得
 	CString text = GetItemText(item, colnum);
 	//DWORD data = GetItemData(item);
@@ -1205,7 +1223,6 @@ bool CCustomGroupListCtrl::EditExecute(int item, int colnum)
 	ModifyStyle(0, LVS_EDITLABELS);
 	editSubLabel(item, colnum);
 	return true;
-#endif
 }
 /*============================================================================*/
 /*! グループリスト
@@ -1376,34 +1393,15 @@ void CCustomGroupListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 		SetRedraw(FALSE);
 		UINT flags = 0;
 		int index = HitTest(point, &flags);
-		int group;
-		if (index >= 0) {
-			CTreeNode* pnode = (CTreeNode*)GetItemData(index);
-			group = HIWORD(pnode->GetManager().groupno);
-			//TRACE("# OnMouseMove : Drop Item(%d) DragGroup(%d) DropGroup(%d)\n", index, mDragData.group, group);
-			if (mDragData.group == 0) {
+		if (isDropEnable(point) == true) {
+			if (index >= 0) {
 				SetItemState(-1, 0, LVIS_DROPHILITED);
 				SetItemState(index, LVIS_DROPHILITED, LVIS_DROPHILITED);
-				SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
 			}
-			else if (mDragData.group != 0 && group == mDragData.group) {
-				SetItemState(-1, 0, LVIS_DROPHILITED);
-				SetItemState(index, LVIS_DROPHILITED, LVIS_DROPHILITED);
-				SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
-			}
-			else {
-				SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
-			}
+			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
 		}
 		else {
-			group = GroupHitTest(point);
-			//TRACE("# OnMouseMove : DragGroup(%d) DropGroup(%d)\n", mDragData.group, group);
-			if (mDragData.group == 0 || group == mDragData.group) {
-				SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
-			}
-			else {
-				SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
-			}
+			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
 		}
 
 		SetRedraw(TRUE);
@@ -1543,10 +1541,11 @@ CImageList* CCustomGroupListCtrl::createDragImageEx(LPPOINT lpPoint)
 /*============================================================================*/
 void CCustomGroupListCtrl::dropItem(CPoint point)
 {
-	SetRedraw(FALSE);
+	if (isDropEnable(point) == false) {
+		return;
+	}
 
-	int dragGroup = 0;
-	int dropGroup = 0;
+	SetRedraw(FALSE);
 
 	// 先ずは選択項目のノード情報を取得する
 	vector<CTreeNode*> nodeList;
@@ -1554,70 +1553,113 @@ void CCustomGroupListCtrl::dropItem(CPoint point)
 	for (itr = mDragData.indexes.begin(); itr != mDragData.indexes.end(); itr++) {
 		CTreeNode* node = (CTreeNode*)GetItemData((*itr));
 		nodeList.push_back(node);
-		dragGroup = HIWORD(node->GetManager().groupno);
 	}
 
-	bool bDropItem = false;
+	// ドロップ先アイテムの取得
+	int group = 0;
 	UINT flags = 0;
 	int index = HitTest(point, &flags);
 	if (index >= 0) {
 		// ドロップ先のノード情報を取得する
 		CTreeNode* masternode = (CTreeNode*)GetItemData(index);
-		dropGroup = HIWORD(masternode->GetManager().groupno);
-
-		if (dragGroup == 0 || (dragGroup != 0 && dropGroup == dragGroup)) {
-			// 選択項目を削除する
-			POSITION pos;
+		group = HIWORD(masternode->GetManager().groupno);
+		// 選択項目を削除する
+		POSITION pos;
+		pos = GetFirstSelectedItemPosition();
+		while (pos) {
 			pos = GetFirstSelectedItemPosition();
-			while (pos) {
-				pos = GetFirstSelectedItemPosition();
-				int item = GetNextSelectedItem(pos);
-				DeleteItem(item);
-			}
+			int item = GetNextSelectedItem(pos);
+			DeleteItem(item);
+		}
 
-			// ドロップされたアイテムを追加する
-			vector<CTreeNode*>::iterator itrnode;
-			UINT index = 1;
-			for (itrnode = nodeList.begin(); itrnode != nodeList.end(); itrnode++) {
-				(*itrnode)->GetManager().groupno = MAKELONG(LOWORD(masternode->GetManager().groupno) + index, HIWORD(masternode->GetManager().groupno));
-				swprintf_s((*itrnode)->GetManager().groupname, mNameSize, _T("%s"), (LPCTSTR)masternode->GetManager().groupname);
-				index++;
-			}
-			bDropItem = true;
+		// ドロップされたアイテムを追加する
+		vector<CTreeNode*>::iterator itrnode;
+		UINT index = 1;
+		for (itrnode = nodeList.begin(); itrnode != nodeList.end(); itrnode++) {
+			(*itrnode)->GetManager().groupno = MAKELONG(LOWORD(masternode->GetManager().groupno) + index, HIWORD(masternode->GetManager().groupno));
+			swprintf_s((*itrnode)->GetManager().groupname, mNameSize, _T("%s"), (LPCTSTR)masternode->GetManager().groupname);
+			index++;
 		}
 	}
 	else {
-		// グループフォルダにドロップされた
-		dropGroup = GroupHitTest(point);
-		if (dragGroup == 0 || dropGroup == dragGroup) {
-			// 選択項目を削除する
-			POSITION pos;
+		// グループヘッダーにドロップされた
+		group = GroupHitTest(point);
+		// 選択項目を削除する
+		POSITION pos;
+		pos = GetFirstSelectedItemPosition();
+		while (pos) {
 			pos = GetFirstSelectedItemPosition();
-			while (pos) {
-				pos = GetFirstSelectedItemPosition();
-				int item = GetNextSelectedItem(pos);
-				DeleteItem(item);
-			}
-			// ドロップ先がグループヘッダー
-			UINT min;
-			UINT max = GetGroupInner(dropGroup, min);
-			vector<CTreeNode*>::iterator itrnode;
-			UINT index = min - mGroupRange + 1;
-			for (itrnode = nodeList.begin(); itrnode != nodeList.end(); itrnode++) {
-				(*itrnode)->GetManager().groupno = MAKELONG(index, dropGroup);
-				swprintf_s((*itrnode)->GetManager().groupname, mNameSize, _T("%s"), (LPCTSTR)getGroupHeader(dropGroup));
-				index++;
-			}
-			bDropItem = true;
+			int item = GetNextSelectedItem(pos);
+			DeleteItem(item);
+		}
+		// ドロップ先がグループヘッダー
+		UINT min;
+		UINT max = GetGroupInner(group, min);
+		vector<CTreeNode*>::iterator itrnode;
+		UINT index = min - mGroupRange + 1;
+		for (itrnode = nodeList.begin(); itrnode != nodeList.end(); itrnode++) {
+			(*itrnode)->GetManager().groupno = MAKELONG(index, group);
+			swprintf_s((*itrnode)->GetManager().groupname, mNameSize, _T("%s"), (LPCTSTR)getGroupHeader(group));
+			index++;
 		}
 	}
 
 	SetRedraw(TRUE);
 
-	if (bDropItem == true) {
-		TRACE("# dropItem : %d->%d\n", dragGroup, dropGroup);
-		mParent->PostMessage(eUserMessage_Manager_Reset, (WPARAM)(MAKELONG(dropGroup, dragGroup)), 1);
+	mParent->PostMessage(eUserMessage_Manager_Reset, (WPARAM)group, 1);
+}
+
+/*============================================================================*/
+/*! グループリスト
+
+-# ドロップ可能かのチェック
+
+@param
+
+@retval
+*/
+/*============================================================================*/
+bool CCustomGroupListCtrl::isDropEnable(CPoint point)
+{
+	// ドロップ先アイテムの取得
+	UINT flags = 0;
+	int item = HitTest(point, &flags);
+
+	int group;
+	if (item >= 0) {
+		// ドロップ先がリスト項目
+		CTreeNode* pnode = (CTreeNode*)GetItemData(item);
+		// ドロップ先アイテムのグループ番号を取得する
+		group = HIWORD(pnode->GetManager().groupno);
 	}
+	else {
+		// ドロップ先がグループヘッダー
+		// グループヘッダーのグループ番号を取得する
+		group = GroupHitTest(point);
+	}
+
+	if (group < 0)
+		return false;
+
+	// ドラッグアイテムのグループ番号と比較して処理を分岐する
+	int count = GetGroupItemCount(group);
+
+	// ドラッグ：グループなし、ドロップ：グループなし　→　OK
+	if (mDragData.group == 0 && group == 0)
+		return true;
+
+	// ドロップ先がグループありの場合はグループ内のアイテム数を確認する
+	if ((mDragData.indexes.size() + count) > mMaxEqSyncNum)
+		return false;
+
+	// ドラッグ：グループなし、ドロップ：グループあり　→　OK
+	if (mDragData.group == 0 && group != 0)
+		return true;
+	// ドラッグ：グループあり、ドロップ：グループあり、ドラッグとドロップのグループが同じ　→　OK
+	if (mDragData.group != 0 && group != 0 && mDragData.group == group)
+		return true;
+
+	return false;
 }
 
 /*============================================================================*/

@@ -101,19 +101,20 @@ BOOL CCustomEqStatusDemoDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 大きいアイコンの設定
 	SetIcon(m_hIcon, FALSE);		// 小さいアイコンの設定
 
-#if _DEMO_PHASE < 10
-	CenterWindow();
-	CRect rect;
-	GetWindowRect(rect);
-	::SetWindowPos(m_hWnd, HWND_TOP, rect.left, 0, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
-#else
 	// カスタマイズ機能画面の作成
 	createCustomControl();
 	CenterWindow();
 	CRect rect;
 	GetWindowRect(rect);
-	::SetWindowPos(m_hWnd, HWND_TOP, rect.left, 0, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
-#endif
+
+	RECT mrect;
+	MONITORINFOEX info;
+	int height = rect.Height();
+	rect.top = 0;
+	if (theApp.GetCustomControl().GetCustomMonitor().GetMonitor(0, &mrect, &info) == true) {
+		rect.top = info.rcWork.bottom - height;
+	}
+	::SetWindowPos(m_hWnd, HWND_TOP, rect.left, rect.top, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
 
 	GetDlgItem(IDC_MFCBUTTON__MANAGER)->SetWindowText(mMessage_Title_CustomManager);
 
@@ -302,9 +303,6 @@ void CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave()
 /*============================================================================*/
 void CCustomEqStatusDemoDlg::OnBnClickedMfcbutton()
 {
-#if _DEMO_PHASE < 10
-	return;
-#endif
 	createCustomControl();
 }
 

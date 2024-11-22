@@ -13,15 +13,12 @@ CCustomMonCntlListCtrl::~CCustomMonCntlListCtrl()
 }
 
 BEGIN_MESSAGE_MAP(CCustomMonCntlListCtrl, CListCtrl)
-#if _DEMO_PHASE >= 50
 	ON_NOTIFY_REFLECT(LVN_BEGINDRAG, &CCustomMonCntlListCtrl::OnLvnBegindrag)
 	ON_WM_MOUSEMOVE()
 	ON_WM_LBUTTONUP()
-#endif
 	ON_WM_RBUTTONDOWN()
 END_MESSAGE_MAP()
 
-#if _DEMO_PHASE >= 50
 /*============================================================================*/
 /*! リストコントロール
 
@@ -510,4 +507,3 @@ BOOL CCustomMonCntlListCtrl::PreTranslateMessage(MSG* pMsg)
 
 	return CListCtrl::PreTranslateMessage(pMsg);
 }
-#endif

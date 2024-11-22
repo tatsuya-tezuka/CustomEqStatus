@@ -106,7 +106,6 @@ public:
 	void	SetDropFormat(UINT format) { mDropFormat = format; }
 	UINT	GetDropFormat() { return mDropFormat; }
 protected:
-#if _DEMO_PHASE >= 50
 	void	ClearDropTarget();
 	void	SetDropTarget(CPoint point);
 	BOOL	DataObjectToList(CCustomDropObject* pDataObject);
@@ -115,19 +114,16 @@ protected:
 	static DROPEFFECT CALLBACK Callback_MonCntl_DragOver(CWnd* pWnd, void* pDataObject, UINT dwKeyState, CPoint point);
 	static BOOL CALLBACK Callback_MonCntl_DragDrop(CWnd* pWnd, void* pDataObject, UINT dwKeyState, CPoint point);
 	static void CALLBACK Callback_MonCntl_DragLeave(CWnd* pWnd);
-#endif
 
 	/* ------------------------------------------------------------------------------------ */
 
 	DECLARE_MESSAGE_MAP()
 
-#if _DEMO_PHASE >= 50
 	afx_msg void OnLvnBegindrag(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 public:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
-#endif
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 };
 

@@ -68,6 +68,7 @@ BEGIN_MESSAGE_MAP(CCustomDetail, CCustomDialogBase)
 	ON_COMMAND(ID_MENUDETAIL_SAVE, &CCustomDetail::OnMenudetailSave)
 	ON_COMMAND(ID_MENUDETAIL_SAVEAS, &CCustomDetail::OnMenudetailSaveas)
 	ON_WM_INITMENUPOPUP()
+	ON_NOTIFY(TVN_ITEMEXPANDING, IDC_TREE_CTRL, &CCustomDetail::OnTvnItemexpandingTreeCtrl)
 END_MESSAGE_MAP()
 
 
@@ -136,9 +137,9 @@ BOOL CCustomDetail::OnInitDialog()
 	HMENU pSysMenu = ::GetSystemMenu(GetSafeHwnd(), FALSE);
 	if (pSysMenu)
 	{
-		int count = ::GetMenuItemCount(pSysMenu);
-		::InsertMenu(pSysMenu, 0, MF_BYPOSITION | MF_STRING, ID_DETAIL_RESIZEFIT, _T("ウィンドウサイズ最適化"));
-		::InsertMenu(pSysMenu, 1, MF_BYPOSITION | MF_SEPARATOR, 0, _T(""));
+		//int count = ::GetMenuItemCount(pSysMenu);
+		//::InsertMenu(pSysMenu, 0, MF_BYPOSITION | MF_STRING, ID_DETAIL_RESIZEFIT, _T("ウィンドウサイズ最適化"));
+		//::InsertMenu(pSysMenu, 1, MF_BYPOSITION | MF_SEPARATOR, 0, _T(""));
 	}
 
 	createTreeControl();
@@ -162,10 +163,6 @@ BOOL CCustomDetail::OnInitDialog()
 void CCustomDetail::OnNMRClickTreeCtrl(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	*pResult = 0;
-
-#if _DEMO_PHASE < 50
-	return;
-#endif
 
 	mMenuItem = NULL;
 
@@ -255,11 +252,24 @@ void CCustomDetail::OnClose()
 /*============================================================================*/
 void CCustomDetail::OnMenudetailClose()
 {
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
+
 #if _DEMO_PHASE < 60
+	int retmsg = CustomSaveDifferentMessageBoxHooked(m_hWnd, mMessage_DetailSaveDifferentData, pnode->GetEquipment().title, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1, CString(pnode->GetXmlFileName()).IsEmpty() ? false : true);
+	if (retmsg == IDCANCEL) {
+		return;
+	}
 	CCustomDialogBase::OnClose();
 	return;
 #endif
-	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
+
+	// ウィンドウサイズ、ヘッダーコントロールの幅を保存する
+	WINDOWPLACEMENT	placement;			// ウィンドウ位置情報
+	memset(&placement, 0, sizeof(WINDOWPLACEMENT));
+	placement.length = sizeof(WINDOWPLACEMENT);
+	GetWindowPlacement(&placement);
+	memcpy(&pnode->GetEquipment().placement.rcNormalPosition, &placement.rcNormalPosition, sizeof(RECT));
+	saveHeaderWidth();
 
 	//bool ret = mBackupNode->Equal(pnode);
 	bool ret = theApp.GetCustomControl().GetDataManager().CompareEditNode(this);
@@ -287,13 +297,15 @@ void CCustomDetail::OnMenudetailClose()
 
 	// 編集用ノードの削除
 	// 画面連結対応
-	vector<CTreeNode*>& treedata = theApp.GetCustomControl().GetDataManager().GetTreeNode();
-	vector<CTreeNode*>::iterator itr;
-	for (itr = treedata.begin(); itr != treedata.end(); itr++) {
-		if ((*itr)->GetEquipment().wnd != pnode->GetEquipment().wnd && HIWORD((*itr)->GetManager().groupno) == HIWORD(pnode->GetManager().groupno)) {
-			CWnd* pwnd = (*itr)->GetEquipment().wnd;
-			theApp.GetCustomControl().GetDataManager().DeleteEditNode(pwnd);
-			theApp.GetCustomControl().GetDataManager().DeleteItemWnd(pwnd);
+	if (HIWORD(pnode->GetManager().groupno) != 0) {
+		vector<CTreeNode*>& treedata = theApp.GetCustomControl().GetDataManager().GetTreeNode();
+		vector<CTreeNode*>::iterator itr;
+		for (itr = treedata.begin(); itr != treedata.end(); itr++) {
+			if ((*itr)->GetEquipment().wnd != pnode->GetEquipment().wnd && HIWORD((*itr)->GetManager().groupno) == HIWORD(pnode->GetManager().groupno)) {
+				CWnd* pwnd = (*itr)->GetEquipment().wnd;
+				theApp.GetCustomControl().GetDataManager().DeleteEditNode(pwnd);
+				theApp.GetCustomControl().GetDataManager().DeleteItemWnd(pwnd);
+			}
 		}
 	}
 
@@ -409,7 +421,7 @@ void CCustomDetail::saveHeaderWidth()
 void CCustomDetail::OnMenudetailEdit()
 {
 #if _DEMO_PHASE < 60
-	return;
+	//return;
 #endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 	if (pnode != NULL) {
@@ -433,6 +445,11 @@ void CCustomDetail::OnMenudetailMonitor()
 #if _DEMO_PHASE < 60
 	return;
 #endif
+
+	bool ret = theApp.GetCustomControl().GetDataManager().CompareEditNode(this);
+	if (ret != true) {
+	}
+
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 	if (pnode != NULL) {
 		pnode->GetEquipment().mode = eTreeItemMode_Monitor;
@@ -567,9 +584,6 @@ void CCustomDetail::createTreeControl()
 
 	mTreeCtrl.ModifyStyle(TVS_EDITLABELS, 0);
 
-#if _DEMO_PHASE < 50
-	createRoot();
-#else
 	if (mRestore == true) {
 		// 編集用ノードを使用するためにノードリストをバックする
 		theApp.GetCustomControl().GetDataManager().BackupEditNode(this);
@@ -578,7 +592,6 @@ void CCustomDetail::createTreeControl()
 	else {
 		createRoot();
 	}
-#endif
 
 	mTreeCtrl.UpdateColumns();
 
@@ -930,8 +943,11 @@ void CCustomDetail::resizeFit()
 	CRect r = CRect(wPlacement.rcNormalPosition);
 	wPlacement.rcNormalPosition.right = wPlacement.rcNormalPosition.left + cxTotal;
 	wPlacement.rcNormalPosition.bottom = wPlacement.rcNormalPosition.top + cyTotal;
+	r = CRect(wPlacement.rcNormalPosition);
 
 	SetWindowPlacement(&wPlacement);
+
+	mTreeCtrl.ResizeControl(r.Width(), r.Height());
 }
 
 /*============================================================================*/
@@ -1298,6 +1314,16 @@ void CCustomDetail::setTreeTitle(LPARAM lParam)
 /*============================================================================*/
 void CCustomDetail::updateMode()
 {
+#if _DEMO_PHASE < 60
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
+	CString title = pnode->GetEquipment().title;
+	if (pnode->GetEquipment().mode == eTreeItemMode_Edit) {
+		title += CString(mEditModeString);
+	}
+
+	// ウィンドウテキストの変更
+	SetWindowText(title);
+#else
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 	CString title = pnode->GetEquipment().title;
 	mTreeCtrl.ModifyStyle(TVS_EDITLABELS, 0);
@@ -1308,6 +1334,7 @@ void CCustomDetail::updateMode()
 
 	// ウィンドウテキストの変更
 	SetWindowText(title);
+#endif
 }
 
 /*============================================================================*/
@@ -1434,4 +1461,17 @@ void CCustomDetail::UpdateSortNo(HTREEITEM hItem)
 		}
 		hSubItem = mTreeCtrl.GetNextSiblingItem(hSubItem);
 	}
+}
+
+
+void CCustomDetail::OnTvnItemexpandingTreeCtrl(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
+
+	if (pNMTreeView->action == TVE_COLLAPSE){
+		*pResult = 1;
+		return;
+	}
+
+	*pResult = 0;
 }

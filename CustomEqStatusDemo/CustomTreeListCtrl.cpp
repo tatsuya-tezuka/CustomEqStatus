@@ -517,9 +517,6 @@ void CCustomTreeListCtrl::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScroll
 /*============================================================================*/
 BOOL CCustomTreeListCtrl::cellClick(HTREEITEM hItem, UINT nSubItem, CPoint point)
 {
-#if _DEMO_PHASE < 50
-	return FALSE;
-#endif
 	CCustomDetail* p = (CCustomDetail*)mTreeParent;
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(p);
 
@@ -559,6 +556,9 @@ BOOL CCustomTreeListCtrl::cellClick(HTREEITEM hItem, UINT nSubItem, CPoint point
 void CCustomTreeListCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
 	CTreeCtrl::OnLButtonDblClk(nFlags, point);
+#if _DEMO_PHASE < 60
+	return;
+#endif
 
 	TRACE("*** OnLButtonDblClk\n");
 	if (!(MK_CONTROL & nFlags)/* && !(MK_SHIFT & nFlags)*/) {
@@ -616,7 +616,10 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 
 	case CDDS_ITEMPREPAINT: // 項目の描画前
 	{
-		//*pResult = CDRF_DODEFAULT | CDRF_NOTIFYPOSTPAINT;
+#if _DEMO_PHASE < 80
+		*pResult = CDRF_DODEFAULT | CDRF_NOTIFYPOSTPAINT;
+		break;
+#endif
 		HTREEITEM hItem = (HTREEITEM)pNMCustomDraw->dwItemSpec;
 		CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hItem);
 		if (pnode == NULL) {
@@ -671,6 +674,8 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		CDC dc;
 		dc.Attach(pNMCustomDraw->hdc);
 
+#if _DEMO_PHASE < 80
+#else
 		switch (pnode->GetEquipment().type) {
 		case	eTreeItemType_Window:
 		case	eTreeItemType_Title:
@@ -686,12 +691,16 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 			dc.SelectObject(mNodeLeafFont);
 			break;
 		}
+#endif
 
 		CRect rcLabel;
 		GetItemRect(hItem, &rcLabel, TRUE);
 
+#if _DEMO_PHASE < 80
+#else
 		// ラベル項目の塗りつぶし（コントロールの背景色で塗りつぶす）
 		dc.FillSolidRect(&rcItem, GetBkColor());
+#endif
 
 		int nColsCnt = mHeaderCtrl.GetItemCount();
 
@@ -714,7 +723,11 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		dc.DrawText(strSub, &rcText, DT_NOPREFIX | DT_CALCRECT);
 		rcLabel.right = min(rcLabel.left + rcText.right + 4, mColWidths[0] - 4);
 
+#if _DEMO_PHASE < 80
+		COLORREF backcolor = GetSysColor(COLOR_WINDOW);
+#else
 		COLORREF backcolor = pnode->GetColor().textback;
+#endif
 		if (pNMCustomDraw->uItemState & CDIS_SELECTED || GetDropHilightItem() == hItem){
 			// 選択時の背景色をハイライトに設定
 			dc.FillSolidRect(&rcItem, GetSysColor(COLOR_HIGHLIGHT));
@@ -738,14 +751,21 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		dc.SetBkMode(TRANSPARENT);
 		rcText = rcLabel;
 		rcText.DeflateRect(2, 1);
+#if _DEMO_PHASE < 80
+		dc.SetTextColor(GetSysColor(COLOR_WINDOWTEXT));
+#else
 		dc.SetTextColor(pnode->GetColor().text);
+#endif
 		dc.DrawText(strSub, &rcText, DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX | DT_END_ELLIPSIS);
 
 		xOffset = mColWidths[0];
 
 		// その他のカラム文字の描画
 		for (int i = 1; i<nColsCnt; i++){
-			switch (i){
+#if _DEMO_PHASE < 80
+			dc.SetTextColor(GetSysColor(COLOR_WINDOWTEXT));
+#else
+			switch (i) {
 			case	eTreeItemSubType_Value:
 				dc.SetTextColor(pnode->GetColor().value);
 				break;
@@ -755,7 +775,8 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 			default:
 				dc.SetTextColor(pnode->GetColor().text);
 				break;
-			}
+		}
+#endif
 			rcText = rcLabel;
 			rcText.left = xOffset;
 			rcText.right = xOffset + mColWidths[i];
@@ -814,11 +835,6 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 /*============================================================================*/
 void CCustomTreeListCtrl::OnTvnBeginlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 {
-#if _DEMO_PHASE < 50
-	*pResult = 1;
-	return;
-#endif
-
 	LPNMTVDISPINFO pTVDispInfo = reinterpret_cast<LPNMTVDISPINFO>(pNMHDR);
 
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, pTVDispInfo->item.hItem);
@@ -1266,10 +1282,6 @@ int CCustomTreeListCtrl::GetHeaderWidth(int col/*=-1*/)
 /*============================================================================*/
 BOOL CCustomTreeListCtrl::SwitchEditMode(HTREEITEM hItem, UINT col, CPoint point)
 {
-#if _DEMO_PHASE < 50
-	SetFocus();
-	return FALSE;
-#endif
 	if (hItem == NULL)
 		return FALSE;
 

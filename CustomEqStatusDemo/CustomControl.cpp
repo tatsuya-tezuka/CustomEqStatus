@@ -106,7 +106,8 @@ CCustomDetail* CCustomControl::CreateEquipment(CTreeNode* pnode, UINT mode/* = e
 	}
 	// 設備詳細画面の作成
 	pitem->Create(IDD_DIALOG_EQDETAIL, theApp.GetMainWnd());
-	pitem->ShowWindow((pnode == NULL) ? SW_SHOW : pnode->GetEquipment().placement.showCmd);
+	//pitem->ShowWindow((pnode == NULL) ? SW_SHOW : pnode->GetEquipment().placement.showCmd);
+	pitem->ShowWindow(SW_HIDE);
 
 	// 管理ウィンドウの設定
 	if (pnode == NULL) {

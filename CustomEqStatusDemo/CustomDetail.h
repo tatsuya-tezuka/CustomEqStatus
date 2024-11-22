@@ -115,4 +115,5 @@ public:
 	afx_msg void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
 	afx_msg void OnMenudetailSave();
 	afx_msg void OnMenudetailSaveas();
+	afx_msg void OnTvnItemexpandingTreeCtrl(NMHDR* pNMHDR, LRESULT* pResult);
 };
