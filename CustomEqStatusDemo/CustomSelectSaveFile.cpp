@@ -56,6 +56,7 @@ void CCustomSelectSaveFile::OnBnClickedOk()
 
 	if (mSaveFileName.Right(4).CompareNoCase(_T(".xml")) != 0) {
 		mSaveFileName += _T(".xml");
+		UpdateData(FALSE);
 	}
 
 	CFileFind find;

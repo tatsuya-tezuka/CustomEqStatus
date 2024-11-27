@@ -136,6 +136,7 @@ protected:
 	void	updateItemData(LPARAM lParam);
 	void	updateXmlFile();
 	void	showCustomDetail(int nItem, CPoint point);
+	void	showCustomDetail(CTreeNode* pnode, CPoint point);
 	UINT	GetGroupMaxNo();
 	UINT	GetGroupInnerMaxNo();
 	bool	IsSameGroupName(CString groupName);

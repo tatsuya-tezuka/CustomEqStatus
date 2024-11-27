@@ -714,12 +714,15 @@ public:
 			// 編集ノードにない場合は何もしない
 			return;
 		}
+		// 編集用ノードを保存する
 		SaveasTreeDataXml(xmlfile, pWnd);
-		CTreeNode* dest = NULL;
+		// 元ノードを取得
+		CTreeNode* dest = SearchWndNode(pWnd, false);
+		// 編集ノードを元ノードにコピーする
 		dest = CloneItemNode((*itrwnd).second, dest);
-		AddTreeNode(dest);
-		CTreeNode* pnode = SearchWndNode(pWnd, false);
-		pnode->GetEquipment().wnd = NULL;
+		//AddTreeNode(dest);
+		//CTreeNode* pnode = SearchWndNode(pWnd, false);
+		//pnode->GetEquipment().wnd = pWnd;
 	}
 
 	/// 編集ノードとノードリスト内のノードを比較する

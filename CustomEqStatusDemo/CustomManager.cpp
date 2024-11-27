@@ -949,10 +949,12 @@ void CCustomManager::createEqDetail(CTreeNode* node/*=NULL*/)
 	}
 	// createItemを実行することで管理画面に表示される
 	createItem((int)mSelectType);
+
 	UpdateGroup();
 	if (pedit->GetEquipment().wnd != NULL) {
 		CPoint point = theApp.GetCustomControl().GetCascadePoint();
 		pedit->GetEquipment().wnd->SetWindowPos(NULL, point.x, point.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+		pedit->GetEquipment().wnd->ShowWindow(SW_SHOW);
 	}
 }
 /*============================================================================*/
@@ -1181,6 +1183,7 @@ void CCustomManager::updateXmlFile()
 		xml.Save(pnode->GetXmlFileName());
 	}
 }
+
 /*============================================================================*/
 /*! 設備詳細管理
 
@@ -1195,6 +1198,22 @@ void CCustomManager::updateXmlFile()
 void CCustomManager::showCustomDetail(int nItem, CPoint point)
 {
 	CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(nItem);
+	showCustomDetail(pnode, point);
+}
+
+/*============================================================================*/
+/*! 設備詳細管理
+
+-# 指定アイテムの設備詳細を開く
+
+@param	pnode		ノード情報
+@param	point		表示開始位置
+
+@retval
+*/
+/*============================================================================*/
+void CCustomManager::showCustomDetail(CTreeNode* pnode, CPoint point)
+{
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
 	CLogTraceEx::Write(_T("***"), _T("CCustomManager"), _T("showCustomDetail"), CString(pnode->GetEquipment().title), _T(""), nLogEx::info);
@@ -1208,7 +1227,7 @@ void CCustomManager::showCustomDetail(int nItem, CPoint point)
 				return;
 
 			pnode->GetEquipment().wnd = pitem;
-			if(pnode->GetEquipment().kind == eTreeItemKind_User)
+			if (pnode->GetEquipment().kind == eTreeItemKind_User)
 				bEditMode = true;
 
 			if (pnode->GetEquipment().wnd != NULL) {

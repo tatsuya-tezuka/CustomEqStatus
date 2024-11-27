@@ -376,7 +376,7 @@ void CCustomDetail::OnMenudetailSaveas()
 	CString filename = dlg.GetSavePathName() + _T("\\") + dlg.GetSaveFileName();
 	CString backxml = CString(pnode->GetXmlFileName());
 
-	// ツリーデータの保存
+	// ツリーヘッダー幅の保存
 	saveHeaderWidth();
 
 	// 編集用ノード情報の保存

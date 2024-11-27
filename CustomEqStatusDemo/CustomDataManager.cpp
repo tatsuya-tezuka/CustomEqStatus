@@ -960,16 +960,31 @@ bool CTreeNode::SaveCustomLayout()
 	xml.IntoElem();
 	xml.FindElem(_T("EQUIPMENT"));
 	xml.IntoElem();
-	xml.FindElem(_T("EQUIPMENTINFO"));
-	xml.IntoElem();
 
-	xml.FindElem(_T("FLAGS"));
-	xml.SetData(equipment.placement.flags);
-	xml.FindElem(_T("SHOWCMD"));
-	xml.SetData(equipment.wnd->IsWindowVisible());
-	setPointXml(xml, equipment.placement.ptMinPosition);
-	setPointXml(xml, equipment.placement.ptMaxPosition);
-	setRectXml(xml, equipment.placement.rcNormalPosition);
+	// LAYOUT
+	if (xml.FindElem(_T("LAYOUTINFO")) == true) {
+		xml.IntoElem();
+		xml.FindElem(_T("FLAGS"));
+		xml.SetData(equipment.placement.flags);
+		xml.FindElem(_T("SHOWCMD"));
+		xml.SetData(equipment.wnd->IsWindowVisible());
+		setPointXml(xml, equipment.placement.ptMinPosition);
+		setPointXml(xml, equipment.placement.ptMaxPosition);
+		setRectXml(xml, equipment.placement.rcNormalPosition);
+	}
+	else {
+		xml.AddElem(_T("LAYOUTINFO"));
+		xml.IntoElem();
+		xml.AddElem(_T("FLAGS"), equipment.placement.flags);
+		xml.AddElem(_T("SHOWCMD"), (equipment.wnd == NULL) ? 0 : equipment.wnd->IsWindowVisible()/*wininfo.placement.showCmd*/);
+		savePointXml(xml, equipment.placement.ptMinPosition);
+		savePointXml(xml, equipment.placement.ptMaxPosition);
+		saveRectXml(xml, equipment.placement.rcNormalPosition);
+	}
+
+	xml.OutOfElem(); // LAYOUTINFO
+	xml.OutOfElem(); // EQUIPMENT
+	xml.OutOfElem(); // ROOT
 
 	xml.Save(xmlfile);
 
@@ -1030,6 +1045,7 @@ bool CCustomDataManager::LoadCustomLayout(CArchive& ar)
 		vector<CTreeNode*>::iterator itr;
 		for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
 			if (CString((*itr)->GetXmlFileName()).MakeLower() == (*itrr).MakeLower()) {
+				(*itr)->LoadCustomLayout();
 				if ((*itr)->GetEquipment().wnd == NULL) {
 					CCustomDetail* pitem = theApp.GetCustomControl().CreateEquipment((*itr));
 					if (pitem == NULL)
@@ -1080,7 +1096,6 @@ bool CTreeNode::LoadCustomLayout()
 	// ウィンドウ位置情報の取得
 	memset(&equipment.placement, 0, sizeof(WINDOWPLACEMENT));
 	equipment.placement.length = sizeof(WINDOWPLACEMENT);
-	equipment.wnd->GetWindowPlacement(&equipment.placement);
 
 	CMarkup xml;
 	xml.Load(xmlfile);
@@ -1088,18 +1103,27 @@ bool CTreeNode::LoadCustomLayout()
 	xml.IntoElem();
 	xml.FindElem(_T("EQUIPMENT"));
 	xml.IntoElem();
-	xml.FindElem(_T("EQUIPMENTINFO"));
-	xml.IntoElem();
+
+	// LAYOUT
+	if (xml.FindElem(_T("LAYOUTINFO")) == true){
+		xml.IntoElem();
+	}
+	else {
+		xml.FindElem(_T("EQUIPMENTINFO"));
+		xml.IntoElem();
+	}
 
 	xml.FindElem(_T("FLAGS"));
-	xml.SetData(equipment.placement.flags);
+	equipment.placement.flags = _wtoi(xml.GetData());
 	xml.FindElem(_T("SHOWCMD"));
-	xml.SetData(equipment.wnd->IsWindowVisible());
-	setPointXml(xml, equipment.placement.ptMinPosition);
-	setPointXml(xml, equipment.placement.ptMaxPosition);
-	setRectXml(xml, equipment.placement.rcNormalPosition);
+	equipment.placement.showCmd = _wtoi(xml.GetData());
+	loadPointXml(xml, equipment.placement.ptMinPosition);
+	loadPointXml(xml, equipment.placement.ptMaxPosition);
+	loadRectXml(xml, equipment.placement.rcNormalPosition);
 
-	xml.Save(xmlfile);
+	xml.OutOfElem(); // LAYOUTINFO or EQUIPMENTINFO
+	xml.OutOfElem(); // EQUIPMENT
+	xml.OutOfElem(); // ROOT
 
 	return true;
 }
