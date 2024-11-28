@@ -77,5 +77,9 @@ using namespace std;
 
 	110:リリースバージョン
 */
-#define	_DEMO_PHASE		110//50
+#ifdef _DEBUG
+#define	_DEMO_PHASE		110
+#else
+#define	_DEMO_PHASE		50
+#endif
 
