@@ -499,6 +499,11 @@ void CCustomManager::OnManagerCreate()
 		if (dlg.DoModal() == IDCANCEL)
 			return;
 
+		if (dlg.mGroupName.IsEmpty()) {
+			MessageBox(mMessage_EmptyGroupName, mMessage_Title_CustomManager, MB_OK | MB_ICONWARNING);
+			continue;
+		}
+
 		if (IsSameGroupName(dlg.mGroupName) == true) {
 			MessageBox(mMessage_SameGroupName, mMessage_Title_CustomManager, MB_OK | MB_ICONWARNING);
 			continue;
@@ -540,8 +545,21 @@ void CCustomManager::OnMangroupRename()
 
 	CString str = mManagerList.GetGroupHeader(mMenuSelectGroupID);
 	CCustomGroupName dlg(str);
-	if (dlg.DoModal() == IDCANCEL)
-		return;
+	while (1) {
+		if (dlg.DoModal() == IDCANCEL)
+			return;
+
+		if (dlg.mGroupName.IsEmpty()) {
+			MessageBox(mMessage_EmptyGroupName, mMessage_Title_CustomManager, MB_OK | MB_ICONWARNING);
+			continue;
+		}
+
+		if (dlg.mGroupName != str && IsSameGroupName(dlg.mGroupName) == true) {
+			MessageBox(mMessage_SameGroupName, mMessage_Title_CustomManager, MB_OK | MB_ICONWARNING);
+			continue;
+		}
+		break;
+	}
 	mManagerList.SetGroupHeader(mMenuSelectGroupID, dlg.mGroupName);
 
 	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
@@ -675,7 +693,7 @@ bool CCustomManager::IsSameGroupName(CString groupName)
 		// データのグループ番号から対象カラムのテキストを設定する
 		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(item);
 		CString str = CString(pnode->GetManager().groupname);
-		if (str.MakeLower() == groupName.MakeLower())
+		if (str == groupName)
 			return true;
 	}
 	return false;

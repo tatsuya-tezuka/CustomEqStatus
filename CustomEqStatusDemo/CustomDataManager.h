@@ -74,6 +74,7 @@ static const TCHAR* mMessage_DetailDelete = { _T("%sを削除します。\nよろしいです
 static const TCHAR* mMessage_LoadLayout = { _T("表示されている全ての設備詳細画面の変更内容を破棄します。\nよろしいですか？") };
 static const TCHAR* mMessage_SaveLayout = { _T("編集中の情報は破棄されます。\nよろしいですか？") };
 static const TCHAR* mMessage_SameGroupName = { _T("同名のグループ名が存在します。再度入力してください。") };
+static const TCHAR* mMessage_EmptyGroupName = { _T("グループ名の指定がありません。再度入力してください。") };
 
 static const int mMonMax = 5000;			// 監視の最大数
 static const int mCtrlMax = 5000;			// 制御の最大数
