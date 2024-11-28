@@ -1322,12 +1322,15 @@ bool CTreeNode::SaveTreeNodeXml(CMarkup& xml)
 	// 色情報
 	xml.AddElem(_T("COLORINFO"));
 	xml.IntoElem();
-	xml.AddElem(_T("BACK"), color.back);
-	xml.AddElem(_T("TEXTBACK"), color.textback);
-	xml.AddElem(_T("TEXT"), color.text);
-	xml.AddElem(_T("VALUE"), color.value);
-	xml.AddElem(_T("UNIT"), color.unit);
+	saveColorXml(xml, _T("BACK"), color.back);
+	saveColorXml(xml, _T("TEXTBACK"), color.textback);
+	saveColorXml(xml, _T("TEXT"), color.text);
+	saveColorXml(xml, _T("VALUE"), color.value);
+	saveColorXml(xml, _T("UNIT"), color.unit);
+	xml.OutOfElem();
 	// フォント
+	xml.AddElem(_T("FONTINFO"));
+	xml.IntoElem();
 	xml.AddElem(_T("LFHEIGHT"), color.font.lfHeight);
 	xml.AddElem(_T("LFWIDTH"), color.font.lfWidth);
 	xml.AddElem(_T("LFWEIGHT"), color.font.lfWeight);
@@ -1485,17 +1488,15 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 	// 色情報
 	xml.FindElem(_T("COLORINFO"));
 	xml.IntoElem();
-	xml.FindElem(_T("BACK"));
-	color.back = _wtoi(xml.GetData());
-	xml.FindElem(_T("TEXTBACK"));
-	color.textback = _wtoi(xml.GetData());
-	xml.FindElem(_T("TEXT"));
-	color.text = _wtoi(xml.GetData());
-	xml.FindElem(_T("VALUE"));
-	color.value = _wtoi(xml.GetData());
-	xml.FindElem(_T("UNIT"));
-	color.unit = _wtoi(xml.GetData());
+	loadColorXml(xml, _T("BACK"), color.back);
+	loadColorXml(xml, _T("TEXTBACK"), color.textback);
+	loadColorXml(xml, _T("TEXT"), color.text);
+	loadColorXml(xml, _T("VALUE"), color.value);
+	loadColorXml(xml, _T("UNIT"), color.unit);
+	xml.OutOfElem();
 	// フォント
+	xml.FindElem(_T("FONTINFO"));
+	xml.IntoElem();
 	xml.FindElem(_T("LFHEIGHT"));
 	color.font.lfHeight = _wtoi(xml.GetData());
 	xml.FindElem(_T("LFWIDTH"));

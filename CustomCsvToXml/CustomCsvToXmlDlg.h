@@ -67,6 +67,33 @@ public:
 		xml.AddElem(_T("BOTTOM"), rect.bottom);
 	}
 
+	// 色コードの読込
+	void _LoadColorXml(CMarkup& xml, CString tagname, COLORREF& color) const
+	{
+		BYTE r, g, b;
+		xml.FindElem(tagname);
+		xml.IntoElem();
+		xml.FindElem(_T("R"));
+		r = (BYTE)_wtoi(xml.GetData());
+		xml.FindElem(_T("G"));
+		g = (BYTE)_wtoi(xml.GetData());
+		xml.FindElem(_T("B"));
+		b = (BYTE)_wtoi(xml.GetData());
+		xml.OutOfElem();
+		color = RGB(r, g, b);
+	}
+
+	// 色コードの保存
+	void _SaveColorXml(CMarkup& xml, CString tagname, COLORREF color) const
+	{
+		xml.AddElem(tagname);
+		xml.IntoElem();
+		xml.AddElem(_T("R"), GetRValue(color));
+		xml.AddElem(_T("G"), GetGValue(color));
+		xml.AddElem(_T("B"), GetBValue(color));
+		xml.OutOfElem();
+	}
+
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV サポート
 

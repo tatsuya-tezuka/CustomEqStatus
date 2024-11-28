@@ -435,12 +435,15 @@ bool CCustomCsvToXmlDlg::SaveNodeXml(CMarkup& xml, CNode* cur)
 	// 色情報
 	xml.AddElem(_T("COLORINFO"));
 	xml.IntoElem();
-	xml.AddElem(_T("BACK"), 16777215);
-	xml.AddElem(_T("TEXTBACK"), 16777215);
-	xml.AddElem(_T("TEXT"), 0);
-	xml.AddElem(_T("VALUE"), 0);
-	xml.AddElem(_T("UNIT"), 0);
+	_SaveColorXml(xml, _T("BACK"), 0x00ffffff);
+	_SaveColorXml(xml, _T("TEXTBACK"), 0x00ffffff);
+	_SaveColorXml(xml, _T("TEXT"), 0x00000000);
+	_SaveColorXml(xml, _T("VALUE"), 0x00000000);
+	_SaveColorXml(xml, _T("UNIT"), 0x00000000);
+	xml.OutOfElem();
 	// フォント
+	xml.AddElem(_T("FONTINFO"));
+	xml.IntoElem();
 	xml.AddElem(_T("LFHEIGHT"), -16);
 	xml.AddElem(_T("LFWIDTH"), 0);
 	xml.AddElem(_T("LFWEIGHT"), 700);

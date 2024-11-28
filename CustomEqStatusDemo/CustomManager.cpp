@@ -419,11 +419,11 @@ void CCustomManager::OnManagerDelete()
 		if (pnode == NULL)
 			continue;
 
-		CString msg;
-		msg.Format(mMessage_DetailDelete, pnode->GetEquipment().title);
-		if (MessageBox(msg, mMessage_Title_CustomManager, MB_YESNO | MB_ICONQUESTION) == IDNO) {
-			continue;
-		}
+		//CString msg;
+		//msg.Format(mMessage_DetailDelete, pnode->GetEquipment().title);
+		//if (MessageBox(msg, mMessage_Title_CustomManager, MB_YESNO | MB_ICONQUESTION) == IDNO) {
+		//	continue;
+		//}
 
 		// 設備制御画面の削除
 		CString xmlfile = CString(pnode->GetXmlFileName());
@@ -1235,7 +1235,10 @@ void CCustomManager::showCustomDetail(CTreeNode* pnode, CPoint point)
 				pnode->GetEquipment().wnd->SetWindowPos(NULL, point.x, point.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
 			}
 		}
-		pnode->GetEquipment().wnd->ShowWindow(SW_SHOW);
+		else {
+			//pnode->GetEquipment().wnd->GetActiveWindow();
+		}
+		pnode->GetEquipment().wnd->ShowWindow(SW_SHOWNA);
 		if (bEditMode == true) {
 			// ダブルクリック時は常に編集モードとする
 			pnode->GetEquipment().wnd->PostMessageW(eUserMessage_Detail_Mode, 0, (LPARAM)eTreeItemMode_Edit);

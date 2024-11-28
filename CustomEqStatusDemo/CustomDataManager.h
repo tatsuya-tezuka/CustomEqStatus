@@ -372,6 +372,22 @@ protected:
 		point.y = _wtoi(xml.GetData());
 	}
 
+	// 色コードの読込
+	void loadColorXml(CMarkup& xml, CString tagname, COLORREF& color) const
+	{
+		BYTE r, g, b;
+		xml.FindElem(tagname);
+		xml.IntoElem();
+		xml.FindElem(_T("R"));
+		r = (BYTE)_wtoi(xml.GetData());
+		xml.FindElem(_T("G"));
+		g = (BYTE)_wtoi(xml.GetData());
+		xml.FindElem(_T("B"));
+		b = (BYTE)_wtoi(xml.GetData());
+		xml.OutOfElem();
+		color = RGB(r, g, b);
+	}
+
 	// 矩形の保存
 	void saveRectXml(CMarkup& xml, RECT& rect) const
 	{
@@ -385,6 +401,17 @@ protected:
 	{
 		xml.AddElem(_T("X"), point.x);
 		xml.AddElem(_T("Y"), point.y);
+	}
+
+	// 色コードの保存
+	void saveColorXml(CMarkup& xml, CString tagname, COLORREF color) const
+	{
+		xml.AddElem(tagname);
+		xml.IntoElem();
+		xml.AddElem(_T("R"), GetRValue(color));
+		xml.AddElem(_T("G"), GetGValue(color));
+		xml.AddElem(_T("B"), GetBValue(color));
+		xml.OutOfElem();
 	}
 
 	// 矩形の設定
