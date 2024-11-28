@@ -71,15 +71,15 @@ CTreeNode::~CTreeNode()
 //	return true;
 //}
 
-bool CTreeNode::Equal(CTreeNode* data)
+bool CTreeNode::Equal(CTreeNode* data, bool bChild)
 {
-	if (Equal(data->GetEquipment()) == false)
+	if (Equal(data->GetEquipment(), bChild) == false)
 		return false;
-	if (Equal(data->GetManager()) == false)
+	if (Equal(data->GetManager(), bChild) == false)
 		return false;
-	if (Equal(data->GetMonCtrl()) == false)
+	if (Equal(data->GetMonCtrl(), bChild) == false)
 		return false;
-	if (Equal(data->GetColor()) == false)
+	if (Equal(data->GetColor(), bChild) == false)
 		return false;
 
 	if (children.size() != data->GetChildren().size())
@@ -87,79 +87,203 @@ bool CTreeNode::Equal(CTreeNode* data)
 
 	UINT size = (UINT)children.size();
 	for (UINT i = 0; i < size; i++) {
-		if (children[i]->Equal(data->GetChildren()[i]) == false)
+		if (children[i]->Equal(data->GetChildren()[i], true) == false)
 			return false;
 	}
 
 	return true;
 }
-bool CTreeNode::Equal(stEquipmentInfo& data)
+bool CTreeNode::Equal(stEquipmentInfo& data, bool bChild)
 {
-	if (CString(equipment.title) != CString(data.title))
+	if (bChild == true) {
+		return true;
+	}
+
+	if (CString(equipment.title) != CString(data.title)) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("TITLE"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================//
 		return false;
+	}
 
 	CRect rectBase = CRect(equipment.placement.rcNormalPosition);
 	CRect rectEdit = CRect(data.placement.rcNormalPosition);
-	if (rectBase.Width() != rectEdit.Width())
+	if (rectBase.Width() != rectEdit.Width()) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("WIDTH"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================//
 		return false;
-	if (rectBase.Height() != rectEdit.Height())
+	}
+	if (rectBase.Height() != rectEdit.Height()) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("HEIGHT"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================//
 		return false;
+	}
 
 	for (int i = 0; i < mHeaderSize; i++) {
-		if (equipment.hwidth[i] != data.hwidth[i])
+		if (equipment.hwidth[i] != data.hwidth[i]) {
+			//=====================================================//
+			//«««««««««««« Log ««««««««««««//
+			CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("HWIDTH"), _T("NG"), nLogEx::info);
+			//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+			//=====================================================//
 			return false;
+		}
 	}
 
 	return true;
 }
-bool CTreeNode::Equal(stManagerInfo& data)
+bool CTreeNode::Equal(stManagerInfo& data, bool bChild)
 {
 	return true;
 }
-bool CTreeNode::Equal(stMonCtrlData& data)
+bool CTreeNode::Equal(stMonCtrlData& data, bool bChild)
 {
-	if (CString(monctrl.display) != CString(data.display))
+	if (CString(monctrl.display) != CString(data.display)) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("DISPLAY"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================//
 		return false;
-	if (CString(monctrl.mname) != CString(data.mname))
+	}
+	if (CString(monctrl.mname) != CString(data.mname)) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("MON NAME"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================//
 		return false;
-	if (CString(monctrl.cname) != CString(data.cname))
+	}
+	if (CString(monctrl.cname) != CString(data.cname)) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("CNTL NAME"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================//
 		return false;
-	if (CString(monctrl.unit) != CString(data.unit))
+	}
+	if (CString(monctrl.unit) != CString(data.unit)) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("UNIT"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================//
 		return false;
-	if (CString(monctrl.format) != CString(data.format))
+	}
+	if (CString(monctrl.format) != CString(data.format)) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("FORMAT"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================//
 		return false;
-	if (monctrl.formattype != data.formattype)
+	}
+	if (monctrl.formattype != data.formattype) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("FORMAT TYPE"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================//
 		return false;
+	}
 
 	return true;
 }
-bool CTreeNode::Equal(stColorData& data)
+bool CTreeNode::Equal(stColorData& data, bool bChild)
 {
-	if (color.back != data.back)
+	if (color.back != data.back) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("BACK"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================]//
 		return false;
-	if (color.textback != data.textback)
+	}
+	if (color.textback != data.textback) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("TEXT BACK"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================]//
 		return false;
-	if (color.text != data.text)
+	}
+	if (color.text != data.text) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("TEXT"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================]//
 		return false;
-	if (color.value != data.value)
+	}
+	if (color.value != data.value) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("VALUE"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================]//
 		return false;
-	if (color.unit != data.unit)
+	}
+	if (color.unit != data.unit) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("UNIT"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================]//
 		return false;
-	if (Equal(data.font) == false)
+	}
+	if (Equal(data.font, bChild) == false) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("FONT"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================]//
 		return false;
+	}
 
 	return true;
 }
-bool CTreeNode::Equal(LOGFONT& data)
+bool CTreeNode::Equal(LOGFONT& data, bool bChild)
 {
-	if (color.font.lfWeight != data.lfWeight)
+	if (color.font.lfWeight != data.lfWeight) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("LFWEIGHT"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================]//
 		return false;
-	if (CString(color.font.lfFaceName) != CString(data.lfFaceName))
+	}
+	if (CString(color.font.lfFaceName) != CString(data.lfFaceName)) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("LFFACE NAME"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================]//
 		return false;
-	if (color.font.lfItalic != data.lfItalic)
+	}
+	if (color.font.lfItalic != data.lfItalic) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("LFITALIC"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================]//
 		return false;
-	if (color.font.lfHeight != data.lfHeight)
+	}
+	if (color.font.lfHeight != data.lfHeight) {
+		//=====================================================//
+		//«««««««««««« Log ««««««««««««//
+		CLogTraceEx::Write(_T("***"), _T("CTreeNode"), _T("Equal"), _T("LFHEIGHT"), _T("NG"), nLogEx::info);
+		//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+		//=====================================================]//
 		return false;
+	}
 
 	return true;
 }

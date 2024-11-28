@@ -254,6 +254,12 @@ void CCustomDetail::OnMenudetailClose()
 {
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 
+	//=====================================================//
+	//«««««««««««« Log ««««««««««««//
+	CLogTraceEx::Write(_T("***"), _T("CCustomDetail"), _T("OnMenudetailClose"), CString(pnode->GetEquipment().title), _T(""), nLogEx::info);
+	//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+	//=====================================================//
+
 #if _DEMO_PHASE < 60
 	int retmsg = CustomSaveDifferentMessageBoxHooked(m_hWnd, mMessage_DetailSaveDifferentData, pnode->GetEquipment().title, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1, CString(pnode->GetXmlFileName()).IsEmpty() ? false : true);
 	if (retmsg == IDCANCEL) {
@@ -333,6 +339,12 @@ void CCustomDetail::OnMenudetailSave()
 #endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 
+	//=====================================================//
+	//«««««««««««« Log ««««««««««««//
+	CLogTraceEx::Write(_T("***"), _T("CCustomDetail"), _T("OnMenudetailSave"), CString(pnode->GetEquipment().title), _T(""), nLogEx::info);
+	//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+	//=====================================================//
+
 	if (CString(pnode->GetXmlFileName()).IsEmpty() == true) {
 		return;
 	}
@@ -366,6 +378,12 @@ void CCustomDetail::OnMenudetailSaveas()
 	return;
 #endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
+
+	//=====================================================//
+	//«««««««««««« Log ««««««««««««//
+	CLogTraceEx::Write(_T("***"), _T("CCustomDetail"), _T("OnMenudetailSaveas"), CString(pnode->GetEquipment().title), _T(""), nLogEx::info);
+	//ªªªªªªªªªªªª Log ªªªªªªªªªªªª//
+	//=====================================================//
 
 	CCustomSelectSaveFile dlg;
 	dlg.SetSavePathName(theApp.GetCustomControl().GetUserDataPath());

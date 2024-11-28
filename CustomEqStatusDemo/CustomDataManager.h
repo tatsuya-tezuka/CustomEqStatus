@@ -305,12 +305,12 @@ public:
 	bool	LoadCustomLayout();
 
 	//bool operator==(CTreeNode* data);
-	bool Equal(CTreeNode* data);
-	bool Equal(stEquipmentInfo& data);
-	bool Equal(stManagerInfo& data);
-	bool Equal(stMonCtrlData& data);
-	bool Equal(stColorData& data);
-	bool Equal(LOGFONT& data);
+	bool Equal(CTreeNode* data, bool bChild);
+	bool Equal(stEquipmentInfo& data, bool bChild);
+	bool Equal(stManagerInfo& data, bool bChild);
+	bool Equal(stMonCtrlData& data, bool bChild);
+	bool Equal(stColorData& data, bool bChild);
+	bool Equal(LOGFONT& data, bool bChild);
 
 protected:
 	void	deleteNode(CTreeNode* pnode);
@@ -761,7 +761,7 @@ public:
 		if (itrwnd == mEditTreeNode.end()) {
 			return false;
 		}
-		return (*itrwnd).second->Equal(pnode);
+		return (*itrwnd).second->Equal(pnode, false);
 	}
 
 	/// 編集用ノードの削除
