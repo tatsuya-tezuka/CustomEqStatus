@@ -162,7 +162,6 @@
     <None Include="res\CustomEqStatusDemo.rc2">
       <Filter>リソース ファイル</Filter>
     </None>
-    <None Include="ClassDiagram.cd" />
     <None Include="res\dragcopy.cur">
       <Filter>リソース ファイル</Filter>
     </None>

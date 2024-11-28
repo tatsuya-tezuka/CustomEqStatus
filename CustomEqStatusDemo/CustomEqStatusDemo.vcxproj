@@ -247,7 +247,6 @@
     <ResourceCompile Include="CustomEqStatusDemo.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ClassDiagram.cd" />
     <None Include="res\CustomEqStatusDemo.rc2" />
     <None Include="res\dragcopy.cur" />
     <None Include="res\dragerror.cur" />
