@@ -185,6 +185,7 @@ public:
 	UINT	GetGroupInner(UINT nGroup, UINT& min);
 	int		GetHeaderGroupId(CString& strHeader) { return getHeaderGroupId(strHeader); }
 	int		GetGroupItemCount(UINT nGroupId);
+	void	EnsureVisibleEx(int item);
 
 protected:
 	LRESULT	insertGroupHeader(int nIndex, int nGroupId, const CString& strHeader, DWORD dwState = LVGS_NORMAL, DWORD dwAlign = LVGA_HEADER_LEFT);

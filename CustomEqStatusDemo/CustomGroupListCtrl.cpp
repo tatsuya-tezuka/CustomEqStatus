@@ -1397,17 +1397,40 @@ void CCustomGroupListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 			if (index >= 0) {
 				SetItemState(-1, 0, LVIS_DROPHILITED);
 				SetItemState(index, LVIS_DROPHILITED, LVIS_DROPHILITED);
+				EnsureVisibleEx(index);
 			}
-			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+			//SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+			SetCursor(AfxGetApp()->LoadCursor(IDC_CURSOR_DRAGMOVE));
 		}
 		else {
-			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
+			//SetCursor(AfxGetApp()->LoadStandardCursor(IDC_NO));
+			SetCursor(theApp.LoadCursor(IDC_CURSOR_DRAGERROR));
 		}
 
 		SetRedraw(TRUE);
 	}
 
 	CListCtrl::OnMouseMove(nFlags, point);
+}
+
+/*============================================================================*/
+/*! ツリーリストコントロール（ドラッグ＆ドロップ関連）
+
+-# 指定アイテムを可視化する
+
+@param	hItem		アイテム
+
+@retval
+*/
+/*============================================================================*/
+void CCustomGroupListCtrl::EnsureVisibleEx(int item)
+{
+	// アイテムの前後を確認する
+	int nPrev = (item == 0) ? item : item - 1;
+	int nNext = (item == GetItemCount() - 1) ? item : item + 1;
+	EnsureVisible(nPrev, FALSE);
+	EnsureVisible(nNext, FALSE);
+
 }
 
 /*============================================================================*/
