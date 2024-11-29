@@ -584,7 +584,7 @@ void CCustomManager::OnMangroupRename()
 /*============================================================================*/
 void CCustomManager::OnMangroupReset()
 {
-#if _DEMO_PHASE < 50
+#if _DEMO_PHASE < 110
 	return;
 #endif
 

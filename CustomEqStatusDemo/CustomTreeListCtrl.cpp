@@ -1818,12 +1818,13 @@ DROPEFFECT CALLBACK CCustomTreeListCtrl::Callback_Detail_DragOver(CWnd* pWnd, vo
 	DWORD dw = (DWORD)ptree->TYPEDATA((DWORD)ptree->GetItemData(hItem));
 	//TRACE("#DragOver(%d->%d)\n", pdata->mKind, dw);
 
+	ptree->SelectDropTarget(hItem);
+	ptree->EnsureVisibleEx(hItem);
+
 	// ドラッグとドロップ先の関係を調べる
 	if (ptree->IsDropTarget(hItem, pdata) == FALSE) {
 		return DROPEFFECT_NONE;
 	}
-
-	ptree->SelectDropTarget(hItem);
 
 	DROPEFFECT de = DROPEFFECT_NONE;
 	if (dwKeyState & MK_SHIFT) {
@@ -1834,6 +1835,28 @@ DROPEFFECT CALLBACK CCustomTreeListCtrl::Callback_Detail_DragOver(CWnd* pWnd, vo
 	}
 
 	return de;
+}
+
+/*============================================================================*/
+/*! ツリーリストコントロール（ドラッグ＆ドロップ関連）
+
+-# 指定アイテムを可視化する
+
+@param	hItem		アイテム
+
+@retval
+*/
+/*============================================================================*/
+void CCustomTreeListCtrl::EnsureVisibleEx(HTREEITEM hItem)
+{
+	// アイテムの前後を確認する
+	HTREEITEM hPrev = GetPrevVisibleItem(hItem);
+	HTREEITEM hNext = GetNextVisibleItem(hItem);
+	if (hPrev)
+		EnsureVisible(hPrev);
+	if (hNext)
+		EnsureVisible(hNext);
+
 }
 
 /*============================================================================*/

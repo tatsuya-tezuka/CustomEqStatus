@@ -214,6 +214,8 @@ public:
 
 	void	ExpandAll(HTREEITEM hItem = NULL);
 
+	void	EnsureVisibleEx(HTREEITEM hItem);
+
 protected:
 	int			getMaxColumnWidth(HTREEITEM hItem, int nColumn, int nDepth, BOOL bIgnoreCollapsed);
 	HTREEITEM	hitControl(CPoint point);
