@@ -855,13 +855,13 @@ void CCustomDetail::restoreNode(CTreeNode* pnode, HTREEITEM ptree)
 		HTREEITEM item = mTreeCtrl.InsertItem(str, NULL, NULL, ptree);
 		switch ((*itr)->GetEquipment().type) {
 		case	eTreeItemType_Main:
-			mTreeCtrl.SetItemData(item, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_MAINNODE, 0));
+			mTreeCtrl.SetItemData(item, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_MAINNODE, (*itr)->GetEquipment().sortno));
 			break;
 		case	eTreeItemType_Sub:
-			mTreeCtrl.SetItemData(item, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_SUBNODE, 0));
+			mTreeCtrl.SetItemData(item, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_SUBNODE, (*itr)->GetEquipment().sortno));
 			break;
 		case	eTreeItemType_Item:
-			mTreeCtrl.SetItemData(item, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_LEAF, sortno * mSortRange));
+			mTreeCtrl.SetItemData(item, mTreeCtrl.MAKEDATA(CCustomDropObject::DK_LEAF, (*itr)->GetEquipment().sortno/*sortno * mSortRange*/));
 			sortno++;
 			break;
 		}
@@ -1257,6 +1257,10 @@ void CCustomDetail::OnTvnGetInfoTipTreeCtrl(NMHDR* pNMHDR, LRESULT* pResult)
 		return;
 	}
 	if (pnode->GetEquipment().type != eTreeItemType_Item) {
+#ifdef _DEBUG
+		mToolText.Format(_T("%s\nSORT(%d)"), (LPCTSTR)pnode->GetMonCtrl().display, pnode->GetEquipment().sortno);
+		pGetInfoTip->pszText = (LPWSTR)(LPCTSTR)mToolText;
+#endif
 		return;
 	}
 

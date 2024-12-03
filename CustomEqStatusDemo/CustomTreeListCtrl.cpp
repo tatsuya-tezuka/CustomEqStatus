@@ -2360,10 +2360,13 @@ BOOL CCustomTreeListCtrl::IsDropTarget(HTREEITEM hItem, CCustomDropObject* pData
 		return FALSE;
 	}
 
+#if _DEMO_PHASE < 110
+	// ドロップ先の情報を取得する
 	DWORD dw = (DWORD)TYPEDATA((DWORD)GetItemData(hItem));
 	switch (pDataObject->mFormat) {
 	case	CCustomDropObject::DF_USER:
 	case	CCustomDropObject::DF_MASTER:
+		// ドラッグ先が設備詳細画面
 		switch (pDataObject->mKind) {
 		case	CCustomDropObject::DK_MAINNODE:
 			if (dw != CCustomDropObject::DK_TITLE)
@@ -2381,6 +2384,7 @@ BOOL CCustomTreeListCtrl::IsDropTarget(HTREEITEM hItem, CCustomDropObject* pData
 		break;
 	case	CCustomDropObject::DF_MONITOR:
 	case	CCustomDropObject::DF_CONTROL:
+		// ドラッグ先が監視・制御画面
 		switch (dw) {
 		case	CCustomDropObject::DK_TITLE:
 		case	CCustomDropObject::DK_MAINNODE:
@@ -2388,6 +2392,45 @@ BOOL CCustomTreeListCtrl::IsDropTarget(HTREEITEM hItem, CCustomDropObject* pData
 		}
 		break;
 	}
+#else
+	// ドロップ先の情報を取得する
+	DWORD dw = (DWORD)TYPEDATA((DWORD)GetItemData(hItem));
+	switch (pDataObject->mFormat) {
+	case	CCustomDropObject::DF_USER:
+	case	CCustomDropObject::DF_MASTER:
+		// ドラッグ先が設備詳細画面
+		switch (pDataObject->mKind) {
+		case	CCustomDropObject::DK_MAINNODE:
+			if (dw != CCustomDropObject::DK_TITLE && dw != CCustomDropObject::DK_MAINNODE) {
+				// メインノード→タイトル、メインノード→メインノード以外
+				return FALSE;
+			}
+			break;
+		case	CCustomDropObject::DK_SUBNODE:
+			if (dw != CCustomDropObject::DK_MAINNODE && dw != CCustomDropObject::DK_SUBNODE) {
+				// サブノード→メインノード、サブノード→サブノード以外
+				return FALSE;
+			}
+			break;
+		case	CCustomDropObject::DK_LEAF:
+			if (dw != CCustomDropObject::DK_SUBNODE && dw != CCustomDropObject::DK_LEAF) {
+				// リーフ→サブノード、リーフ→リーフ以外
+				return FALSE;
+			}
+			break;
+		}
+		break;
+	case	CCustomDropObject::DF_MONITOR:
+	case	CCustomDropObject::DF_CONTROL:
+		// ドラッグ先が監視・制御画面
+		switch (dw) {
+		case	CCustomDropObject::DK_TITLE:
+		case	CCustomDropObject::DK_MAINNODE:
+			return FALSE;
+		}
+		break;
+	}
+#endif
 
 	return TRUE;
 }
@@ -2429,6 +2472,7 @@ void CCustomTreeListCtrl::ClearDropTarget(HTREEITEM hRoot/*=NULL*/)
 		hChildItem = GetNextItem(hChildItem, TVGN_NEXT);
 	}
 }
+
 /*============================================================================*/
 /*! リストコントロール（ドラッグ＆ドロップ関連）
 
@@ -2448,6 +2492,7 @@ BOOL CCustomTreeListCtrl::DataObjectToList(HTREEITEM hDropItem, CCustomDropObjec
 	UINT count = 0;
 
 	if (pDataObject->mDataType == CCustomDropObject::DT_TCHAR) {
+		// 監視・制御画面からのドラッグ＆ドロップ
 		HTREEITEM hSortItem = NULL;
 		TCHAR* pbuf = (TCHAR*)pDataObject->GetBuffer();
 		if (pbuf == NULL)
@@ -2508,6 +2553,7 @@ BOOL CCustomTreeListCtrl::DataObjectToList(HTREEITEM hDropItem, CCustomDropObjec
 	}
 
 	if (pDataObject->mDataType == CCustomDropObject::DT_NODE) {
+		// 設備詳細画面のドラッグ＆ドロップ
 		DropCopyItem(hDropItem, pDataObject);
 	}
 
@@ -2516,6 +2562,7 @@ BOOL CCustomTreeListCtrl::DataObjectToList(HTREEITEM hDropItem, CCustomDropObjec
 
 	return TRUE;
 }
+
 /*============================================================================*/
 /*! リストコントロール（ドラッグ＆ドロップ関連）
 
@@ -2536,11 +2583,68 @@ bool CCustomTreeListCtrl::DropCopyItem(HTREEITEM hDropItem, CCustomDropObject* p
 	// ドラッグデータの先頭を取得
 	CNode* node = pDataObject->mpNode;
 
+	// ドラッグ先が設備詳細画面
+#ifdef _ORG
 	// 子ノード以下をコピーする
 	ret = DropCopyChildItem(hDropItem, node, true);
+#else
+	// ドラッグデータの先頭データを確認して、ドロップ先が親ノードだった場合の処理をさきに行う
+	::std::vector<CNode*>::const_iterator itr = node->getChildren().begin();
+	// ドロップ先のノード情報を取得する
+	CTreeNode* pnodeDrop = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hDropItem);
+	// ドラッグデータのノード情報を取得する
+	CTreeNode* pnodeDrag = (*itr)->getNodeData();
+
+	CTreeNode* new_node = NULL;
+
+	HTREEITEM item = hDropItem;
+	HTREEITEM hSortItem = NULL;
+
+	// ツリー文字列の作成
+	CString text = pnodeDrag->GetMonCtrl().display;
+	if (pnodeDrag->GetEquipment().type == eTreeItemType_Item) {
+		// リーフ用のテキストを作成
+		text = CreateLeafText(pnodeDrag->GetMonCtrl().display, pnodeDrag->GetMonCtrl().unit, pnodeDrag->GetMonCtrl().cname);
+	}
+
+	if (pnodeDrag->GetEquipment().type != pnodeDrop->GetEquipment().type) {
+		// ドラッグデータのドロップノードが異なる（親ノードへのドロップ）
+		// ツリーの作成
+		item = InsertItem(text, NULL, NULL, hDropItem, TVI_FIRST);
+		SetItemData(item, MAKEDATA(pnodeDrag->GetEquipment().type, 1));
+		TRACE("DragDrop === Data(%08x)\n", GetItemData(item));
+		// ノード情報を作成して、必要な情報をコピーする
+		new_node = pnodeDrop->CreateTreeNode(hDropItem, item, TVI_FIRST);
+		hSortItem = NULL;
+	}
+	else {
+		HTREEITEM hParent = GetParentItem(hDropItem);
+		CTreeNode* pnodeParent = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hParent);
+		item = InsertItem(text, NULL, NULL, hParent, TVI_SORT);
+		SetItemData(item, MAKEDATA(pnodeDrag->GetEquipment().type, pnodeDrop->GetEquipment().sortno + 1));
+		TRACE("*DragDrop === Data(%08x)\n", GetItemData(item));
+		// ノード情報を作成して、必要な情報をコピーする
+		new_node = pnodeParent->CreateTreeNode(hParent, item, TVI_FIRST);
+		hSortItem = hParent;
+		hDropItem = hParent;
+	}
+	new_node->DropCopyItem(pnodeDrag);
+	stColorData color;
+	theApp.GetCustomControl().GetDataManager().GetNodeColor(mTreeParent, new_node->GetEquipment().type, color);
+	memcpy(&(new_node->GetColor()), &color, sizeof(stColorData));
+
+	// 子ノード以下をコピーする
+	ret = DropCopyChildItem(item, (*itr), false);
+
+	if (hSortItem != NULL) {
+		SortLeafItem(hSortItem);
+	}
+	ExpandAllItems(hDropItem);
+#endif
 
 	return ret;
 }
+
 /*============================================================================*/
 /*! リストコントロール（ドラッグ＆ドロップ関連）
 
@@ -2554,6 +2658,7 @@ bool CCustomTreeListCtrl::DropCopyItem(HTREEITEM hDropItem, CCustomDropObject* p
 /*============================================================================*/
 bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node, bool bFirst)
 {
+#ifdef _ORG
 	UINT count = 0;
 	DWORD dw = (DWORD)TYPEDATA((DWORD)GetItemData(hDropItem));
 	CTreeNode* pnodeDrop = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hDropItem);
@@ -2609,6 +2714,50 @@ bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node, bo
 	}
 
 	return true;
+
+#else
+
+	UINT count = 0;
+	// ドロップ先の種別を取得
+	DWORD dw = (DWORD)TYPEDATA((DWORD)GetItemData(hDropItem));
+	// ドロップ先のノード情報を取得する
+	CTreeNode* pnodeDrop = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hDropItem);
+
+	// ドロップ先の親アイテム、親ノード情報を取得
+	HTREEITEM hParent = GetParentItem(hDropItem);
+	CTreeNode* pnodeParent = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hParent);
+
+	// 子ノード以下をコピーする
+	count = 0;
+	HTREEITEM hSortItem = NULL;
+	// ドラッグ情報を取得して、ツリー情報を作成する
+	for (::std::vector<CNode*>::const_iterator itr = node->getChildren().begin(); itr != node->getChildren().end(); itr++) {
+		// ドラッグデータのノード情報を取得する
+		CTreeNode* pnode = (*itr)->getNodeData();
+
+		CString text = pnode->GetMonCtrl().display;
+		if (pnode->GetEquipment().type == eTreeItemType_Item) {
+			// リーフ用のテキストを作成
+			text = CreateLeafText(pnode->GetMonCtrl().display, pnode->GetMonCtrl().unit, pnode->GetMonCtrl().cname);
+		}
+		HTREEITEM item;
+		item = InsertItem(text, NULL, NULL, hDropItem, TVI_LAST);
+		SetItemData(item, MAKEDATA(pnode->GetEquipment().type, count));
+		CTreeNode* new_node = pnodeDrop->CreateTreeNode(hDropItem, item, TVI_LAST);
+		new_node->DropCopyItem(pnode);
+		stColorData color;
+		theApp.GetCustomControl().GetDataManager().GetNodeColor(mTreeParent, new_node->GetEquipment().type, color);
+		memcpy(&(new_node->GetColor()), &color, sizeof(stColorData));
+		DropCopyChildItem(item, (*itr), false);
+		count++;
+	}
+
+	if (hSortItem != NULL) {
+		//SortLeafItem(hSortItem);
+	}
+
+	return true;
+#endif
 }
 
 /*============================================================================*/
@@ -2693,7 +2842,7 @@ int CALLBACK CCustomTreeListCtrl::LeafCustomCompare(LPARAM lParam1, LPARAM lPara
 	CCustomTreeListCtrl* ptree = (CCustomTreeListCtrl*)lParamSort;
 	DWORD sort1 = ptree->SORTDATA((DWORD)lParam1);
 	DWORD sort2 = ptree->SORTDATA((DWORD)lParam2);
-	TRACE("DragDrop Compare %d:%d > %d:%d\n", lParam1, sort1, lParam2, sort2);
+	TRACE("DragDrop Compare %08X:%d > %08X:%d\n", lParam1, sort1, lParam2, sort2);
 
 	return (sort1 > sort2);
 }

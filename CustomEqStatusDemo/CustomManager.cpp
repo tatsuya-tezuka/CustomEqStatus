@@ -1323,6 +1323,7 @@ void CCustomManager::SyncEditMode()
 void CCustomManager::OnLvnGetInfoTipListManager(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMLVGETINFOTIP pGetInfoTip = reinterpret_cast<LPNMLVGETINFOTIP>(pNMHDR);
+	*pResult = 0;
 
 	CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(pGetInfoTip->iItem);
 	if (pnode == NULL) {
@@ -1336,5 +1337,4 @@ void CCustomManager::OnLvnGetInfoTipListManager(NMHDR* pNMHDR, LRESULT* pResult)
 	pGetInfoTip->pszText = (LPWSTR)(LPCTSTR)mToolText;
 	pGetInfoTip->cchTextMax = mToolText.GetLength();
 
-	*pResult = 0;
 }

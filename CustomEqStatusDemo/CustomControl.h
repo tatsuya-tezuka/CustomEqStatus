@@ -279,10 +279,24 @@ public:
 		CWnd* pWnd = CWnd::GetDesktopWindow();
 		CRect rectDesktop;
 		pWnd->GetClientRect(rectDesktop);
-		RECT mrect;
-		MONITORINFOEX info;
-		if (mCustomMonitor.GetMonitor(0, &mrect, &info) == true) {
-			rectDesktop = CRect(info.rcWork);
+
+
+		CRect manrect;
+		GetCustomManager().GetWindowRect(manrect);
+
+		// カスタム管理画面の左上の位置がどのモニタ内にあるか確認して、
+		// 存在するモニタサイズを取得する
+		int countMonitor = GetCustomMonitor().GetCount();
+		RECT monRect;
+		MONITORINFOEX monInfo;
+		for (int i = 0; i < countMonitor; i++) {
+			if (GetCustomMonitor().GetMonitor(i, &monRect, &monInfo) == true) {
+				CRect rc = CRect(monInfo.rcWork);
+				if (rc.PtInRect(CPoint(manrect.left, manrect.top)) == TRUE) {
+					rectDesktop = CRect(monInfo.rcWork);
+					break;
+				}
+			}
 		}
 
 		if (point.x >= rectDesktop.right || point.y >= (rectDesktop.bottom - GetSystemMetrics(SM_CYCAPTION))) {
