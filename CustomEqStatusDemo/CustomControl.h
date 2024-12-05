@@ -179,7 +179,7 @@ protected:
 	// 監視・制御一覧
 	CCustomMonCntl			mCustmMonCntl;
 	/// カスタム管理画面位置
-	CPoint					mManagerPoint;
+	CRect					mManagerRect;
 	CPoint					mCascadePoint;
 	/// ドラッグ＆ドロップ
 	CCustomDropTarget		mCustomDragTarget;
@@ -261,12 +261,10 @@ public:
 	/// 設備詳細ウィンドウの作成
 	CCustomDetail* CreateEquipment(CTreeNode* pnode, UINT mode= eTreeItemMode_Monitor);
 	/// カスタム管理画面位置の更新
-	void UpdateCustomManagerPoint(CPoint point)
+	void UpdateCustomManagerPoint(CRect rect)
 	{
-		mManagerPoint = point;
-		CRect rect;
-		mCustomManager.GetWindowRect(rect);
-		mCascadePoint = CPoint(rect.right + 5, rect.top);
+		mManagerRect = rect;
+		mCascadePoint = CPoint(mManagerRect.right + GetSystemMetrics(SM_CYSIZEFRAME), mManagerRect.top);
 	}
 	/// カスケード表示位置の取得
 	CPoint GetCascadePoint()
@@ -280,10 +278,6 @@ public:
 		CRect rectDesktop;
 		pWnd->GetClientRect(rectDesktop);
 
-
-		CRect manrect;
-		GetCustomManager().GetWindowRect(manrect);
-
 		// カスタム管理画面の左上の位置がどのモニタ内にあるか確認して、
 		// 存在するモニタサイズを取得する
 		int countMonitor = GetCustomMonitor().GetCount();
@@ -292,7 +286,7 @@ public:
 		for (int i = 0; i < countMonitor; i++) {
 			if (GetCustomMonitor().GetMonitor(i, &monRect, &monInfo) == true) {
 				CRect rc = CRect(monInfo.rcWork);
-				if (rc.PtInRect(CPoint(manrect.left, manrect.top)) == TRUE) {
+				if (rc.PtInRect(CPoint(mManagerRect.left, mManagerRect.top)) == TRUE) {
 					rectDesktop = CRect(monInfo.rcWork);
 					break;
 				}
@@ -300,7 +294,10 @@ public:
 		}
 
 		if (point.x >= rectDesktop.right || point.y >= (rectDesktop.bottom - GetSystemMetrics(SM_CYCAPTION))) {
-			UpdateCustomManagerPoint(mManagerPoint);
+			UpdateCustomManagerPoint(mManagerRect);
+			if (point.x >= rectDesktop.right) {
+				mCascadePoint = CPoint(mManagerRect.left - mManagerRect.Width() - GetSystemMetrics(SM_CYSIZEFRAME), mManagerRect.top);
+			}
 			point = mCascadePoint;
 			int CYCAPTION = GetSystemMetrics(SM_CYCAPTION);
 			mCascadePoint.x += CYCAPTION;

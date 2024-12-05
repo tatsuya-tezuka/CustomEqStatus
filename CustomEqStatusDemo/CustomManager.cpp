@@ -115,7 +115,7 @@ void CCustomManager::OnShowWindow(BOOL bShow, UINT nStatus)
 		}
 		CRect rect;
 		GetWindowRect(rect);
-		theApp.GetCustomControl().UpdateCustomManagerPoint(CPoint(rect.left, rect.top));
+		theApp.GetCustomControl().UpdateCustomManagerPoint(rect);
 	}
 }
 
@@ -135,7 +135,7 @@ void CCustomManager::OnMove(int x, int y)
 
 	CRect rect;
 	GetWindowRect(rect);
-	theApp.GetCustomControl().UpdateCustomManagerPoint(CPoint(rect.left, rect.top));
+	theApp.GetCustomControl().UpdateCustomManagerPoint(rect);
 }
 
 /*============================================================================*/
@@ -584,10 +584,6 @@ void CCustomManager::OnMangroupRename()
 /*============================================================================*/
 void CCustomManager::OnMangroupReset()
 {
-#if _DEMO_PHASE < 110
-	return;
-#endif
-
 	// 対象グループの先頭ウィンドウ位置を取得する
 	CPoint point;
 	bool bFirstGroup = mSyncWindow.GetTopPoint(MAKELONG(0, mMenuSelectGroupID), point);
@@ -1154,9 +1150,6 @@ void CCustomManager::OnClose()
 /*============================================================================*/
 void CCustomManager::updateXmlFile()
 {
-#if _DEMO_PHASE < 60
-	return;
-#endif
 	int count = mManagerList.GetItemCount();
 	for (int i = 0; i < count; i++) {
 		CTreeNode* pnode = (CTreeNode*)mManagerList.GetItemData(i);

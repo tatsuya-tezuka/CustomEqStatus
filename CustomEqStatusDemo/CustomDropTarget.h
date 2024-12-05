@@ -124,16 +124,16 @@ public:
 		DF_MONITOR = 0x10,			// 監視
 		DF_CONTROL = 0x20			// 制御
 	};
-	// mKind
-	enum {
-		DK_NONE,					// 
-		DK_TITLE,					// タイトル（ツリー）
-		DK_MAINNODE,				// メインノード（ツリー）
-		DK_SUBNODE,					// サブノード（ツリー）
-		DK_LEAF,					// リーフ（ツリー）
-		DK_GROUP,					// グループ（グループリスト）
-		DK_ITEM,					// アイテム（グループリスト）
-	};
+	//// mKind(eTreeItemTypeと同じ並び)
+	//enum {
+	//	DK_NONE,					// 
+	//	DK_TITLE,					// タイトル（ツリー）
+	//	DK_MAINNODE,				// メインノード（ツリー）
+	//	DK_SUBNODE,					// サブノード（ツリー）
+	//	DK_LEAF,					// リーフ（ツリー）
+	//	DK_GROUP,					// グループ（グループリスト）
+	//	DK_ITEM,					// アイテム（グループリスト）
+	//};
 
 	enum {
 		DE_NONE,
@@ -243,7 +243,7 @@ public:
 				return (*itr).second.mKind;
 			}
 		}
-		return CCustomDropObject::DK_NONE;
+		return eTreeItemType_Window;
 	}
 
 protected:

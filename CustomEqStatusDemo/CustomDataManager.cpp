@@ -13,23 +13,58 @@
 //	概要：ツリー型データクラス
 //------------------------------------------------------------------------------------
 
-CTreeNode::CTreeNode(HTREEITEM id, CWnd* pwnd, CWnd* ptree)
+CTreeNode::CTreeNode(HTREEITEM id, CWnd* pwnd, CWnd* ptree, UINT type)
 : treeitem(id)
 {
 	memset(&equipment, 0, sizeof(stEquipmentInfo));
 	memset(&manager, 0, sizeof(stManagerInfo));
 	memset(&monctrl, 0, sizeof(stMonCtrlData));
 	memset(&color, 0, sizeof(stColorData));
-	color.back = GetSysColor(COLOR_WINDOW);
-	color.textback = GetSysColor(COLOR_WINDOW);
-	color.text = GetSysColor(COLOR_BTNTEXT);
-	color.value = GetSysColor(COLOR_BTNTEXT);
-	color.unit = GetSysColor(COLOR_BTNTEXT);
+	switch (type) {
+	case	eTreeItemType_Window:
+	case	eTreeItemType_Title:
+		color.back = GetSysColor(COLOR_WINDOW);
+		color.textback = mDefaultTitleTextBackColor;
+		color.text = GetSysColor(COLOR_BTNTEXT);
+		color.value = GetSysColor(COLOR_BTNTEXT);
+		color.unit = GetSysColor(COLOR_BTNTEXT);
+		break;
+	case	eTreeItemType_Main:
+		color.back = GetSysColor(COLOR_WINDOW);
+		color.textback = mDefaultTextBackColor;
+		color.text = mDefaultMainTextColor;
+		color.value = GetSysColor(COLOR_BTNTEXT);
+		color.unit = GetSysColor(COLOR_BTNTEXT);
+		break;
+	case	eTreeItemType_Sub:
+		color.back = GetSysColor(COLOR_WINDOW);
+		color.textback = mDefaultTextBackColor;
+		color.text = mDefaultSubTextColor;
+		color.value = GetSysColor(COLOR_BTNTEXT);
+		color.unit = GetSysColor(COLOR_BTNTEXT);
+		break;
+	case	eTreeItemType_Item:
+		color.back = GetSysColor(COLOR_WINDOW);
+		color.textback = mDefaultTextBackColor;
+		color.text = mDefaultLeafTextColor;
+		color.value = mDefaultValueTextColor;
+		color.unit = mDefaultUnitTextColor;
+		break;
+	default:
+		color.back = GetSysColor(COLOR_WINDOW);
+		color.textback = GetSysColor(COLOR_WINDOW);
+		color.text = GetSysColor(COLOR_BTNTEXT);
+		color.value = GetSysColor(COLOR_BTNTEXT);
+		color.unit = GetSysColor(COLOR_BTNTEXT);
+	}
 	CFont font;
 	font.CreateStockObject(DEFAULT_GUI_FONT);
 	if (font.GetLogFont(&color.font)){
 		color.font.lfHeight = -mTreeFontHeight;
 		color.font.lfWeight = FW_BOLD;
+		color.font.lfCharSet = DEFAULT_CHARSET;
+		color.font.lfUnderline = 0;
+		color.font.lfStrikeOut = 0;
 		font.DeleteObject();
 	}
 
@@ -293,6 +328,7 @@ bool CTreeNode::Equal(LOGFONT& data, bool bChild)
 
 -# ツリーノードの作成
 
+@param  type			作成ノードタイプ
 @param  parent			親ノード
 @param  child			作成する子ノード
 @param  hInsertAfter	登録時の位置情報
@@ -300,7 +336,7 @@ bool CTreeNode::Equal(LOGFONT& data, bool bChild)
 @retval CTreeNode	ノードクラスポインタ
 */
 /*============================================================================*/
-CTreeNode* CTreeNode::CreateTreeNode(HTREEITEM parent, HTREEITEM child, HTREEITEM hInsertAfter/* = TVI_FIRST*/)
+CTreeNode* CTreeNode::CreateTreeNode(UINT type, HTREEITEM parent, HTREEITEM child, HTREEITEM hInsertAfter/* = TVI_FIRST*/)
 {
 	if (treeitem != parent){
 		return NULL;
@@ -321,7 +357,7 @@ CTreeNode* CTreeNode::CreateTreeNode(HTREEITEM parent, HTREEITEM child, HTREEITE
 	}
 
 	// 子アイテムリストに存在しないので新たに作成する
-	CTreeNode *childitem = new CTreeNode(child, equipment.wnd, equipment.tree);
+	CTreeNode *childitem = new CTreeNode(child, equipment.wnd, equipment.tree, type);
 	childitem->parent = this;
 	if (hInsertAfter == TVI_LAST){
 		children.push_back(childitem);
@@ -468,7 +504,7 @@ void CTreeNode::CopyTreeNode(CTreeNode* copyNode)
 	// 子リストをコピーする
 	vector<CTreeNode*>::iterator itr;
 	for (itr = copyNode->GetChildren().begin(); itr != copyNode->GetChildren().end(); itr++) {
-		CTreeNode* child = new CTreeNode((HTREEITEM)NULL, NULL, NULL);
+		CTreeNode* child = new CTreeNode((HTREEITEM)NULL, NULL, NULL, eTreeItemType_Title);
 		child->CopyTreeNode((*itr));
 		children.push_back(child);
 	}
@@ -805,6 +841,7 @@ bool CTreeNode::SaveTreeNode(CArchive& ar)
 	ar << color.font.lfHeight;
 	ar << color.font.lfWidth;
 	ar << color.font.lfWeight;
+	ar << color.font.lfCharSet;
 	ar << CString(color.font.lfFaceName);
 
 	// 子ノードの保存
@@ -870,7 +907,7 @@ bool CCustomDataManager::LoadTreeData(CString strFile, bool bClear)
 		mTreeNode.reserve(size);
 		for (UINT i = 0; i < size; i++) {
 			//CTreeNode* pnode = new CTreeNode((HTREEITEM)i, NULL, NULL);
-			CTreeNode* pnode = new CTreeNode((HTREEITEM)NULL, NULL, NULL);
+			CTreeNode* pnode = new CTreeNode((HTREEITEM)NULL, NULL, NULL, eTreeItemType_Title);
 			if (pnode->LoadTreeNode(mArc) == false) {
 				delete pnode;
 				break;
@@ -958,6 +995,7 @@ bool CTreeNode::LoadTreeNode(CArchive& ar)
 	ar >> color.font.lfHeight;
 	ar >> color.font.lfWidth;
 	ar >> color.font.lfWeight;
+	ar >> color.font.lfCharSet;
 	ar >> str;
 	swprintf_s(color.font.lfFaceName, LF_FACESIZE, _T("%s"), (LPCTSTR)str);
 
@@ -967,7 +1005,7 @@ bool CTreeNode::LoadTreeNode(CArchive& ar)
 	children.reserve(size);
 	for (UINT i = 0; i < size; i++) {
 		//CTreeNode* child = new CTreeNode((HTREEITEM)i, NULL, NULL);
-		CTreeNode* child = new CTreeNode((HTREEITEM)NULL, NULL, NULL);
+		CTreeNode* child = new CTreeNode((HTREEITEM)NULL, NULL, NULL, eTreeItemType_Title);
 		child->LoadTreeNode(ar);
 		children.push_back(child);
 	}
@@ -1458,6 +1496,8 @@ bool CTreeNode::SaveTreeNodeXml(CMarkup& xml)
 	xml.AddElem(_T("LFHEIGHT"), color.font.lfHeight);
 	xml.AddElem(_T("LFWIDTH"), color.font.lfWidth);
 	xml.AddElem(_T("LFWEIGHT"), color.font.lfWeight);
+	xml.AddElem(_T("LFWEIGHT"), color.font.lfWeight);
+	xml.AddElem(_T("LFCHARSET"), color.font.lfCharSet);
 	xml.AddElem(_T("LFFACENAME"), color.font.lfFaceName);
 	xml.OutOfElem();
 
@@ -1513,7 +1553,7 @@ CTreeNode* CCustomDataManager::LoadTreeDataXml(CString strFile, UINT kind/* = UI
 		xml.FindElem(_T("EQUIPMENT"));
 		xml.IntoElem();
 		//CTreeNode* pnode = new CTreeNode((HTREEITEM)i, NULL, NULL);
-		pnode = new CTreeNode((HTREEITEM)NULL, NULL, NULL);
+		pnode = new CTreeNode((HTREEITEM)NULL, NULL, NULL, eTreeItemType_Title);
 		if (pnode->LoadTreeNodeXml(xml) == false){
 			delete pnode;
 			pnode = NULL;
@@ -1627,6 +1667,8 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 	color.font.lfWidth = _wtoi(xml.GetData());
 	xml.FindElem(_T("LFWEIGHT"));
 	color.font.lfWeight = _wtoi(xml.GetData());
+	xml.FindElem(_T("LFCHARSET"));
+	color.font.lfCharSet = _wtoi(xml.GetData());
 	xml.FindElem(_T("LFFACENAME"));
 	swprintf_s(color.font.lfFaceName, LF_FACESIZE, _T("%s"), (LPCTSTR)xml.GetData());
 	xml.OutOfElem();
@@ -1639,7 +1681,7 @@ bool CTreeNode::LoadTreeNodeXml(CMarkup& xml)
 		xml.FindElem(_T("NODE"));
 		xml.IntoElem();
 		//CTreeNode* child = new CTreeNode((HTREEITEM)i, NULL, NULL);
-		CTreeNode* child = new CTreeNode((HTREEITEM)NULL, NULL, NULL);
+		CTreeNode* child = new CTreeNode((HTREEITEM)NULL, NULL, NULL, eTreeItemType_Title);
 		child->LoadTreeNodeXml(xml);
 		child->GetEquipment().sortno = (i+1) * mSortRange;
 		children.push_back(child);

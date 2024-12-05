@@ -39,6 +39,7 @@ public:
 protected:
 	bool		mRestore;
 	LOGFONT		mTreeLogFont;
+	LOGFONT		mTreeLeafLogFont;
 	HTREEITEM	mMenuItem;
 	//CTreeNode*	mBackupNode;
 

@@ -42,6 +42,18 @@ static const TCHAR* mAppDataUserPath = { _T("USER") };
 static const TCHAR* mAppSaveEquipmentFile = { _T("AppEquipment.xml") };
 
 /// カスタム画面関連
+static const COLORREF mDefaultTitleTextBackColor = RGB(147, 144, 192);
+static const COLORREF mDefaultTextBackColor = RGB(14, 46, 65);
+static const COLORREF mDefaultMainTextColor = RGB(242, 170, 132);
+static const COLORREF mDefaultSubTextColor = RGB(193, 229, 245);
+static const COLORREF mDefaultLeafTextColor = RGB(255, 255, 255);
+static const COLORREF mDefaultUnitTextColor = RGB(255, 255, 255);
+static const COLORREF mDefaultValueTextColor = RGB(145, 207, 80);
+static const COLORREF mDefaultWarningValueTextColor = RGB(255, 255, 0);
+static const COLORREF mDefaultErrorValueTextColor = RGB(255, 0, 0);
+static const TCHAR* mDefaultCustomFontName = _T("BIZ UDゴシック");
+static const TCHAR* mDefaultMonitorFontName = _T("Consolas");
+
 static const TCHAR* mNoGroupText = { _T("No Group") };
 static const TCHAR* mDefaultCustomTitle = { _T("～タイトル") };
 static const TCHAR* mDefaultCustomRoot = { _T("ルート") };
@@ -217,7 +229,7 @@ enum { eFromType_None, eFromType_Mon, eFromType_Cntl, eFromType_Custom };
 class CTreeNode {
 public:
 	// 指定された id の Node を作る。
-	CTreeNode(HTREEITEM id, CWnd* pwnd, CWnd* ptree);
+	CTreeNode(HTREEITEM id, CWnd* pwnd, CWnd* ptree, UINT type);
 	virtual ~CTreeNode();
 
 	/* ------------------------------------------------------------------------------------ */
@@ -264,7 +276,7 @@ public:
 
 	// 指定した childID の子Nodeが存在しなければ、子Nodeを作成し子Nodeを返す
 	// 指定した childID の子Nodeが存在していれば、既に存在する子Nodeを返す
-	CTreeNode*	CreateTreeNode(HTREEITEM parent, HTREEITEM child, HTREEITEM hInsertAfter = TVI_FIRST);
+	CTreeNode*	CreateTreeNode(UINT type, HTREEITEM parent, HTREEITEM child, HTREEITEM hInsertAfter = TVI_FIRST);
 
 	void	SortTreeNode(HTREEITEM parent);
 
@@ -643,7 +655,7 @@ public:
 	CTreeNode* CloneItemNode(CTreeNode* source, CTreeNode* dest)
 	{
 		if (dest == NULL) {
-			dest = new CTreeNode(0, NULL, NULL);
+			dest = new CTreeNode(0, NULL, NULL, eTreeItemType_Title);
 		}
 		ClearItemNode(dest);
 

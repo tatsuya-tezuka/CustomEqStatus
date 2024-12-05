@@ -241,6 +241,9 @@ CCustomTreeListCtrl::CCustomTreeListCtrl()
 		lf.lfHeight = mTreeFontHeight;
 		lf.lfWeight = FW_BOLD;
 		lf.lfUnderline = 1;
+		lf.lfUnderline = 0;
+		lf.lfStrikeOut = 0;
+		swprintf_s(lf.lfFaceName, LF_FACESIZE, _T("%s"), (LPCTSTR)mDefaultCustomFontName);
 		mControlFont.DeleteObject();
 		mControlFont.CreateFontIndirect(&lf);
 	}
@@ -248,7 +251,11 @@ CCustomTreeListCtrl::CCustomTreeListCtrl()
 	mDefaultFont.CreateStockObject(DEFAULT_GUI_FONT);
 	if (mDefaultFont.GetLogFont(&lf)){
 		lf.lfHeight = -mTreeFontHeight;
-		lf.lfWeight = FW_NORMAL;
+		lf.lfWeight = FW_BOLD;
+		lf.lfCharSet = DEFAULT_CHARSET;
+		lf.lfUnderline = 0;
+		lf.lfStrikeOut = 0;
+		swprintf_s(lf.lfFaceName, LF_FACESIZE, _T("%s"), (LPCTSTR)mDefaultCustomFontName);
 		mDefaultFont.DeleteObject();
 		mDefaultFont.CreateFontIndirect(&lf);
 	}
@@ -256,28 +263,44 @@ CCustomTreeListCtrl::CCustomTreeListCtrl()
 	mNodeTitleFont.CreateStockObject(DEFAULT_GUI_FONT);
 	if (mNodeTitleFont.GetLogFont(&lf)) {
 		lf.lfHeight = -mTreeFontHeight;
-		lf.lfWeight = FW_NORMAL;
+		lf.lfWeight = FW_BOLD;
+		lf.lfCharSet = DEFAULT_CHARSET;
+		lf.lfUnderline = 0;
+		lf.lfStrikeOut = 0;
+		swprintf_s(lf.lfFaceName, LF_FACESIZE, _T("%s"), (LPCTSTR)mDefaultCustomFontName);
 		mNodeTitleFont.DeleteObject();
 		mNodeTitleFont.CreateFontIndirect(&lf);
 	}
 	mNodeMainFont.CreateStockObject(DEFAULT_GUI_FONT);
 	if (mNodeMainFont.GetLogFont(&lf)) {
 		lf.lfHeight = -mTreeFontHeight;
-		lf.lfWeight = FW_NORMAL;
+		lf.lfWeight = FW_BOLD;
+		lf.lfCharSet = DEFAULT_CHARSET;
+		lf.lfUnderline = 0;
+		lf.lfStrikeOut = 0;
+		swprintf_s(lf.lfFaceName, LF_FACESIZE, _T("%s"), (LPCTSTR)mDefaultCustomFontName);
 		mNodeMainFont.DeleteObject();
 		mNodeMainFont.CreateFontIndirect(&lf);
 	}
 	mNodeSubFont.CreateStockObject(DEFAULT_GUI_FONT);
 	if (mNodeSubFont.GetLogFont(&lf)) {
 		lf.lfHeight = -mTreeFontHeight;
-		lf.lfWeight = FW_NORMAL;
+		lf.lfWeight = FW_BOLD;
+		lf.lfCharSet = DEFAULT_CHARSET;
+		lf.lfUnderline = 0;
+		lf.lfStrikeOut = 0;
+		swprintf_s(lf.lfFaceName, LF_FACESIZE, _T("%s"), (LPCTSTR)mDefaultCustomFontName);
 		mNodeSubFont.DeleteObject();
 		mNodeSubFont.CreateFontIndirect(&lf);
 	}
 	mNodeLeafFont.CreateStockObject(DEFAULT_GUI_FONT);
 	if (mNodeLeafFont.GetLogFont(&lf)) {
 		lf.lfHeight = -mTreeFontHeight;
-		lf.lfWeight = FW_NORMAL;
+		lf.lfWeight = FW_BOLD;
+		lf.lfCharSet = DEFAULT_CHARSET;
+		lf.lfUnderline = 0;
+		lf.lfStrikeOut = 0;
+		swprintf_s(lf.lfFaceName, LF_FACESIZE, _T("%s"), (LPCTSTR)mDefaultMonitorFontName);
 		mNodeLeafFont.DeleteObject();
 		mNodeLeafFont.CreateFontIndirect(&lf);
 	}
@@ -556,7 +579,7 @@ BOOL CCustomTreeListCtrl::cellClick(HTREEITEM hItem, UINT nSubItem, CPoint point
 void CCustomTreeListCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
 	CTreeCtrl::OnLButtonDblClk(nFlags, point);
-#if _DEMO_PHASE < 60
+#if _DEMO_PHASE < 80
 	return;
 #endif
 
@@ -616,10 +639,6 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 
 	case CDDS_ITEMPREPAINT: // 項目の描画前
 	{
-#if _DEMO_PHASE < 80
-		*pResult = CDRF_DODEFAULT | CDRF_NOTIFYPOSTPAINT;
-		break;
-#endif
 		HTREEITEM hItem = (HTREEITEM)pNMCustomDraw->dwItemSpec;
 		CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hItem);
 		if (pnode == NULL) {
@@ -674,8 +693,6 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		CDC dc;
 		dc.Attach(pNMCustomDraw->hdc);
 
-#if _DEMO_PHASE < 80
-#else
 		switch (pnode->GetEquipment().type) {
 		case	eTreeItemType_Window:
 		case	eTreeItemType_Title:
@@ -691,16 +708,12 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 			dc.SelectObject(mNodeLeafFont);
 			break;
 		}
-#endif
 
 		CRect rcLabel;
 		GetItemRect(hItem, &rcLabel, TRUE);
 
-#if _DEMO_PHASE < 80
-#else
 		// ラベル項目の塗りつぶし（コントロールの背景色で塗りつぶす）
 		dc.FillSolidRect(&rcItem, GetBkColor());
-#endif
 
 		int nColsCnt = mHeaderCtrl.GetItemCount();
 
@@ -723,11 +736,7 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		dc.DrawText(strSub, &rcText, DT_NOPREFIX | DT_CALCRECT);
 		rcLabel.right = min(rcLabel.left + rcText.right + 4, mColWidths[0] - 4);
 
-#if _DEMO_PHASE < 80
-		COLORREF backcolor = GetSysColor(COLOR_WINDOW);
-#else
 		COLORREF backcolor = pnode->GetColor().textback;
-#endif
 		if (pNMCustomDraw->uItemState & CDIS_SELECTED || GetDropHilightItem() == hItem){
 			// 選択時の背景色をハイライトに設定
 			dc.FillSolidRect(&rcItem, GetSysColor(COLOR_HIGHLIGHT));
@@ -751,20 +760,13 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		dc.SetBkMode(TRANSPARENT);
 		rcText = rcLabel;
 		rcText.DeflateRect(2, 1);
-#if _DEMO_PHASE < 80
-		dc.SetTextColor(GetSysColor(COLOR_WINDOWTEXT));
-#else
 		dc.SetTextColor(pnode->GetColor().text);
-#endif
 		dc.DrawText(strSub, &rcText, DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX | DT_END_ELLIPSIS);
 
 		xOffset = mColWidths[0];
 
 		// その他のカラム文字の描画
 		for (int i = 1; i<nColsCnt; i++){
-#if _DEMO_PHASE < 80
-			dc.SetTextColor(GetSysColor(COLOR_WINDOWTEXT));
-#else
 			switch (i) {
 			case	eTreeItemSubType_Value:
 				dc.SetTextColor(pnode->GetColor().value);
@@ -776,7 +778,6 @@ void CCustomTreeListCtrl::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 				dc.SetTextColor(pnode->GetColor().text);
 				break;
 		}
-#endif
 			rcText = rcLabel;
 			rcText.left = xOffset;
 			rcText.right = xOffset + mColWidths[i];
@@ -1963,7 +1964,7 @@ void CCustomTreeListCtrl::OnTvnBegindrag(NMHDR* pNMHDR, LRESULT* pResult)
 		return;
 	}
 	DWORD dw = (DWORD)TYPEDATA((DWORD)GetItemData(item));
-	if (dw == CCustomDropObject::DK_TITLE) {
+	if (dw == eTreeItemType_Title) {
 		*pResult = 0;
 		return;
 	}
@@ -2227,6 +2228,10 @@ CImageList* CCustomTreeListCtrl::CreateDragImageMulti(HTREEITEM hItem, LPPOINT l
 		rectComplete.UnionRect(rectComplete, rectSingle);
 	}
 
+	if (rectComplete.IsRectEmpty()) {
+		return NULL;
+	}
+
 	// ビットマップの作成
 	CClientDC	dc(this);
 	CDC 		memDC;
@@ -2368,16 +2373,16 @@ BOOL CCustomTreeListCtrl::IsDropTarget(HTREEITEM hItem, CCustomDropObject* pData
 	case	CCustomDropObject::DF_MASTER:
 		// ドラッグ先が設備詳細画面
 		switch (pDataObject->mKind) {
-		case	CCustomDropObject::DK_MAINNODE:
-			if (dw != CCustomDropObject::DK_TITLE)
+		case	eTreeItemType_Main:
+			if (dw != eTreeItemType_Title)
 				return FALSE;
 			break;
-		case	CCustomDropObject::DK_SUBNODE:
-			if (dw != CCustomDropObject::DK_MAINNODE)
+		case	eTreeItemType_Sub:
+			if (dw != eTreeItemType_Main)
 				return FALSE;
 			break;
-		case	CCustomDropObject::DK_LEAF:
-			if (dw != CCustomDropObject::DK_SUBNODE && dw != CCustomDropObject::DK_LEAF)
+		case	eTreeItemType_Item:
+			if (dw != eTreeItemType_Sub && dw != eTreeItemType_Item)
 				return FALSE;
 			break;
 		}
@@ -2386,8 +2391,8 @@ BOOL CCustomTreeListCtrl::IsDropTarget(HTREEITEM hItem, CCustomDropObject* pData
 	case	CCustomDropObject::DF_CONTROL:
 		// ドラッグ先が監視・制御画面
 		switch (dw) {
-		case	CCustomDropObject::DK_TITLE:
-		case	CCustomDropObject::DK_MAINNODE:
+		case	eTreeItemType_Title:
+		case	eTreeItemType_Main:
 			return FALSE;
 		}
 		break;
@@ -2400,20 +2405,20 @@ BOOL CCustomTreeListCtrl::IsDropTarget(HTREEITEM hItem, CCustomDropObject* pData
 	case	CCustomDropObject::DF_MASTER:
 		// ドラッグ先が設備詳細画面
 		switch (pDataObject->mKind) {
-		case	CCustomDropObject::DK_MAINNODE:
-			if (dw != CCustomDropObject::DK_TITLE && dw != CCustomDropObject::DK_MAINNODE) {
+		case	eTreeItemType_Main:
+			if (dw != eTreeItemType_Title && dw != eTreeItemType_Main) {
 				// メインノード→タイトル、メインノード→メインノード以外
 				return FALSE;
 			}
 			break;
-		case	CCustomDropObject::DK_SUBNODE:
-			if (dw != CCustomDropObject::DK_MAINNODE && dw != CCustomDropObject::DK_SUBNODE) {
+		case	eTreeItemType_Sub:
+			if (dw != eTreeItemType_Main && dw != eTreeItemType_Sub) {
 				// サブノード→メインノード、サブノード→サブノード以外
 				return FALSE;
 			}
 			break;
-		case	CCustomDropObject::DK_LEAF:
-			if (dw != CCustomDropObject::DK_SUBNODE && dw != CCustomDropObject::DK_LEAF) {
+		case	eTreeItemType_Item:
+			if (dw != eTreeItemType_Sub && dw != eTreeItemType_Item) {
 				// リーフ→サブノード、リーフ→リーフ以外
 				return FALSE;
 			}
@@ -2424,8 +2429,8 @@ BOOL CCustomTreeListCtrl::IsDropTarget(HTREEITEM hItem, CCustomDropObject* pData
 	case	CCustomDropObject::DF_CONTROL:
 		// ドラッグ先が監視・制御画面
 		switch (dw) {
-		case	CCustomDropObject::DK_TITLE:
-		case	CCustomDropObject::DK_MAINNODE:
+		case	eTreeItemType_Title:
+		case	eTreeItemType_Main:
 			return FALSE;
 		}
 		break;
@@ -2507,13 +2512,13 @@ BOOL CCustomTreeListCtrl::DataObjectToList(HTREEITEM hDropItem, CCustomDropObjec
 			while (AfxExtractSubString(str, sItem, item, '\t')) {
 				if (str.IsEmpty())
 					continue;
-				if (dw == CCustomDropObject::DK_SUBNODE) {
+				if (dw == eTreeItemType_Sub) {
 					// サブノードにドロップ
 					// サブノードの子ノード先頭に追加する
 					HTREEITEM item = InsertItem(str, NULL, NULL, hDropItem, TVI_SORT);
 					hSortItem = hDropItem;
-					SetItemData(item, MAKEDATA(CCustomDropObject::DK_LEAF, count));
-					CTreeNode* new_node = pnodeDrop->CreateTreeNode(hDropItem, item, TVI_FIRST);
+					SetItemData(item, MAKEDATA(eTreeItemType_Item, count));
+					CTreeNode* new_node = pnodeDrop->CreateTreeNode(eTreeItemType_Sub, hDropItem, item, TVI_FIRST);
 					if (pDataObject->mFormat == CCustomDropObject::DF_MONITOR) {
 						swprintf_s(new_node->GetMonCtrl().mname, mNameSize, _T("%s"), (LPCTSTR)str);
 					}
@@ -2548,7 +2553,7 @@ BOOL CCustomTreeListCtrl::DataObjectToList(HTREEITEM hDropItem, CCustomDropObjec
 			count++;
 		}
 		if (hSortItem != NULL) {
-			SortLeafItem(hSortItem);
+			SortTreeItem(hSortItem);
 		}
 	}
 
@@ -2612,9 +2617,9 @@ bool CCustomTreeListCtrl::DropCopyItem(HTREEITEM hDropItem, CCustomDropObject* p
 		// ツリーの作成
 		item = InsertItem(text, NULL, NULL, hDropItem, TVI_FIRST);
 		SetItemData(item, MAKEDATA(pnodeDrag->GetEquipment().type, 1));
-		TRACE("DragDrop === Data(%08x)\n", GetItemData(item));
+		TRACE("+++ %s:%08x\n", CStringA(text), GetItemData(item));
 		// ノード情報を作成して、必要な情報をコピーする
-		new_node = pnodeDrop->CreateTreeNode(hDropItem, item, TVI_FIRST);
+		new_node = pnodeDrop->CreateTreeNode(pnodeDrag->GetEquipment().type, hDropItem, item, TVI_FIRST);
 		hSortItem = NULL;
 	}
 	else {
@@ -2622,9 +2627,9 @@ bool CCustomTreeListCtrl::DropCopyItem(HTREEITEM hDropItem, CCustomDropObject* p
 		CTreeNode* pnodeParent = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hParent);
 		item = InsertItem(text, NULL, NULL, hParent, TVI_SORT);
 		SetItemData(item, MAKEDATA(pnodeDrag->GetEquipment().type, pnodeDrop->GetEquipment().sortno + 1));
-		TRACE("*DragDrop === Data(%08x)\n", GetItemData(item));
+		TRACE("+++ %s:%08x\n", CStringA(text), GetItemData(item));
 		// ノード情報を作成して、必要な情報をコピーする
-		new_node = pnodeParent->CreateTreeNode(hParent, item, TVI_FIRST);
+		new_node = pnodeParent->CreateTreeNode(pnodeDrag->GetEquipment().type, hParent, item, TVI_FIRST);
 		hSortItem = hParent;
 		hDropItem = hParent;
 	}
@@ -2637,9 +2642,10 @@ bool CCustomTreeListCtrl::DropCopyItem(HTREEITEM hDropItem, CCustomDropObject* p
 	ret = DropCopyChildItem(item, (*itr), false);
 
 	if (hSortItem != NULL) {
-		SortLeafItem(hSortItem);
+		SortTreeItem(hSortItem);
 	}
 	ExpandAllItems(hDropItem);
+	UpdateSortNo(hDropItem);
 #endif
 
 	return ret;
@@ -2677,7 +2683,7 @@ bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node, bo
 			// リーフ用のテキストを作成
 			text = CreateLeafText(pnode->GetMonCtrl().display, pnode->GetMonCtrl().unit, pnode->GetMonCtrl().cname);
 		}
-		if (dw == CCustomDropObject::DK_LEAF) {
+		if (dw == eTreeItemType_Item) {
 			// ドロップ先がリーフの場合
 			HTREEITEM item = InsertItem(text, NULL, NULL, hParent, TVI_SORT);
 			SetItemData(item, MAKEDATA(dw + 1, pnodeDrop->GetEquipment().sortno + 1));
@@ -2710,7 +2716,7 @@ bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node, bo
 	}
 
 	if (hSortItem != NULL) {
-		SortLeafItem(hSortItem);
+		SortTreeItem(hSortItem);
 	}
 
 	return true;
@@ -2743,7 +2749,8 @@ bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node, bo
 		HTREEITEM item;
 		item = InsertItem(text, NULL, NULL, hDropItem, TVI_LAST);
 		SetItemData(item, MAKEDATA(pnode->GetEquipment().type, count));
-		CTreeNode* new_node = pnodeDrop->CreateTreeNode(hDropItem, item, TVI_LAST);
+		TRACE("+++ %s:%08x\n", CStringA(text), GetItemData(item));
+		CTreeNode* new_node = pnodeDrop->CreateTreeNode(pnode->GetEquipment().type, hDropItem, item, TVI_LAST);
 		new_node->DropCopyItem(pnode);
 		stColorData color;
 		theApp.GetCustomControl().GetDataManager().GetNodeColor(mTreeParent, new_node->GetEquipment().type, color);
@@ -2753,7 +2760,7 @@ bool CCustomTreeListCtrl::DropCopyChildItem(HTREEITEM hDropItem, CNode* node, bo
 	}
 
 	if (hSortItem != NULL) {
-		//SortLeafItem(hSortItem);
+		//SortTreeItem(hSortItem);
 	}
 
 	return true;
@@ -2787,7 +2794,7 @@ CString CCustomTreeListCtrl::CreateLeafText(CString item, CString unit, CString 
 @retval int
 */
 /*============================================================================*/
-void CCustomTreeListCtrl::SortLeafItem(HTREEITEM item)
+void CCustomTreeListCtrl::SortTreeItem(HTREEITEM item)
 {
 	if (item != NULL && ItemHasChildren(item)) {
 
@@ -2819,9 +2826,10 @@ void CCustomTreeListCtrl::UpdateSortNo(HTREEITEM item)
 	HTREEITEM child = GetChildItem(item);
 	UINT pos = 1;
 	while (child != NULL) {
-		SetItemData(child, MAKEDATA(CCustomDropObject::DK_LEAF, pos * mSortRange));
 		CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, child);
+		SetItemData(child, MAKEDATA(pnode->GetEquipment().type, pos * mSortRange));
 		pnode->GetEquipment().sortno = (pos * mSortRange);
+		UpdateSortNo(child);
 		child = GetNextItem(child, TVGN_NEXT);
 		pos++;
 	}

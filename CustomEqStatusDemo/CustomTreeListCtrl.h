@@ -158,6 +158,7 @@ public:
 	void	SetHeaderItem(int item, CString title, int width);
 	void	AdjustColumnWidth(int nColumn, BOOL bIgnoreCollapsed);
 	int		GetHeaderWidth(int col = -1);
+	int		GetHeaderCount() { return mHeaderCtrl.GetItemCount(); }
 
 	/// ÉâÉxÉãï“èW
 	CString	GetSubItemText(HTREEITEM hItem, int col);
@@ -340,7 +341,7 @@ protected:
 
 	bool	DropCopyChildItem(HTREEITEM hDropItem, CNode* node, bool bFirst);
 	CString	CreateLeafText(CString item, CString unit, CString control);
-	void	SortLeafItem(HTREEITEM item);
+	void	SortTreeItem(HTREEITEM item);
 	void	UpdateSortNo(HTREEITEM item);
 	static int CALLBACK LeafCustomCompare(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 

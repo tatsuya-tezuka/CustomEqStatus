@@ -435,19 +435,73 @@ bool CCustomCsvToXmlDlg::SaveNodeXml(CMarkup& xml, CNode* cur)
 	// 色情報
 	xml.AddElem(_T("COLORINFO"));
 	xml.IntoElem();
-	_SaveColorXml(xml, _T("BACK"), 0x00ffffff);
-	_SaveColorXml(xml, _T("TEXTBACK"), 0x00ffffff);
-	_SaveColorXml(xml, _T("TEXT"), 0x00000000);
-	_SaveColorXml(xml, _T("VALUE"), 0x00000000);
-	_SaveColorXml(xml, _T("UNIT"), 0x00000000);
+	switch (cur->getLevel()) {
+	case	0:
+		_SaveColorXml(xml, _T("BACK"), 0x00ffffff);
+		_SaveColorXml(xml, _T("TEXTBACK"), RGB(147, 144, 192));
+		_SaveColorXml(xml, _T("TEXT"), 0x00000000);
+		_SaveColorXml(xml, _T("VALUE"), 0x00000000);
+		_SaveColorXml(xml, _T("UNIT"), 0x00000000);
+		break;
+	case	1:
+		_SaveColorXml(xml, _T("BACK"), 0x00ffffff);
+		_SaveColorXml(xml, _T("TEXTBACK"), RGB(147, 144, 192));
+		_SaveColorXml(xml, _T("TEXT"), 0x00000000);
+		_SaveColorXml(xml, _T("VALUE"), 0x00000000);
+		_SaveColorXml(xml, _T("UNIT"), 0x00000000);
+		break;
+	case	2:
+		_SaveColorXml(xml, _T("BACK"), 0x00ffffff);
+		_SaveColorXml(xml, _T("TEXTBACK"), RGB(14, 46, 65));
+		_SaveColorXml(xml, _T("TEXT"), RGB(242, 170, 132));
+		_SaveColorXml(xml, _T("VALUE"), 0x00000000);
+		_SaveColorXml(xml, _T("UNIT"), 0x00000000);
+		break;
+	case	3:
+		_SaveColorXml(xml, _T("BACK"), 0x00ffffff);
+		_SaveColorXml(xml, _T("TEXTBACK"), RGB(14, 46, 65));
+		_SaveColorXml(xml, _T("TEXT"), RGB(193, 229, 245));
+		_SaveColorXml(xml, _T("VALUE"), 0x00000000);
+		_SaveColorXml(xml, _T("UNIT"), 0x00000000);
+		break;
+	case	4:
+		_SaveColorXml(xml, _T("BACK"), 0x00ffffff);
+		_SaveColorXml(xml, _T("TEXTBACK"), RGB(14, 46, 65));
+		_SaveColorXml(xml, _T("TEXT"), RGB(255, 255, 255));
+		_SaveColorXml(xml, _T("VALUE"), RGB(255, 255, 255));
+		_SaveColorXml(xml, _T("UNIT"), RGB(255, 255, 255));
+		break;
+	}
 	xml.OutOfElem();
 	// フォント
 	xml.AddElem(_T("FONTINFO"));
 	xml.IntoElem();
-	xml.AddElem(_T("LFHEIGHT"), -16);
+	switch (cur->getLevel()) {
+	case	0:
+		xml.AddElem(_T("LFHEIGHT"), -24);
+		break;
+	case	1:
+		xml.AddElem(_T("LFHEIGHT"), -24);
+		break;
+	case	2:
+		xml.AddElem(_T("LFHEIGHT"), -20);
+		break;
+	case	3:
+		xml.AddElem(_T("LFHEIGHT"), -18);
+		break;
+	case	4:
+		xml.AddElem(_T("LFHEIGHT"), -16);
+		break;
+	}
 	xml.AddElem(_T("LFWIDTH"), 0);
 	xml.AddElem(_T("LFWEIGHT"), 700);
-	xml.AddElem(_T("LFFACENAME"), _T("MS UI Gothic"));
+	xml.AddElem(_T("LFCHARSET"), 1);
+	if (cur->getLevel() == 4) {
+		xml.AddElem(_T("LFFACENAME"), _T("Consolas"));
+	}
+	else {
+		xml.AddElem(_T("LFFACENAME"), _T("BIZ UDゴシック"));
+	}
 	xml.OutOfElem();
 
 	// 子ノードの保存

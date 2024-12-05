@@ -137,7 +137,7 @@ void CCustomDetailConfig::setFont(UINT type)
 	CClientDC dc(NULL);
 	LOGFONT lf = mFont[type];
 	lf.lfHeight = -::MulDiv(-lf.lfHeight, dc.GetDeviceCaps(LOGPIXELSY), 72);
-	CFontDialog dlg(&lf, CF_NOSCRIPTSEL);
+	CFontDialog dlg(&lf);// , CF_NOSCRIPTSEL);
 	if (dlg.DoModal() == IDOK)
 	{
 		lf.lfHeight = -::MulDiv(-lf.lfHeight, 72, dc.GetDeviceCaps(LOGPIXELSY));
