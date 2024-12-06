@@ -70,7 +70,7 @@ public:
 
 	/// 指定した childID の子Nodeが存在しなければ、子Nodeを作成し子Nodeを返す。
 	/// 指定した childID の子Nodeが存在していれば、既に存在する子Nodeを返す。
-	CNode* createChildIfNotExist(const CString childID);
+	CNode* createChildIfNotExist(const CString childID, UINT type);
 
 	/// 子Node の一覧を返す
 	const ::std::vector<CNode*>& getChildren() { return fChildren; }

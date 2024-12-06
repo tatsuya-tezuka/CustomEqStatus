@@ -18,12 +18,24 @@ CNode::~CNode()
     }
 }
 
-CNode* CNode::createChildIfNotExist(const CString childID)
+CNode* CNode::createChildIfNotExist(const CString childID, UINT type)
 {
-    for (::std::vector<CNode*>::const_iterator i = fChildren.begin(); i != fChildren.end(); i++) {
-        CNode* child = *i;
-        if (child->getID() == childID) {
-            return child;
+    bool bSameOK = false;
+    switch (type) {
+    case    eTreeItemType_Title:
+    case    eTreeItemType_Main:
+    case    eTreeItemType_Sub:
+        break;
+    case    eTreeItemType_Item:
+        bSameOK = true;
+        break;
+    }
+    if (bSameOK == false && childID.IsEmpty() == false) {
+        for (::std::vector<CNode*>::const_iterator i = fChildren.begin(); i != fChildren.end(); i++) {
+            CNode* child = *i;
+            if (child->getID() == childID) {
+                return child;
+            }
         }
     }
     CNode* child = new CNode(childID);
@@ -87,7 +99,7 @@ void CCustomDropObject::CreateBuffer(CNode* items)
 
     for (::std::vector<CNode*>::const_iterator itr = items->getChildren().begin(); itr != items->getChildren().end(); itr++) {
         //TRACE("#%s\n", CStringA((*itr)->getID()));
-        CNode* cur = mpNode->createChildIfNotExist((*itr)->getID());
+        CNode* cur = mpNode->createChildIfNotExist((*itr)->getID(), (*itr)->getNodeData()->GetEquipment().type);
         cur->setNodeData((*itr)->getNodeData());
         cur->setWnd((*itr)->getWnd());
         CreateNode((*itr), cur);
@@ -99,7 +111,7 @@ void CCustomDropObject::CreateNode(CNode* item, CNode* node)
     const ::std::vector<CNode*> children = item->getChildren();
     for (::std::vector<CNode*>::const_iterator itr = children.begin(); itr != children.end(); itr++) {
         //TRACE("@%s\n", CStringA((*itr)->getID()));
-        CNode* cur = node->createChildIfNotExist((*itr)->getID());
+        CNode* cur = node->createChildIfNotExist((*itr)->getID(), (*itr)->getNodeData()->GetEquipment().type);
         cur->setNodeData((*itr)->getNodeData());
         cur->setWnd((*itr)->getWnd());
         CreateNode((*itr), cur);

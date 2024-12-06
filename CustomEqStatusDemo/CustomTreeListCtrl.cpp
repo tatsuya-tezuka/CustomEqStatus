@@ -2329,8 +2329,8 @@ BOOL CCustomTreeListCtrl::PrepareItemBuff(CNode* root)
 	CString str;
 	for (HTREEITEM item = GetFirstSelectedItem(); item != 0; item = GetNextSelectedItem(item)) {
 		str = GetItemText(item);
-		CNode* cur = root->createChildIfNotExist(str);
 		CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, item);
+		CNode* cur = root->createChildIfNotExist(str, pnode->GetEquipment().type);
 		cur->setNodeData(pnode);
 		cur->setWnd(this);
 		PrepareChildItem(item, cur);
@@ -2358,8 +2358,8 @@ void CCustomTreeListCtrl::PrepareChildItem(HTREEITEM hItem, CNode* root)
 		while (hChildItem != NULL) {
 			hNextItem = GetNextItem(hChildItem, TVGN_NEXT);
 			str = GetItemText(hChildItem);
-			CNode* cur = root->createChildIfNotExist(str);
 			CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hChildItem);
+			CNode* cur = root->createChildIfNotExist(str, pnode->GetEquipment().type);
 			cur->setNodeData(pnode);
 			cur->setWnd(this);
 			PrepareChildItem(hChildItem, cur);
