@@ -16,7 +16,7 @@ public:
 	UINT getLevel() { return mLevel; }
 	void setLevel(UINT level) { mLevel = level; }
 
-	CNode* createChildIfNotExist(const CString childName);
+	CNode* createChildIfNotExist(const CString childName, bool bSame=true);
 	vector<CNode*>& getChildren() { return mChildren; }
 
 	UINT			mLevel;

@@ -64,13 +64,16 @@ protected:
 
 	void	setNodeWindowInfo(CTreeNode* pnode, UINT type, TCHAR* text, CTreeNode* parent);
 
-	CString createLeafText(CString item, CString unit, CString control)
+	CString createLeafText(CString item, CString unit, CString control, bool bMon)
 	{
 		CString str;
 #if _DEMO_PHASE < 999
 		int nRand = rand();
 		double dRand = (double)rand() * 360.0 / RAND_MAX;
-		str.Format(_T("%s\t%0.3f\t%s\t%s"), (LPCTSTR)item, dRand, (LPCTSTR)unit, control.IsEmpty() == false ? mCOntrolSignString : _T(""));
+		if(bMon == true)
+			str.Format(_T("%s\t%0.3f\t%s\t%s"), (LPCTSTR)item, dRand, (LPCTSTR)unit, control.IsEmpty() == false ? mCOntrolSignString : _T(""));
+		else
+			str.Format(_T("%s\t\t%s\t%s"), (LPCTSTR)item, (LPCTSTR)unit, control.IsEmpty() == false ? mCOntrolSignString : _T(""));
 #else
 		str.Format(_T("%s\t\t%s\t%s"), (LPCTSTR)item, (LPCTSTR)unit, control.IsEmpty() == false ? mCOntrolSignString : _T(""));
 #endif

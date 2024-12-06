@@ -449,9 +449,6 @@ void CCustomDetail::saveHeaderWidth()
 /*============================================================================*/
 void CCustomDetail::OnMenudetailEdit()
 {
-#if _DEMO_PHASE < 80
-	return;
-#endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 	if (pnode != NULL) {
 		pnode->GetEquipment().mode = eTreeItemMode_Edit;
@@ -471,6 +468,11 @@ void CCustomDetail::OnMenudetailEdit()
 /*============================================================================*/
 void CCustomDetail::OnMenudetailMonitor()
 {
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
+	int retmsg = CustomSaveDifferentMessageBoxHooked(m_hWnd, mMessage_DetailSaveDifferentData, pnode->GetEquipment().title, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1, CString(pnode->GetXmlFileName()).IsEmpty() ? false : true);
+	if (retmsg == IDCANCEL) {
+		return;
+}
 #if _DEMO_PHASE < 80
 	return;
 #endif
@@ -479,11 +481,8 @@ void CCustomDetail::OnMenudetailMonitor()
 	if (ret != true) {
 	}
 
-	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
-	if (pnode != NULL) {
-		pnode->GetEquipment().mode = eTreeItemMode_Monitor;
-		updateMode();
-	}
+	pnode->GetEquipment().mode = eTreeItemMode_Monitor;
+	updateMode();
 }
 
 /*============================================================================*/
@@ -737,7 +736,7 @@ void CCustomDetail::createSubNode(HTREEITEM parentitem, CTreeNode* parentnode)
 void CCustomDetail::createLeaf(HTREEITEM parentitem, CTreeNode* parentnode)
 {
 	CString str;
-	str = createLeafText(mDefaultCustomItemText, _T(""), _T(""));
+	str = createLeafText(mDefaultCustomItemText, _T(""), _T(""), false);
 	HTREEITEM item = mTreeCtrl.InsertItem(str, NULL, NULL, parentitem);
 	mTreeCtrl.SetItemData(item, mTreeCtrl.MAKEDATA(eTreeItemType_Item, 0));
 
@@ -983,6 +982,9 @@ void CCustomDetail::resizeFit()
 	SetWindowPlacement(&wPlacement);
 
 	mTreeCtrl.ResizeControl(r.Width(), r.Height());
+
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
+	theApp.GetCustomControl().GetCustomManager().GetCustomSyncWindow().Sync(this, pnode->GetManager().groupno);
 }
 
 /*============================================================================*/
@@ -1121,6 +1123,10 @@ void CCustomDetail::OnDetailMonctrl()
 /*============================================================================*/
 void CCustomDetail::OnDetailConfig()
 {
+#if _DEMO_PHASE < 110
+	return;
+#endif
+
 	if (mMenuItem == NULL)
 		return;
 
@@ -1471,7 +1477,7 @@ CString CCustomDetail::generateTreeText(CTreeNode* pnode)
 	CString ret;
 
 	if (pnode->GetEquipment().type == eTreeItemType_Item) {
-		ret = createLeafText(pnode->GetMonCtrl().display, pnode->GetMonCtrl().unit, pnode->GetMonCtrl().cname);
+		ret = createLeafText(pnode->GetMonCtrl().display, pnode->GetMonCtrl().unit, pnode->GetMonCtrl().cname, CString(pnode->GetMonCtrl().mname).IsEmpty()?false:true);
 		int nRand = rand();
 		if ((nRand % 5) == 0) {
 			pnode->GetColor().value = mDefaultErrorValueTextColor;
@@ -1480,6 +1486,7 @@ CString CCustomDetail::generateTreeText(CTreeNode* pnode)
 		}
 		else {
 			pnode->GetColor().value = mDefaultValueTextColor;
+
 		}
 
 	}

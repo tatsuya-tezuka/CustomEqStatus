@@ -146,9 +146,11 @@ void CCustomDialogBase::OnMoving(UINT fwSide, LPRECT pRect)
 		return;
 
 	TRACE("# OnMoving : GroupNo=%d, GroupName=%s\n", HIWORD(pnode->GetManager().groupno), CStringA(pnode->GetManager().groupname));
-	CRect rect;
-	pnode->GetEquipment().wnd->GetWindowRect(rect);
-	theApp.GetCustomControl().GetCustomManager().GetCustomSyncWindow().Move(pnode->GetManager().groupno, pnode->GetEquipment().wnd, &rect);
+
+	theApp.GetCustomControl().GetCustomManager().GetCustomSyncWindow().Sync(pnode->GetEquipment().wnd, pnode->GetManager().groupno);
+	//CRect rect;
+	//pnode->GetEquipment().wnd->GetWindowRect(rect);
+	//theApp.GetCustomControl().GetCustomManager().GetCustomSyncWindow().Move(pnode->GetManager().groupno, pnode->GetEquipment().wnd, &rect);
 }
 
 /*============================================================================*/

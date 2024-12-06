@@ -65,11 +65,12 @@ int CCustomDBAccess::eq_db_read(CString filename)
 		}
 
 		mEqDbList.clear();
+		mCtrlAdrList.clear();
 		if (filename.Find(_T("eqmon")) > 0){
 			ud_adr_to_montbl(mEqDbList, pbuf);
 		}
 		if (filename.Find(_T("eqctl")) > 0){
-			ud_adr_to_ctltbl(mEqDbList, pbuf);
+			ud_adr_to_ctltbl(mEqDbList, mCtrlAdrList, pbuf);
 		}
 
 		delete[] pbuf;
@@ -165,7 +166,7 @@ int CCustomDBAccess::eqctl_db_read(CString strSharePath, CString strStationName)
 		}
 
 		mCtrlNameList.clear();
-		ud_adr_to_ctltbl(mCtrlNameList, pbuf);
+		ud_adr_to_ctltbl(mCtrlNameList, mCtrlAdrList, pbuf);
 
 		delete[] pbuf;
 	}
@@ -220,7 +221,7 @@ int CCustomDBAccess::ud_adr_to_montbl(vector<CString>& list, char* pbuf)
 
 */
 /*============================================================================*/
-int CCustomDBAccess::ud_adr_to_ctltbl(vector<CString>& list, char* pbuf)
+int CCustomDBAccess::ud_adr_to_ctltbl(vector<CString>& list, map<CString, __int64>& adrlist, char* pbuf)
 {
 	char   *vec[VECMAX * 10];
 	int i_ret;
@@ -235,6 +236,7 @@ int CCustomDBAccess::ud_adr_to_ctltbl(vector<CString>& list, char* pbuf)
 	{
 		CString str = CString(((struct ctlname_t *)vec[i])->sz_ctlname);
 		list.push_back(str);
+		adrlist[str] = *(__int64*)&vec[i];
 	}
 
 	return (i_ret);

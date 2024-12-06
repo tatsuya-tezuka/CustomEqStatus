@@ -51,7 +51,7 @@ static const COLORREF mDefaultUnitTextColor = RGB(255, 255, 255);
 static const COLORREF mDefaultValueTextColor = RGB(145, 207, 80);
 static const COLORREF mDefaultWarningValueTextColor = RGB(255, 255, 0);
 static const COLORREF mDefaultErrorValueTextColor = RGB(255, 0, 0);
-static const TCHAR* mDefaultCustomFontName = _T("BIZ UDゴシック");
+static const TCHAR* mDefaultCustomFontName = _T("BIZ UDPゴシック");
 static const TCHAR* mDefaultMonitorFontName = _T("Consolas");
 
 static const TCHAR* mNoGroupText = { _T("No Group") };

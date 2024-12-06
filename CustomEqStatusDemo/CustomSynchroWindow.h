@@ -70,6 +70,7 @@ protected:
 public:
 	void	Set(UINT group, CWnd* pbase);
 	void	Start();
+	void	Sync(CWnd* pwnd, UINT group);
 	void	Move(UINT group, CWnd* pbase, CRect rectbase);
 	void	Close(UINT group, CWnd* pbase);
 	void	Clear(UINT group, CWnd* pbase = NULL);

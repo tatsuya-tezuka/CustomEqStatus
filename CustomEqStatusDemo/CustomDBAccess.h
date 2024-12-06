@@ -80,6 +80,7 @@ protected:
 	vector<CString>						mEqDbList;		// DBリスト
 	vector<CString>						mMonNameList;	// 監視名リスト
 	vector<CString>						mCtrlNameList;	// 制御名リスト
+	map<CString, __int64>				mCtrlAdrList;	// 制御アドレスリスト
 
 public:
 
@@ -97,7 +98,7 @@ public:
 
 protected:
 	int		ud_adr_to_montbl(vector<CString>& list, char* pbuf);
-	int		ud_adr_to_ctltbl(vector<CString>& list, char* pbuf);
+	int		ud_adr_to_ctltbl(vector<CString>& list, map<CString, __int64>& adrlist, char* pbuf);
 	int		ud_adr_to_resvec(char* base_p, long l_id, long l_limitid, long l_endoftblid, char* vec[], int i_argc);
 	int		db_read(char* db_file_nam, char *cp_loadadr_p);
 

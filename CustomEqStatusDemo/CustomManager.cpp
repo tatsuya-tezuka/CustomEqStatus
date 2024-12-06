@@ -1252,7 +1252,7 @@ void CCustomManager::showCustomDetail(CTreeNode* pnode, CPoint point)
 		pnode->GetEquipment().wnd->ShowWindow(SW_SHOWNA);
 		if (bEditMode == true) {
 			// ダブルクリック時は常に編集モードとする
-			pnode->GetEquipment().wnd->PostMessageW(eUserMessage_Detail_Mode, 0, (LPARAM)eTreeItemMode_Edit);
+			pnode->GetEquipment().wnd->PostMessage(eUserMessage_Detail_Mode, 0, (LPARAM)eTreeItemMode_Edit);
 		}
 	}
 }

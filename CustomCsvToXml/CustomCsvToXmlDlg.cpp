@@ -26,12 +26,18 @@ CNode::~CNode()
 	}
 }
 
-CNode* CNode::createChildIfNotExist(const CString childName)
+CNode* CNode::createChildIfNotExist(const CString childName, bool bSame/*=true*/)
 {
-	for (vector<CNode*>::const_iterator i = mChildren.begin(); i != mChildren.end(); i++) {
-		CNode* child = *i;
-		if (child->getName() == childName) {
-			return child;
+	if (childName.IsEmpty() == false) {
+		int i = 0;
+	}
+
+	if (bSame == true && childName.IsEmpty() == false) {
+		for (vector<CNode*>::const_iterator i = mChildren.begin(); i != mChildren.end(); i++) {
+			CNode* child = *i;
+			if (child->getName() == childName) {
+				return child;
+			}
 		}
 	}
 	CNode* child = new CNode(mLevel + 1, childName);
@@ -235,7 +241,7 @@ void CCustomCsvToXmlDlg::OnBnClickedButtonConv()
 				break;
 			case	4:
 				leaf = str;
-				cur[3] = cur[2]->createChildIfNotExist(leaf);
+				cur[3] = cur[2]->createChildIfNotExist(leaf, false);
 				break;
 			case	5:
 				mon = str;
@@ -263,6 +269,9 @@ void CCustomCsvToXmlDlg::OnBnClickedButtonConv()
 	}
 
 	delete root;
+
+	MessageBox(_T("終了しました"));
+
 }
 
 void CCustomCsvToXmlDlg::CreateSCL(CString sclpath, CNode* root)
@@ -500,7 +509,7 @@ bool CCustomCsvToXmlDlg::SaveNodeXml(CMarkup& xml, CNode* cur)
 		xml.AddElem(_T("LFFACENAME"), _T("Consolas"));
 	}
 	else {
-		xml.AddElem(_T("LFFACENAME"), _T("BIZ UDゴシック"));
+		xml.AddElem(_T("LFFACENAME"), _T("BIZ UDPゴシック"));
 	}
 	xml.OutOfElem();
 

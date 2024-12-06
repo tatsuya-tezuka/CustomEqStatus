@@ -65,11 +65,29 @@ void CCustomSynchroWindow::Start()
 		for (itrlist = (*itr).second.begin(); itrlist != (*itr).second.end(); itrlist++) {
 			if ((*itrlist).innerno == 1 && (*itrlist).wnd) {
 				(*itrlist).wnd->GetWindowRect(rect);
-				Move(((*itr).first<<16 | (*itrlist).innerno), (*itrlist).wnd, rect);
+				Move(((*itr).first << 16 | (*itrlist).innerno), (*itrlist).wnd, rect);
 				break;
 			}
 		}
 	}
+}
+
+/*============================================================================*/
+/*! ウィンドウ連動
+
+-# 画面連結の同期
+
+@param	pwnd		ウィンドウハンドル
+@param	group		グループ番号(1-)
+
+@retval
+*/
+/*============================================================================*/
+void CCustomSynchroWindow::Sync(CWnd* pwnd, UINT group)
+{
+	CRect rect;
+	pwnd->GetWindowRect(rect);
+	Move(group, pwnd, &rect);
 }
 
 /*============================================================================*/

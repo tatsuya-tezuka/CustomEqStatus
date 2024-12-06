@@ -1238,7 +1238,7 @@ void CCustomTreeListCtrl::AdjustColumnWidth(int nColumn, BOOL bIgnoreCollapsed)
 	HDITEM hditem;
 	hditem.mask = HDI_WIDTH;
 	mHeaderCtrl.GetItem(nColumn, &hditem);
-	hditem.cxy = nMaxWidth + 25;
+	hditem.cxy = __max(nMaxWidth, 40);
 	mHeaderCtrl.SetItem(nColumn, &hditem);
 }
 /*============================================================================*/
