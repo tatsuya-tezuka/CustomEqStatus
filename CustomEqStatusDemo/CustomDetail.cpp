@@ -1480,6 +1480,7 @@ CString CCustomDetail::generateTreeText(CTreeNode* pnode)
 	CString ret;
 
 	if (pnode->GetEquipment().type == eTreeItemType_Item) {
+#ifdef _ORG
 		ret = createLeafText(pnode->GetMonCtrl().display, pnode->GetMonCtrl().unit, pnode->GetMonCtrl().cname, CString(pnode->GetMonCtrl().mname).IsEmpty()?false:true);
 		int nRand = rand();
 		if ((nRand % 5) == 0) {
@@ -1491,7 +1492,28 @@ CString CCustomDetail::generateTreeText(CTreeNode* pnode)
 			pnode->GetColor().value = mDefaultValueTextColor;
 
 		}
+#else
+		ret = createLeafText(pnode->GetMonCtrl().display, pnode->GetMonCtrl().unit, pnode->GetMonCtrl().cname, CString(pnode->GetMonCtrl().mname).IsEmpty() ? false : true);
+		CString data;
+		COLORREF col = theApp.GetCustomControl().GetCustomData(pnode->GetMonCtrl().mname, data);
 
+		if (data.IsEmpty() == false) {
+			ret.Format(_T("%s\t%s\t%s\t%s"), (LPCTSTR)pnode->GetMonCtrl().display, (LPCTSTR)data, (LPCTSTR)pnode->GetMonCtrl().unit, CString(pnode->GetMonCtrl().cname).IsEmpty() == false ? mCOntrolSignString : _T(""));
+			pnode->GetColor().value = col;
+		}
+		else {
+			int nRand = rand();
+			if ((nRand % 5) == 0) {
+				pnode->GetColor().value = mDefaultErrorValueTextColor;
+			}
+			else if ((nRand % 5) == 1) {
+				pnode->GetColor().value = mDefaultWarningValueTextColor;
+			}
+			else {
+				pnode->GetColor().value = mDefaultValueTextColor;
+			}
+		}
+#endif
 	}
 	else {
 		ret.Format(_T("%s"), pnode->GetMonCtrl().display);

@@ -187,6 +187,8 @@ protected:
 	// マルチモニタ情報
 	CCustomMonitors			mCustomMonitor;
 
+	map<CString, stCustomData>	mCustomDataList;
+
 	/* ------------------------------------------------------------------------------------ */
 	/* メンバ関数                                                                           */
 	/* ------------------------------------------------------------------------------------ */
@@ -312,11 +314,15 @@ public:
 	// マルチモニタ情報
 	CCustomMonitors& GetCustomMonitor() { return mCustomMonitor; }
 
+	COLORREF	GetCustomData(CString mon_string, CString& data);
+
 protected:
 	void	createMasterEquipment();
 	void	createUserEquipment();
 	void	getMasterEquipmentFiles(vector<CString>& list);
 	void	getUserEquipmentFiles(vector<CString>& list);
+
+	void	CreateCustomData(CString fname);
 
 	/* ------------------------------------------------------------------------------------ */
 };

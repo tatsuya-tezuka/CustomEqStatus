@@ -84,6 +84,8 @@ void CCustomControl::Initialize(CWnd* pParent, CString appPath)
 	// 制御DB取得
 	str = mAppDataBasePath + _T("\\") + mpDBName[1];
 	GetDataManager().GetDataControl().eq_db_read(str);
+
+	CreateCustomData(appPath + _T("\\CustomData.txt"));
 }
 
 /*============================================================================*/
@@ -268,4 +270,72 @@ void CCustomControl::getUserEquipmentFiles(vector<CString>& list)
 	CLogTraceEx::Write(_T("***"), _T("CCustomControl"), _T("getUserEquipmentFiles"), _T("Stop"), _T(""), nLogEx::debug);
 	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 	//=====================================================//
+}
+
+#include <locale.h>
+/*============================================================================*/
+/*! カスタムコントロール
+
+-# ユーザ設備詳細ファイルの取得
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+void CCustomControl::CreateCustomData(CString fname)
+{
+	TCHAR* ploc = _wsetlocale(LC_ALL, _T("japanese"));
+
+	CStdioFile	file(fname, CFile::modeRead | CFile::typeText);
+
+	CString	cbuf, str;
+	CString title, mainnode, subnode, leaf, mon, unit, cntl;
+	BOOL bRead = file.ReadString(cbuf);
+	while (bRead) {
+		CString mon;
+		stCustomData st;
+		AfxExtractSubString(str, cbuf, 0, '\t');
+		mon = str;
+		AfxExtractSubString(str, cbuf, 1, '\t');
+		swprintf_s(st.data, 80, _T("%s"), (LPCTSTR)str);
+		AfxExtractSubString(str, cbuf, 2, '\t');
+		swprintf_s(st.color, 10, _T("%s"), (LPCTSTR)str);
+		mCustomDataList[mon] = st;
+		bRead = file.ReadString(cbuf);
+	}
+	file.Close();
+}
+/*============================================================================*/
+/*! カスタムコントロール
+
+-# ユーザ設備詳細ファイルの取得
+
+@param
+@retval
+
+*/
+/*============================================================================*/
+COLORREF CCustomControl::GetCustomData(CString mon_string, CString& data)
+{
+	stCustomData st;
+
+	map<CString, stCustomData>::iterator itr = mCustomDataList.find(mon_string);
+	if (itr == mCustomDataList.end()) {
+		data.Empty();
+		return mDefaultValueTextColor;
+	}
+
+	st = mCustomDataList[mon_string];
+
+	data = CString(st.data);
+	COLORREF col = mDefaultValueTextColor;
+	if (CString(st.color) == _T("赤"))
+		col = mDefaultErrorValueTextColor;
+	if (CString(st.color) == _T("緑"))
+		col = mDefaultValueTextColor;
+	if (CString(st.color) == _T("黄"))
+		col = mDefaultWarningValueTextColor;
+
+	return col;
 }
