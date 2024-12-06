@@ -487,10 +487,10 @@ bool CCustomCsvToXmlDlg::SaveNodeXml(CMarkup& xml, CNode* cur)
 	xml.IntoElem();
 	switch (cur->getLevel()) {
 	case	0:
-		xml.AddElem(_T("LFHEIGHT"), -24);
+		xml.AddElem(_T("LFHEIGHT"), -22);
 		break;
 	case	1:
-		xml.AddElem(_T("LFHEIGHT"), -24);
+		xml.AddElem(_T("LFHEIGHT"), -22);
 		break;
 	case	2:
 		xml.AddElem(_T("LFHEIGHT"), -20);
