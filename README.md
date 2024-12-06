@@ -1,1 +1,3 @@
 # CustomEqStatus
+〇DBフォルダを実行ファイルと同じ場所に置く
+〇DEMODATAフォルダ内のUser、Masterフォルダを実行ファイルと同じ場所に置く

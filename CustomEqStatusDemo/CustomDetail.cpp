@@ -1301,9 +1301,12 @@ void CCustomDetail::OnTvnGetInfoTipTreeCtrl(NMHDR* pNMHDR, LRESULT* pResult)
 	if (CString(pnode->GetMonCtrl().cname).IsEmpty() == false) {
 		strcon = pnode->GetMonCtrl().cname;
 	}
+
 #ifdef _DEBUG
 	mToolText.Format(_T("%s\n%s\nSORT(%d)\n%08X"), (LPCTSTR)strmon, (LPCTSTR)strcon, pnode->GetEquipment().sortno, mTreeCtrl.GetItemData(pGetInfoTip->hItem));
 #else
+	if (strmon == _T("EMPTY") && strcon == _T("EMPTY") && CString(pnode->GetMonCtrl().display).IsEmpty())
+		return;
 	mToolText.Format(_T("%s\n%s"), (LPCTSTR)strmon, (LPCTSTR)strcon);
 #endif
 	pGetInfoTip->pszText = (LPWSTR)(LPCTSTR)mToolText;

@@ -1590,14 +1590,33 @@ int CCustomTreeListCtrl::getMaxColumnWidth(HTREEITEM hItem, int nColumn, int nDe
 {
 	int nMaxWidth = 0;
 
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hItem);
+
 	CString strText = GetItemText(hItem);
 	CString strSub;
 	if (AfxExtractSubString(strSub, strText, nColumn, '\t')){
 		CDC dc;
 		dc.CreateCompatibleDC(NULL);
-		CFont* pOldFont = dc.SelectObject(GetFont());
+		//CFont* pOldFont = dc.SelectObject(GetFont());
+		CFont* pOldFont;
+		switch(pnode->GetEquipment().type) {
+		case	eTreeItemType_Title:
+			pOldFont = dc.SelectObject(&mNodeTitleFont);
+			break;
+		case	eTreeItemType_Main:
+			pOldFont = dc.SelectObject(&mNodeMainFont);
+			break;
+		case	eTreeItemType_Sub:
+			pOldFont = dc.SelectObject(&mNodeSubFont);
+			break;
+		case	eTreeItemType_Item:
+			pOldFont = dc.SelectObject(&mNodeLeafFont);
+			break;
+		default:
+			pOldFont = dc.SelectObject(&mDefaultFont);
+		}
 		// 文字列幅をフォント、文字数から計算
-		nMaxWidth = dc.GetTextExtent(strSub, strSub.GetLength()).cx;
+		nMaxWidth = dc.GetTextExtent(strSub, strSub.GetLength()+1).cx;
 		dc.SelectObject(pOldFont);
 		dc.DeleteDC();
 	}
