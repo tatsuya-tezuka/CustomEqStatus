@@ -43,11 +43,30 @@ CCustomDetail::CCustomDetail(CWnd* pParent /*=NULL*/, bool bRestore/* = false*/)
 	mTreeLeafLogFont.lfStrikeOut = 0;
 	swprintf_s(mTreeLeafLogFont.lfFaceName, LF_FACESIZE, _T("%s"), (LPCTSTR)mDefaultMonitorFontName);
 	temp.DeleteObject();
+
+	// 文字フォントの作成
+	CFont defFont;
+	defFont.CreateStockObject(DEFAULT_GUI_FONT);
+	LOGFONT lf;
+	if (defFont.GetLogFont(&lf)) {
+		lf.lfHeight = -14;
+		lf.lfWeight = FW_NORMAL;
+		lf.lfCharSet = DEFAULT_CHARSET;
+		lf.lfUnderline = 0;
+		lf.lfStrikeOut = 0;
+		swprintf_s(lf.lfFaceName, LF_FACESIZE, _T("%s"), (LPCTSTR)mDefaultCustomFontName);
+		mToolFont.DeleteObject();
+		mToolFont.CreateFontIndirect(&lf);
+		defFont.DeleteObject();
+	}
+
 	//mBackupNode = NULL;
 }
 
 CCustomDetail::~CCustomDetail()
 {
+	mToolFont.DeleteObject();
+
 	//if(mBackupNode != NULL)
 	//	delete mBackupNode;
 }
@@ -280,6 +299,9 @@ void CCustomDetail::OnMenudetailClose()
 	return;
 #endif
 
+	/*
+		ウィンドウ位置の保存はレイアウト保存時だけ
+	*/
 	// ウィンドウサイズ、ヘッダーコントロールの幅を保存する
 	WINDOWPLACEMENT	placement;			// ウィンドウ位置情報
 	memset(&placement, 0, sizeof(WINDOWPLACEMENT));
@@ -626,6 +648,12 @@ void CCustomDetail::createTreeControl()
 	UpdateSortNo(mTreeCtrl.GetRootItem());
 
 	SetControlInfo(IDC_TREE_CTRL, ANCHORE_LEFTTOP | RESIZE_BOTH);
+
+	CToolTipCtrl* ptip = mTreeCtrl.GetToolTips();
+	if (ptip != NULL) {
+		ptip->SetFont(&mToolFont);
+		ptip->SetDelayTime(TTDT_AUTOPOP, 50000);
+	}
 }
 /*============================================================================*/
 /*! 設備詳細
@@ -1284,8 +1312,22 @@ void CCustomDetail::OnTvnGetInfoTipTreeCtrl(NMHDR* pNMHDR, LRESULT* pResult)
 
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, pGetInfoTip->hItem);
 	if (pnode == NULL) {
+		ASSERT(FALSE);
 		return;
 	}
+
+	// マウス位置を取得して、先頭アイテムにあるときだけツールヒントを表示する
+	CPoint pos;
+	if (!::GetCursorPos(&pos)){
+		ASSERT(FALSE);
+		return;
+	}
+	mTreeCtrl.ScreenToClient(&pos);
+	UINT col = 0;
+	HTREEITEM item = mTreeCtrl.HitTestEx(pos, col);
+	if (item == NULL || col != 0)
+		return;
+
 	if (pnode->GetEquipment().type != eTreeItemType_Item) {
 #ifdef _DEBUG
 		mToolText.Format(_T("%s\nSORT(%d)\n%08X"), (LPCTSTR)pnode->GetMonCtrl().display, pnode->GetEquipment().sortno, mTreeCtrl.GetItemData(pGetInfoTip->hItem));

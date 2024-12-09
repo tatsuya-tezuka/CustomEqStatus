@@ -88,7 +88,6 @@ BOOL CCustomManager::OnInitDialog()
 
 	SetWindowText(mMessage_Title_CustomManager);
 
-
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
 }
@@ -1304,15 +1303,6 @@ void CCustomManager::SyncEditMode()
 	}
 }
 
-
-
-
-
-
-
-
-
-
 void CCustomManager::OnLvnGetInfoTipListManager(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMLVGETINFOTIP pGetInfoTip = reinterpret_cast<LPNMLVGETINFOTIP>(pNMHDR);
@@ -1326,8 +1316,7 @@ void CCustomManager::OnLvnGetInfoTipListManager(NMHDR* pNMHDR, LRESULT* pResult)
 	int nGroupId = mManagerList.GetRowGroupId(pGetInfoTip->iItem);
 	mToolText.Format(_T("(%d)NODE_GROUP=%d NODE_NO=%d NODE_GROUP_NAME=%s NAME=%s"), nGroupId, HIWORD(pnode->GetManager().groupno), LOWORD(pnode->GetManager().groupno), pnode->GetManager().groupname, pnode->GetEquipment().title);
 	TRACE("%s\n", CStringA(mToolText));
+	_tcsncpy(pGetInfoTip->pszText, static_cast<LPCTSTR>(mToolText), pGetInfoTip->cchTextMax);
 #endif
-	pGetInfoTip->pszText = (LPWSTR)(LPCTSTR)mToolText;
-	pGetInfoTip->cchTextMax = mToolText.GetLength();
 
 }

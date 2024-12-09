@@ -64,4 +64,5 @@ public:
 	afx_msg void OnBnClickedMfcbuttonSave();
 	afx_msg void OnBnClickedMfcbutton();
 	afx_msg void OnBnClickedButtonNodeoutput();
+	afx_msg LRESULT OnNcHitTest(CPoint point);
 };

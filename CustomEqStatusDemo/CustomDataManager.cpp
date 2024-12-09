@@ -1101,20 +1101,23 @@ bool CCustomDataManager::SaveCustomLayout(CArchive& ar)
 
 -# カスタマイズ画面のレイアウト保存
 
-@param
+@param	pplacement	位置情報
 
 @retval
 */
 /*============================================================================*/
-bool CTreeNode::SaveCustomLayout()
+bool CTreeNode::SaveCustomLayout(WINDOWPLACEMENT* pplacement/* = NULL*/)
 {
 	if (CString(xmlfile).IsEmpty() == true)
 		return false;
 
 	// ウィンドウ位置情報の取得
-	memset(&equipment.placement, 0, sizeof(WINDOWPLACEMENT));
-	equipment.placement.length = sizeof(WINDOWPLACEMENT);
-	equipment.wnd->GetWindowPlacement(&equipment.placement);
+	if (pplacement == NULL) {
+		memset(&equipment.placement, 0, sizeof(WINDOWPLACEMENT));
+		equipment.placement.length = sizeof(WINDOWPLACEMENT);
+		equipment.wnd->GetWindowPlacement(&equipment.placement);
+		pplacement = &equipment.placement;
+	}
 
 	CMarkup xml;
 	xml.Load(xmlfile);
@@ -1127,21 +1130,21 @@ bool CTreeNode::SaveCustomLayout()
 	if (xml.FindElem(_T("LAYOUTINFO")) == true) {
 		xml.IntoElem();
 		xml.FindElem(_T("FLAGS"));
-		xml.SetData(equipment.placement.flags);
+		xml.SetData(pplacement->flags);
 		xml.FindElem(_T("SHOWCMD"));
 		xml.SetData(equipment.wnd->IsWindowVisible());
-		setPointXml(xml, equipment.placement.ptMinPosition);
-		setPointXml(xml, equipment.placement.ptMaxPosition);
-		setRectXml(xml, equipment.placement.rcNormalPosition);
+		setPointXml(xml, pplacement->ptMinPosition);
+		setPointXml(xml, pplacement->ptMaxPosition);
+		setRectXml(xml, pplacement->rcNormalPosition);
 	}
 	else {
 		xml.AddElem(_T("LAYOUTINFO"));
 		xml.IntoElem();
-		xml.AddElem(_T("FLAGS"), equipment.placement.flags);
+		xml.AddElem(_T("FLAGS"), pplacement->flags);
 		xml.AddElem(_T("SHOWCMD"), (equipment.wnd == NULL) ? 0 : equipment.wnd->IsWindowVisible()/*wininfo.placement.showCmd*/);
-		savePointXml(xml, equipment.placement.ptMinPosition);
-		savePointXml(xml, equipment.placement.ptMaxPosition);
-		saveRectXml(xml, equipment.placement.rcNormalPosition);
+		savePointXml(xml, pplacement->ptMinPosition);
+		savePointXml(xml, pplacement->ptMaxPosition);
+		saveRectXml(xml, pplacement->rcNormalPosition);
 	}
 
 	xml.OutOfElem(); // LAYOUTINFO
@@ -1245,19 +1248,22 @@ bool CCustomDataManager::LoadCustomLayout(CArchive& ar)
 
 -# カスタマイズ画面のレイアウト保存
 
-@param
+@param	pplacement	位置情報
 
 @retval
 */
 /*============================================================================*/
-bool CTreeNode::LoadCustomLayout()
+bool CTreeNode::LoadCustomLayout(WINDOWPLACEMENT* pplacement/* = NULL*/)
 {
 	if (CString(xmlfile).IsEmpty() == true)
 		return false;
 
 	// ウィンドウ位置情報の取得
-	memset(&equipment.placement, 0, sizeof(WINDOWPLACEMENT));
-	equipment.placement.length = sizeof(WINDOWPLACEMENT);
+	if(pplacement == NULL){
+		pplacement = &equipment.placement;
+	}
+	memset(pplacement, 0, sizeof(WINDOWPLACEMENT));
+	pplacement->length = sizeof(WINDOWPLACEMENT);
 
 	CMarkup xml;
 	xml.Load(xmlfile);
@@ -1276,12 +1282,12 @@ bool CTreeNode::LoadCustomLayout()
 	}
 
 	xml.FindElem(_T("FLAGS"));
-	equipment.placement.flags = _wtoi(xml.GetData());
+	pplacement->flags = _wtoi(xml.GetData());
 	xml.FindElem(_T("SHOWCMD"));
-	equipment.placement.showCmd = _wtoi(xml.GetData());
-	loadPointXml(xml, equipment.placement.ptMinPosition);
-	loadPointXml(xml, equipment.placement.ptMaxPosition);
-	loadRectXml(xml, equipment.placement.rcNormalPosition);
+	pplacement->showCmd = _wtoi(xml.GetData());
+	loadPointXml(xml, pplacement->ptMinPosition);
+	loadPointXml(xml, pplacement->ptMaxPosition);
+	loadRectXml(xml, pplacement->rcNormalPosition);
 
 	xml.OutOfElem(); // LAYOUTINFO or EQUIPMENTINFO
 	xml.OutOfElem(); // EQUIPMENT
@@ -1334,6 +1340,7 @@ bool CCustomDataManager::SaveTreeDataXml(CString strFile, CWnd* pTargetWnd/* = N
 		xml.AddElem(_T("SIZE"), (UINT)1);
 	}
 
+	WINDOWPLACEMENT layout;
 	vector<CTreeNode*>::iterator itr;
 	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
 		if (pTargetWnd != NULL && pTargetWnd != (*itr)->GetEquipment().wnd) {
@@ -1341,11 +1348,24 @@ bool CCustomDataManager::SaveTreeDataXml(CString strFile, CWnd* pTargetWnd/* = N
 		}
 		xml.AddElem(_T("EQUIPMENT"));
 		xml.IntoElem();
+		// LAYOUTINFOが削除されるので、ここでバックアップ
+		(*itr)->LoadCustomLayout(&layout);
+		
 		(*itr)->SaveTreeNodeXml(xml);
+
 		xml.OutOfElem();
 	}
 	xml.OutOfElem();
 	xml.Save(strFile);
+
+	// LAYOUTINFOが削除されるので、ここでリストア
+	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
+		if (pTargetWnd != NULL && pTargetWnd != (*itr)->GetEquipment().wnd) {
+			continue;
+		}
+		(*itr)->SaveCustomLayout(&layout);
+	}
+
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
 	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveTreeDataXml"), _T("Stop"), _T(""), nLogEx::debug);
@@ -1431,6 +1451,9 @@ bool CTreeNode::SaveTreeNodeXml(CMarkup& xml)
 	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveTreeNodeXml"), _T("Start"), _T(""), nLogEx::debug);
 	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 	//=====================================================//
+	/*
+		ウィンドウ位置の保存はレイアウト保存時だけ
+	*/
 	// ウィンドウ位置情報取得
 	if (equipment.wnd != NULL){
 		memset(&equipment.placement, 0, sizeof(WINDOWPLACEMENT));

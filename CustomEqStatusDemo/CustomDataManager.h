@@ -319,8 +319,8 @@ public:
 	bool	SaveTreeNodeXml(CMarkup& xml);
 	bool	LoadTreeNodeXml(CMarkup& xml);
 
-	bool	SaveCustomLayout();
-	bool	LoadCustomLayout();
+	bool	SaveCustomLayout(WINDOWPLACEMENT* pplacement = NULL);
+	bool	LoadCustomLayout(WINDOWPLACEMENT* pplacement=NULL);
 
 	//bool operator==(CTreeNode* data);
 	bool Equal(CTreeNode* data, bool bChild);

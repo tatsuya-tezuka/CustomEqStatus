@@ -105,6 +105,7 @@ CCustomDetail* CCustomControl::CreateEquipment(CTreeNode* pnode, UINT mode/* = e
 	if (pnode != NULL) {
 		pnode->GetEquipment().wnd = pitem;
 		pnode->GetEquipment().manager = &mCustomManager;
+		pnode->GetEquipment().placement.showCmd = SW_HIDE;
 	}
 	// Ý”õÚ×‰æ–Ê‚Ìì¬
 	pitem->Create(IDD_DIALOG_EQDETAIL, theApp.GetMainWnd());

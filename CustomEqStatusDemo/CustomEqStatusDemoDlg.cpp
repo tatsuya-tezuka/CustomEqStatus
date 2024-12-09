@@ -67,10 +67,21 @@ BEGIN_MESSAGE_MAP(CCustomEqStatusDemoDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_MFCBUTTON__SAVE, &CCustomEqStatusDemoDlg::OnBnClickedMfcbuttonSave)
 	ON_BN_CLICKED(IDC_MFCBUTTON__MANAGER, &CCustomEqStatusDemoDlg::OnBnClickedMfcbutton)
 	ON_BN_CLICKED(IDC_BUTTON_NODEOUTPUT, &CCustomEqStatusDemoDlg::OnBnClickedButtonNodeoutput)
+	ON_WM_NCHITTEST()
 END_MESSAGE_MAP()
 
 
 // CCustomEqStatusDemoDlg メッセージ ハンドラー
+
+LRESULT CCustomEqStatusDemoDlg::OnNcHitTest(CPoint point)
+{
+	LRESULT nHitTest = CDialog::OnNcHitTest(point);
+	if (nHitTest == HTCLIENT)    // もしクライアント領域だったら、
+		return HTCAPTION;         // キャプションです、と返す
+	else
+		return nHitTest;
+	//return CDialogEx::OnNcHitTest(point);
+}
 
 BOOL CCustomEqStatusDemoDlg::OnInitDialog()
 {

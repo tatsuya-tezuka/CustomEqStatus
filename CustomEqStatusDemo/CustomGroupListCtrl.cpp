@@ -657,6 +657,8 @@ void CCustomGroupListCtrl::CreateGroupControl(CWnd* parent)
 		}
 		InsertColumn(i, mGroupListHeader[i], LVCFMT_LEFT, width);
 	}
+
+	EnableToolTips(TRUE);
 }
 /*============================================================================*/
 /*! グループリスト
