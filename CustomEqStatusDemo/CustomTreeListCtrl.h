@@ -241,6 +241,8 @@ protected:
 
 	inline COLORREF calcContrastColor(COLORREF color)
 	{
+		return mDefaultValueTextColor;
+
 		int a = (int)abs((int)color);
 
 		if (abs((int)((color)& 0xFF) - 0x80) <= (UINT)0x40 &&
