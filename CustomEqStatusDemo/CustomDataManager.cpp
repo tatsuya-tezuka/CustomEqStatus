@@ -1314,6 +1314,13 @@ bool CCustomDataManager::SaveTreeDataXml(CString strFile, CWnd* pTargetWnd/* = N
 	CLogTraceEx::Write(_T("***"), _T("CCustomDataManager"), _T("SaveTreeDataXml"), _T("Start"), _T(""), nLogEx::debug);
 	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 	//=====================================================//
+
+	if (pTargetWnd == NULL)
+		return false;
+	CTreeNode* pnode = SearchWndNode(pTargetWnd);
+	if (pnode == NULL)
+		return false;
+
 	CString	decl = _T("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 	CMarkup xml(decl);
 
@@ -1341,30 +1348,19 @@ bool CCustomDataManager::SaveTreeDataXml(CString strFile, CWnd* pTargetWnd/* = N
 	}
 
 	WINDOWPLACEMENT layout;
-	vector<CTreeNode*>::iterator itr;
-	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
-		if (pTargetWnd != NULL && pTargetWnd != (*itr)->GetEquipment().wnd) {
-			continue;
-		}
-		xml.AddElem(_T("EQUIPMENT"));
-		xml.IntoElem();
-		// LAYOUTINFOが削除されるので、ここでバックアップ
-		(*itr)->LoadCustomLayout(&layout);
-		
-		(*itr)->SaveTreeNodeXml(xml);
 
-		xml.OutOfElem();
-	}
+	xml.AddElem(_T("EQUIPMENT"));
+	xml.IntoElem();
+	// LAYOUTINFOが削除されるので、ここでバックアップ
+	pnode->LoadCustomLayout(&layout);
+	pnode->SaveTreeNodeXml(xml);
+	xml.OutOfElem();
+
 	xml.OutOfElem();
 	xml.Save(strFile);
 
 	// LAYOUTINFOが削除されるので、ここでリストア
-	for (itr = mTreeNode.begin(); itr != mTreeNode.end(); itr++) {
-		if (pTargetWnd != NULL && pTargetWnd != (*itr)->GetEquipment().wnd) {
-			continue;
-		}
-		(*itr)->SaveCustomLayout(&layout);
-	}
+	pnode->SaveCustomLayout(&layout);
 
 	//=====================================================//
 	//↓↓↓↓↓↓↓↓↓↓↓↓ Log ↓↓↓↓↓↓↓↓↓↓↓↓//
