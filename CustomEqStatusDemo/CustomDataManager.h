@@ -87,6 +87,8 @@ static const TCHAR* mMessage_LoadLayout = { _T("表示されている全ての設備詳細画面
 static const TCHAR* mMessage_SaveLayout = { _T("編集中の情報は破棄されます。\nよろしいですか？") };
 static const TCHAR* mMessage_SameGroupName = { _T("同名のグループ名が存在します。再度入力してください。") };
 static const TCHAR* mMessage_EmptyGroupName = { _T("グループ名の指定がありません。再度入力してください。") };
+static const TCHAR* mMessage_SameXmlFile = { _T("ファイルが既に存在します。\n上書き保存しますか？") };
+static const TCHAR* mMessage_EmptyXmlFile = { _T("ファイル名の指定がありません。再度入力してください。") };
 
 static const int mMonMax = 5000;			// 監視の最大数
 static const int mCtrlMax = 5000;			// 制御の最大数

@@ -240,7 +240,7 @@ CCustomTreeListCtrl::CCustomTreeListCtrl()
 	if (mControlFont.GetLogFont(&lf)){
 		lf.lfHeight = mTreeFontHeight;
 		lf.lfWeight = FW_BOLD;
-		lf.lfUnderline = 1;
+		lf.lfCharSet = DEFAULT_CHARSET;
 		lf.lfUnderline = 0;
 		lf.lfStrikeOut = 0;
 		swprintf_s(lf.lfFaceName, LF_FACESIZE, _T("%s"), (LPCTSTR)mDefaultCustomFontName);

@@ -54,4 +54,7 @@ public:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnBnClickedOk();
 	CEdit mSaveFileCntl;
+	afx_msg void OnBnClickedNo();
+	afx_msg void OnBnClickedCancel();
+	CStatic mIcon;
 };

@@ -317,13 +317,16 @@ void CCustomDetail::OnMenudetailClose()
 	}
 	else {
 		TRACE("Different Data\n");
-		int retmsg = CustomSaveDifferentMessageBoxHooked(m_hWnd, mMessage_DetailSaveDifferentData, pnode->GetEquipment().title, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1, CString(pnode->GetXmlFileName()).IsEmpty() ? false : true);
 
-		if (retmsg == IDCANCEL) {
+		CCustomSelectSaveFile dlg;
+		dlg.SetSavePathName(theApp.GetCustomControl().GetUserDataPath());
+		dlg.SetSaveFileName(CString(pnode->GetXmlFileName()));
+		INT_PTR ret = dlg.DoModal();
+
+		if (ret == IDCANCEL) {
 			return;
 		}
-
-		if (retmsg == IDYES) {
+		if (ret == IDOK) {
 			// 変更内容を保存する
 			OnMenudetailSave();
 		}
@@ -420,12 +423,20 @@ void CCustomDetail::OnMenudetailSaveas()
 
 	CCustomSelectSaveFile dlg;
 	dlg.SetSavePathName(theApp.GetCustomControl().GetUserDataPath());
-	dlg.SetSaveFileName(CString(pnode->GetXmlFileName()).Mid(theApp.GetCustomControl().GetUserDataPath().GetLength()+1));
-	if (dlg.DoModal() == IDCANCEL)
-		return;
+	dlg.SetSaveFileName(CString(pnode->GetXmlFileName()));
+	INT_PTR ret = dlg.DoModal();
 
 	CString filename = dlg.GetSavePathName() + _T("\\") + dlg.GetSaveFileName();
 	CString backxml = CString(pnode->GetXmlFileName());
+	switch (ret) {
+	case	IDCANCEL:
+		return;
+	case	IDNO:
+		return;
+		break;
+	case	IDOK:
+		break;
+	}
 
 	// ツリーヘッダー幅の保存
 	saveHeaderWidth();

@@ -106,6 +106,10 @@ BEGIN_MESSAGE_MAP(CCustomCsvToXmlDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_CONV, &CCustomCsvToXmlDlg::OnBnClickedButtonConv)
 	ON_BN_CLICKED(IDC_RADIO_SCL, &CCustomCsvToXmlDlg::OnBnClickedRadioScl)
 	ON_BN_CLICKED(IDC_RADIO_XML, &CCustomCsvToXmlDlg::OnBnClickedRadioXml)
+	ON_BN_CLICKED(IDC_TITLE_FONT, &CCustomCsvToXmlDlg::OnBnClickedTitleFont)
+	ON_BN_CLICKED(IDC_MAIN_FONT, &CCustomCsvToXmlDlg::OnBnClickedMainFont)
+	ON_BN_CLICKED(IDC_SUB_FONT, &CCustomCsvToXmlDlg::OnBnClickedSubFont)
+	ON_BN_CLICKED(IDC_LEAF_FONT, &CCustomCsvToXmlDlg::OnBnClickedLeafFont)
 END_MESSAGE_MAP()
 
 
@@ -139,6 +143,34 @@ BOOL CCustomCsvToXmlDlg::OnInitDialog()
 	//  Framework は、この設定を自動的に行います。
 	SetIcon(m_hIcon, TRUE);			// 大きいアイコンの設定
 	SetIcon(m_hIcon, FALSE);		// 小さいアイコンの設定
+
+	COLORREF col;
+	for (int i = 0; i < sizeof(mColorConfig) / sizeof(mColorConfig[0]); i++) {
+		((CMFCColorButton*)GetDlgItem(mColorConfig[i].id))->SetColor(mColorConfig[i].color);
+		col = ((CMFCColorButton*)GetDlgItem(mColorConfig[i].id))->GetColor();
+		mColor[i] = col;
+	}
+
+	CFont font;
+	font.CreateStockObject(DEFAULT_GUI_FONT);
+	LOGFONT lf;
+	if (font.GetLogFont(&lf)) {
+		lf.lfHeight = -22;
+		lf.lfWeight = FW_BOLD;
+		lf.lfCharSet = DEFAULT_CHARSET;
+		lf.lfUnderline = 0;
+		lf.lfStrikeOut = 0;
+		swprintf_s(lf.lfFaceName, LF_FACESIZE, _T("%s"), (LPCTSTR)_T("BIZ UDPゴシック"));
+		mFont[1] = lf;
+		lf.lfHeight = -20;
+		mFont[2] = lf;
+		lf.lfHeight = -18;
+		mFont[3] = lf;
+		lf.lfHeight = -16;
+		swprintf_s(lf.lfFaceName, LF_FACESIZE, _T("%s"), (LPCTSTR)_T("Consolas"));
+		mFont[4] = lf;
+	}
+	font.DeleteObject();
 
 	static LPCTSTR fileFilter = _T("タブ区切りテキスト (*.txt)|*.txt||");
 	DWORD flag = 6UL | OFN_OVERWRITEPROMPT;
@@ -205,6 +237,10 @@ void CCustomCsvToXmlDlg::OnBnClickedButtonConv()
 	CWaitCursor wait;
 
 	UpdateData(TRUE);
+
+	for (int i = 0; i < sizeof(mColorConfig) / sizeof(mColorConfig[0]); i++) {
+		mColor[i] = ((CMFCColorButton*)GetDlgItem(mColorConfig[i].id))->GetColor();
+	}
 
 	TCHAR* ploc = _wsetlocale(LC_ALL, _T("japanese"));
 
@@ -446,39 +482,39 @@ bool CCustomCsvToXmlDlg::SaveNodeXml(CMarkup& xml, CNode* cur)
 	xml.IntoElem();
 	switch (cur->getLevel()) {
 	case	0:
-		_SaveColorXml(xml, _T("BACK"), 0x00ffffff);
-		_SaveColorXml(xml, _T("TEXTBACK"), RGB(147, 144, 192));
-		_SaveColorXml(xml, _T("TEXT"), 0x00000000);
+		_SaveColorXml(xml, _T("BACK"), mColor[0]);
+		_SaveColorXml(xml, _T("TEXTBACK"), mColor[1]);
+		_SaveColorXml(xml, _T("TEXT"), mColor[2]);
 		_SaveColorXml(xml, _T("VALUE"), 0x00000000);
 		_SaveColorXml(xml, _T("UNIT"), 0x00000000);
 		break;
 	case	1:
-		_SaveColorXml(xml, _T("BACK"), 0x00ffffff);
-		_SaveColorXml(xml, _T("TEXTBACK"), RGB(147, 144, 192));
-		_SaveColorXml(xml, _T("TEXT"), 0x00000000);
+		_SaveColorXml(xml, _T("BACK"), mColor[0]);
+		_SaveColorXml(xml, _T("TEXTBACK"), mColor[1]);
+		_SaveColorXml(xml, _T("TEXT"), mColor[2]);
 		_SaveColorXml(xml, _T("VALUE"), 0x00000000);
 		_SaveColorXml(xml, _T("UNIT"), 0x00000000);
 		break;
 	case	2:
-		_SaveColorXml(xml, _T("BACK"), 0x00ffffff);
-		_SaveColorXml(xml, _T("TEXTBACK"), RGB(14, 46, 65));
-		_SaveColorXml(xml, _T("TEXT"), RGB(242, 170, 132));
+		_SaveColorXml(xml, _T("BACK"), mColor[0]);
+		_SaveColorXml(xml, _T("TEXTBACK"), mColor[3]);
+		_SaveColorXml(xml, _T("TEXT"), mColor[4]);
 		_SaveColorXml(xml, _T("VALUE"), 0x00000000);
 		_SaveColorXml(xml, _T("UNIT"), 0x00000000);
 		break;
 	case	3:
-		_SaveColorXml(xml, _T("BACK"), 0x00ffffff);
-		_SaveColorXml(xml, _T("TEXTBACK"), RGB(14, 46, 65));
-		_SaveColorXml(xml, _T("TEXT"), RGB(193, 229, 245));
+		_SaveColorXml(xml, _T("BACK"), mColor[0]);
+		_SaveColorXml(xml, _T("TEXTBACK"), mColor[5]);
+		_SaveColorXml(xml, _T("TEXT"), mColor[6]);
 		_SaveColorXml(xml, _T("VALUE"), 0x00000000);
 		_SaveColorXml(xml, _T("UNIT"), 0x00000000);
 		break;
 	case	4:
-		_SaveColorXml(xml, _T("BACK"), 0x00ffffff);
-		_SaveColorXml(xml, _T("TEXTBACK"), RGB(14, 46, 65));
-		_SaveColorXml(xml, _T("TEXT"), RGB(255, 255, 255));
-		_SaveColorXml(xml, _T("VALUE"), RGB(255, 255, 255));
-		_SaveColorXml(xml, _T("UNIT"), RGB(255, 255, 255));
+		_SaveColorXml(xml, _T("BACK"), mColor[0]);
+		_SaveColorXml(xml, _T("TEXTBACK"), mColor[7]);
+		_SaveColorXml(xml, _T("TEXT"), mColor[8]);
+		_SaveColorXml(xml, _T("VALUE"), mColor[8]);
+		_SaveColorXml(xml, _T("UNIT"), mColor[8]);
 		break;
 	}
 	xml.OutOfElem();
@@ -487,29 +523,40 @@ bool CCustomCsvToXmlDlg::SaveNodeXml(CMarkup& xml, CNode* cur)
 	xml.IntoElem();
 	switch (cur->getLevel()) {
 	case	0:
-		xml.AddElem(_T("LFHEIGHT"), -22);
+		xml.AddElem(_T("LFHEIGHT"), mFont[1].lfHeight);
 		break;
 	case	1:
-		xml.AddElem(_T("LFHEIGHT"), -22);
+		xml.AddElem(_T("LFHEIGHT"), mFont[1].lfHeight);
 		break;
 	case	2:
-		xml.AddElem(_T("LFHEIGHT"), -20);
+		xml.AddElem(_T("LFHEIGHT"), mFont[2].lfHeight);
 		break;
 	case	3:
-		xml.AddElem(_T("LFHEIGHT"), -18);
+		xml.AddElem(_T("LFHEIGHT"), mFont[3].lfHeight);
 		break;
 	case	4:
-		xml.AddElem(_T("LFHEIGHT"), -16);
+		xml.AddElem(_T("LFHEIGHT"), mFont[4].lfHeight);
 		break;
 	}
 	xml.AddElem(_T("LFWIDTH"), 0);
 	xml.AddElem(_T("LFWEIGHT"), 700);
 	xml.AddElem(_T("LFCHARSET"), 1);
-	if (cur->getLevel() == 4) {
-		xml.AddElem(_T("LFFACENAME"), _T("Consolas"));
-	}
-	else {
-		xml.AddElem(_T("LFFACENAME"), _T("BIZ UDPゴシック"));
+	switch (cur->getLevel()) {
+	case	0:
+		xml.AddElem(_T("LFFACENAME"), mFont[1].lfFaceName);
+		break;
+	case	1:
+		xml.AddElem(_T("LFFACENAME"), mFont[1].lfFaceName);
+		break;
+	case	2:
+		xml.AddElem(_T("LFFACENAME"), mFont[2].lfFaceName);
+		break;
+	case	3:
+		xml.AddElem(_T("LFFACENAME"), mFont[3].lfFaceName);
+		break;
+	case	4:
+		xml.AddElem(_T("LFFACENAME"), mFont[4].lfFaceName);
+		break;
 	}
 	xml.OutOfElem();
 
@@ -536,4 +583,43 @@ void CCustomCsvToXmlDlg::OnBnClickedRadioScl()
 void CCustomCsvToXmlDlg::OnBnClickedRadioXml()
 {
 	mConvCtrl.SetWindowText(_T("CSV → XML 変換"));
+}
+
+
+void CCustomCsvToXmlDlg::OnBnClickedTitleFont()
+{
+	setFont(1);
+}
+
+
+void CCustomCsvToXmlDlg::OnBnClickedMainFont()
+{
+	setFont(2);
+}
+
+
+void CCustomCsvToXmlDlg::OnBnClickedSubFont()
+{
+	setFont(3);
+}
+
+
+void CCustomCsvToXmlDlg::OnBnClickedLeafFont()
+{
+	setFont(4);
+}
+
+void CCustomCsvToXmlDlg::setFont(UINT type)
+{
+	CClientDC dc(NULL);
+	LOGFONT lf = mFont[type];
+	lf.lfHeight = -::MulDiv(-lf.lfHeight, dc.GetDeviceCaps(LOGPIXELSY), 72);
+	CFontDialog dlg(&lf);// , CF_NOSCRIPTSEL);
+	if (dlg.DoModal() == IDOK)
+	{
+		lf.lfHeight = -::MulDiv(-lf.lfHeight, 72, dc.GetDeviceCaps(LOGPIXELSY));
+		lf.lfUnderline = 0;
+		lf.lfStrikeOut = 0;
+		mFont[type] = lf;
+	}
 }

@@ -7,6 +7,22 @@
 #include "Markup.h"
 #include "afxwin.h"
 
+typedef struct {
+	UINT		id;
+	COLORREF	color;
+} stColorConfig;
+static const stColorConfig mColorConfig[] = {
+	{ IDC_BACKCOLOR, RGB(192,192,192)},
+	{ IDC_TITLE_BACKCOLOR, RGB(147, 144, 192)},
+	{ IDC_TITLE_TEXTCOLOR, RGB(0,0,0)},
+	{ IDC_MAIN_BACKCOLOR, RGB(14, 46, 65) },
+	{ IDC_MAIN_TEXTCOLOR, RGB(242, 170, 132) },
+	{ IDC_SUB_BACKCOLOR, RGB(14, 46, 65) },
+	{ IDC_SUB_TEXTCOLOR, RGB(193, 229, 245) },
+	{ IDC_LEAF_BACKCOLOR, RGB(14, 46, 65) },
+	{ IDC_LEAF_TEXTCOLOR, RGB(255, 255, 255) },
+};
+
 class CNode {
 public:
 	CNode(UINT level, const CString name = _T(""));
@@ -94,6 +110,11 @@ public:
 		xml.OutOfElem();
 	}
 
+	COLORREF	mColor[9];
+	LOGFONT		mFont[5];
+
+	void	setFont(UINT type);
+
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV サポート
 
@@ -117,4 +138,8 @@ public:
 	afx_msg void OnBnClickedRadioScl();
 	afx_msg void OnBnClickedRadioXml();
 	CButton mConvCtrl;
+	afx_msg void OnBnClickedTitleFont();
+	afx_msg void OnBnClickedMainFont();
+	afx_msg void OnBnClickedSubFont();
+	afx_msg void OnBnClickedLeafFont();
 };
