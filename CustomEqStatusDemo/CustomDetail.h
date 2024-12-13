@@ -41,6 +41,7 @@ protected:
 	LOGFONT		mTreeLogFont;
 	LOGFONT		mTreeLeafLogFont;
 	HTREEITEM	mMenuItem;
+	CTreeNode*	mMasterNode;
 	//CTreeNode*	mBackupNode;
 
 	/// ツールチップ
@@ -87,6 +88,7 @@ protected:
 	void	updateMenu(CMenu* pMenu);
 	bool	updateMenuItem(MENUITEMINFO* pMenuItemInfo);
 
+	void	saveasXmlFile(CTreeNode* pnode, CString xmlfile);
 	void	saveHeaderWidth();
 
 	CString	generateTreeText(CTreeNode* pnode);

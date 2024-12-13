@@ -933,6 +933,10 @@ void CCustomTreeListCtrl::OnTvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 	}
 
 	// 先頭アイテム以外の場合
+	if (type == eTreeItemType_Title) {
+		// タイトルの場合
+		swprintf_s(pnode->GetEquipment().title, mTitleSize, _T("%s"), pTVDispInfo->item.pszText);
+	}
 	swprintf_s(pnode->GetMonCtrl().display, mNameSize, _T("%s"), pTVDispInfo->item.pszText);
 	SetItemText(pTVDispInfo->item.hItem, pTVDispInfo->item.pszText);
 	Invalidate(FALSE);

@@ -753,23 +753,20 @@ public:
 	}
 
 	/// 編集用ノードを名前を付けて保存する
-	void SaveasEditNode(CWnd* pWnd, CString xmlfile)
+	CTreeNode* SaveasEditNode(CWnd* pWnd, CString xmlfile)
 	{
 		map<CWnd*, CTreeNode*>::iterator itrwnd;
 		itrwnd = mEditTreeNode.find(pWnd);
 		if (itrwnd == mEditTreeNode.end()) {
 			// 編集ノードにない場合は何もしない
-			return;
+			return NULL;
 		}
 		// 編集用ノードを保存する
 		SaveasTreeDataXml(xmlfile, pWnd);
-		// 元ノードを取得
-		CTreeNode* dest = SearchWndNode(pWnd, false);
-		// 編集ノードを元ノードにコピーする
-		dest = CloneItemNode((*itrwnd).second, dest);
-		//AddTreeNode(dest);
-		//CTreeNode* pnode = SearchWndNode(pWnd, false);
-		//pnode->GetEquipment().wnd = pWnd;
+
+		CTreeNode* pnode = LoadTreeDataXml(xmlfile, eTreeItemKind_User);
+
+		return pnode;
 	}
 
 	/// 編集ノードとノードリスト内のノードを比較する

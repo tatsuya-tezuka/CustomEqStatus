@@ -321,6 +321,7 @@ void CCustomDetail::OnMenudetailClose()
 		CCustomSelectSaveFile dlg;
 		dlg.SetSavePathName(theApp.GetCustomControl().GetUserDataPath());
 		dlg.SetSaveFileName(CString(pnode->GetXmlFileName()));
+		CString xmlfile = CString(pnode->GetXmlFileName());
 		INT_PTR ret = dlg.DoModal();
 
 		if (ret == IDCANCEL) {
@@ -328,7 +329,15 @@ void CCustomDetail::OnMenudetailClose()
 		}
 		if (ret == IDOK) {
 			// 変更内容を保存する
-			OnMenudetailSave();
+			CString filename = dlg.GetSavePathName() + _T("\\") + dlg.GetSaveFileName() + _T(".xml");
+			if (xmlfile.CompareNoCase(filename) == 0) {
+				// 同じなので上書き保存
+				OnMenudetailSave();
+			}
+			else {
+				// 違うので名前を付けて保存
+				saveasXmlFile(pnode, filename);
+			}
 		}
 	}
 
@@ -388,10 +397,12 @@ void CCustomDetail::OnMenudetailSave()
 	// ツリーデータの保存
 	saveHeaderWidth();
 
-	// 編集用ノード情報の保存
-	theApp.GetCustomControl().GetDataManager().RestoreEditNode(this);
 
+	// 編集用ノード情報の保存
 	theApp.GetCustomControl().GetDataManager().SaveEquipmentData((UINT)eLayoutFileType_XML, pnode->GetXmlFileName(), this);
+
+	// 編集用ノードを編集元ノードへコピーする
+	theApp.GetCustomControl().GetDataManager().RestoreEditNode(this);
 
 	// カスタム管理画面へ通知してタイトルを更新する
 	if (pnode->GetEquipment().manager->GetSafeHwnd())
@@ -426,7 +437,7 @@ void CCustomDetail::OnMenudetailSaveas()
 	dlg.SetSaveFileName(CString(pnode->GetXmlFileName()));
 	INT_PTR ret = dlg.DoModal();
 
-	CString filename = dlg.GetSavePathName() + _T("\\") + dlg.GetSaveFileName();
+	CString filename = dlg.GetSavePathName() + _T("\\") + dlg.GetSaveFileName() + _T(".xml");
 	CString backxml = CString(pnode->GetXmlFileName());
 	switch (ret) {
 	case	IDCANCEL:
@@ -438,16 +449,47 @@ void CCustomDetail::OnMenudetailSaveas()
 		break;
 	}
 
+	if (backxml.CollateNoCase(filename) == 0) {
+		// 上書き保存
+		OnMenudetailSave();
+	}
+	else {
+		// 名前を付けて保存
+		saveasXmlFile(pnode, filename);
+	}
+}
+
+/*============================================================================*/
+/*! 設備詳細
+
+-# ヘッダーサイズの保存
+
+@param  pnode		ノード情報
+@param  xmlfile		保存するXMLファイル名
+
+@retval なし
+*/
+/*============================================================================*/
+void CCustomDetail::saveasXmlFile(CTreeNode* pnode, CString xmlfile)
+{
 	// ツリーヘッダー幅の保存
 	saveHeaderWidth();
 
 	// 編集用ノード情報の保存
-	swprintf_s(pnode->GetXmlFileName(), _MAX_PATH, _T("%s"), (LPCTSTR)filename);
+	swprintf_s(pnode->GetXmlFileName(), _MAX_PATH, _T("%s"), (LPCTSTR)xmlfile);
 
-	// ①編集用ノードを名前を付けて保存する
-	theApp.GetCustomControl().GetDataManager().SaveasEditNode(this, (LPCTSTR)filename);
+	// 編集用ノードを名前を付けて保存する
+	// 編集用ノードの内容をXMLファイルに保存→保存したXMLファイルを読込
+	CTreeNode* pSaveNode = theApp.GetCustomControl().GetDataManager().SaveasEditNode(this, (LPCTSTR)xmlfile);
+	// 名前を付けて保存したので、編集元ノード情報のウィンドウハンドルをクリアする
+	if (pSaveNode != NULL) {
+		pSaveNode->GetEquipment().wnd = this;
+	}
+	if (mMasterNode != NULL) {
+		mMasterNode->GetEquipment().wnd = NULL;
+	}
 
-	// ②CCustomManagerの表示更新
+	// CCustomManagerの表示更新
 	if (theApp.GetCustomControl().GetCustomManager().GetSafeHwnd() != NULL) {
 		theApp.GetCustomControl().GetCustomManager().PostMessage(eUserMessage_Manager_Reset, 0, 0);
 	}
@@ -646,11 +688,13 @@ void CCustomDetail::createTreeControl()
 	mTreeCtrl.ModifyStyle(TVS_EDITLABELS, 0);
 
 	if (mRestore == true) {
-		// 編集用ノードを使用するためにノードリストをバックする
+		mMasterNode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this, false);
+		// 編集用ノードを使用するためにノードリストをバックアップする
 		theApp.GetCustomControl().GetDataManager().BackupEditNode(this);
 		restoreRoot();
 	}
 	else {
+		mMasterNode = NULL;
 		createRoot();
 	}
 
