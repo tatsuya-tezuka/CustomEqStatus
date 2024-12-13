@@ -80,6 +80,6 @@ using namespace std;
 #ifdef _DEBUG
 #define	_DEMO_PHASE		110
 #else
-#define	_DEMO_PHASE		60
+#define	_DEMO_PHASE		80
 #endif
 

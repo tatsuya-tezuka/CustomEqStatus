@@ -815,7 +815,7 @@ int CCustomGroupListCtrl::HitTestEx(CPoint &point, int *col)
 		return row;
 
 	// 現在表示されている最初のアイテムインデックスを取得する
-	row = GetTopIndex();
+	//row = GetTopIndex();
 
 	// 可視のアイテム数を取得する
 	int bottom = row + GetCountPerPage();
@@ -827,12 +827,14 @@ int CCustomGroupListCtrl::HitTestEx(CPoint &point, int *col)
 	CHeaderCtrl* pHeader = (CHeaderCtrl*)GetDlgItem(0);
 	int nColumnCount = pHeader->GetItemCount();
 
-	for (; row <= bottom; row++){
+	//for (; row <= bottom; row++)
+	{
 		// アイテム領域の取得
 		CRect rect;
 		GetItemRect(row, &rect, LVIR_BOUNDS);
 
-		if (rect.PtInRect(point)){
+		//if (rect.PtInRect(point))
+		{
 			// Now find the column
 			for (colnum = 0; colnum < nColumnCount; colnum++){
 				int colwidth = GetColumnWidth(colnum);

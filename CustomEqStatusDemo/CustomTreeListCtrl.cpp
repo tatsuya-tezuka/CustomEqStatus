@@ -579,9 +579,6 @@ BOOL CCustomTreeListCtrl::cellClick(HTREEITEM hItem, UINT nSubItem, CPoint point
 void CCustomTreeListCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
 	CTreeCtrl::OnLButtonDblClk(nFlags, point);
-#if _DEMO_PHASE < 80
-	return;
-#endif
 
 	TRACE("*** OnLButtonDblClk\n");
 	if (!(MK_CONTROL & nFlags)/* && !(MK_SHIFT & nFlags)*/) {

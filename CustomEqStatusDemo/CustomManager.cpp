@@ -194,9 +194,9 @@ void CCustomManager::OnContextMenu(CWnd* pWnd, CPoint point)
 	CPoint pt = point;
 	mManagerList.ScreenToClient(&pt);
 
-	int nItem, colnum;
-	nItem = mManagerList.HitTestEx(pt, &colnum);
-	TRACE("# OnContextMenu : INDEX=%d COL=%d\n", nItem, colnum);
+	int nItem;
+	nItem = mManagerList.HitTest(pt, NULL);
+	TRACE("# OnContextMenu : INDEX=%d\n", nItem);
 	if (nItem < 0) {
 		// リストコントロール上でなければ何もしない
 		//return;
@@ -613,9 +613,6 @@ void CCustomManager::OnMangroupReset()
 /*============================================================================*/
 void CCustomManager::OnMangroupShow()
 {
-#if _DEMO_PHASE < 100
-	return;
-#endif
 	POSITION pos = mManagerList.GetFirstSelectedItemPosition();
 	while (pos) {
 		int nItem = mManagerList.GetNextSelectedItem(pos);
@@ -706,10 +703,6 @@ bool CCustomManager::IsSameGroupName(CString groupName)
 /*============================================================================*/
 void CCustomManager::UpdateGroup(UINT nGroupId/*=0*/, CPoint * point/* = NULL*/)
 {
-#if _DEMO_PHASE < 110
-	return;
-#endif
-
 	mSyncWindow.Dump();
 
 	// 1つでもグループウィンドウが表示されている場合は全てのグループウィンドウを表示させる

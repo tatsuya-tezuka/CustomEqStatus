@@ -135,11 +135,6 @@ void CCustomDetail::OnHeaderItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
 /*============================================================================*/
 void CCustomDetail::OnHeaderDividerdblclick(NMHDR *pNMHDR, LRESULT *pResult)
 {
-#if _DEMO_PHASE < 80
-	* pResult = 1;
-	return;
-#endif
-
 	LPNMHEADER phdr = reinterpret_cast<LPNMHEADER>(pNMHDR);
 	
 	mTreeCtrl.DividerDblClick(phdr->iItem);
@@ -289,16 +284,6 @@ void CCustomDetail::OnMenudetailClose()
 	CLogTraceEx::Write(_T("***"), _T("CCustomDetail"), _T("OnMenudetailClose"), CString(pnode->GetEquipment().title), _T(""), nLogEx::info);
 	//↑↑↑↑↑↑↑↑↑↑↑↑ Log ↑↑↑↑↑↑↑↑↑↑↑↑//
 	//=====================================================//
-
-#if _DEMO_PHASE < 80
-	int retmsg = CustomSaveDifferentMessageBoxHooked(m_hWnd, mMessage_DetailSaveDifferentData, pnode->GetEquipment().title, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1, CString(pnode->GetXmlFileName()).IsEmpty() ? false : true);
-	if (retmsg == IDCANCEL) {
-		return;
-	}
-	CCustomDialogBase::OnClose();
-	return;
-#endif
-
 	/*
 		ウィンドウ位置の保存はレイアウト保存時だけ
 	*/
@@ -379,9 +364,6 @@ void CCustomDetail::OnMenudetailClose()
 /*============================================================================*/
 void CCustomDetail::OnMenudetailSave()
 {
-#if _DEMO_PHASE < 80
-	return;
-#endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 
 	//=====================================================//
@@ -421,9 +403,6 @@ void CCustomDetail::OnMenudetailSave()
 /*============================================================================*/
 void CCustomDetail::OnMenudetailSaveas()
 {
-#if _DEMO_PHASE < 80
-	return;
-#endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 
 	//=====================================================//
@@ -548,10 +527,6 @@ void CCustomDetail::OnMenudetailMonitor()
 	if (retmsg == IDCANCEL) {
 		return;
 }
-#if _DEMO_PHASE < 80
-	return;
-#endif
-
 	bool ret = theApp.GetCustomControl().GetDataManager().CompareEditNode(this);
 	if (ret != true) {
 	}
@@ -1082,7 +1057,7 @@ void CCustomDetail::resizeFit()
 /*============================================================================*/
 void CCustomDetail::OnDetailAdd()
 {
-#if _DEMO_PHASE < 80
+#if _DEMO_PHASE < 110
 	return;
 #endif
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(this, mMenuItem);
@@ -1119,7 +1094,7 @@ void CCustomDetail::OnDetailAdd()
 /*============================================================================*/
 void CCustomDetail::OnDetailDelete()
 {
-#if _DEMO_PHASE < 80
+#if _DEMO_PHASE < 110
 	return;
 #endif
 	mTreeCtrl.SetRedraw(false);
@@ -1153,7 +1128,7 @@ void CCustomDetail::OnDetailDelete()
 /*============================================================================*/
 void CCustomDetail::OnDetailRename()
 {
-#if _DEMO_PHASE < 80
+#if _DEMO_PHASE < 110
 	return;
 #endif
 	CPoint point;
@@ -1187,7 +1162,7 @@ void CCustomDetail::OnDetailRename()
 /*============================================================================*/
 void CCustomDetail::OnDetailMonctrl()
 {
-#if _DEMO_PHASE < 80
+#if _DEMO_PHASE < 150
 	return;
 #endif
 	// 監視・制御一覧画面の呼出
@@ -1466,16 +1441,6 @@ void CCustomDetail::setTreeTitle(LPARAM lParam)
 /*============================================================================*/
 void CCustomDetail::updateMode()
 {
-#if _DEMO_PHASE < 80
-	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
-	CString title = pnode->GetEquipment().title;
-	if (pnode->GetEquipment().mode == eTreeItemMode_Edit) {
-		title += CString(mEditModeString);
-	}
-
-	// ウィンドウテキストの変更
-	SetWindowText(title);
-#else
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
 	CString title = pnode->GetEquipment().title;
 	mTreeCtrl.ModifyStyle(TVS_EDITLABELS, 0);
@@ -1486,7 +1451,6 @@ void CCustomDetail::updateMode()
 
 	// ウィンドウテキストの変更
 	SetWindowText(title);
-#endif
 }
 
 /*============================================================================*/
