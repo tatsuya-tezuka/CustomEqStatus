@@ -1164,7 +1164,7 @@ void CCustomDetail::OnDetailRename()
 /*============================================================================*/
 void CCustomDetail::OnDetailMonctrl()
 {
-#if _DEMO_PHASE < 150
+#if _DEMO_PHASE < 110
 	return;
 #endif
 	// ŠÄŽ‹E§Œäˆê——‰æ–Ê‚ÌŒÄo

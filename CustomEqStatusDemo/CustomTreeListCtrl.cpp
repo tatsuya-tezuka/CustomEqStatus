@@ -2555,6 +2555,7 @@ BOOL CCustomTreeListCtrl::DataObjectToList(HTREEITEM hDropItem, CCustomDropObjec
 					else {
 						swprintf_s(new_node->GetMonCtrl().cname, mNameSize, _T("%s"), (LPCTSTR)str);
 					}
+					swprintf_s(new_node->GetMonCtrl().display, mNameSize, _T("%s"), (LPCTSTR)str);
 					new_node->SetParentNode(pnodeDrop);
 					new_node->SetTreeItem(item);
 					new_node->GetEquipment().tree = this;
