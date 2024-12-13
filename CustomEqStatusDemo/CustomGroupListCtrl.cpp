@@ -1334,6 +1334,10 @@ void CCustomGroupListCtrl::OnLvnBegindrag(NMHDR* pNMHDR, LRESULT* pResult)
 	* pResult = 0;
 	return;
 #endif
+	if (IsGroupViewEnabled() == FALSE) {
+		*pResult = 0;
+		return;
+	}
 
 	if (pNMLV) {
 		mDragData.indexes.clear();
@@ -1397,6 +1401,10 @@ void CCustomGroupListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 		SetRedraw(FALSE);
 		UINT flags = 0;
 		int index = HitTest(point, &flags);
+		LVHITTESTINFO hitTestInfo = { 0 };
+		hitTestInfo.pt = point;
+		int i = HitTest(&hitTestInfo);
+		TRACE("MouseMove(%d:%d)\n", flags, hitTestInfo.flags);
 		if (isDropEnable(point) == true) {
 			if (index >= 0) {
 				SetItemState(-1, 0, LVIS_DROPHILITED);
@@ -1429,6 +1437,7 @@ void CCustomGroupListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 /*============================================================================*/
 void CCustomGroupListCtrl::EnsureVisibleEx(int item)
 {
+	return;
 	// アイテムの前後を確認する
 	int nPrev = (item == 0) ? item : item - 1;
 	int nNext = (item == GetItemCount() - 1) ? item : item + 1;

@@ -81,7 +81,7 @@ static const TCHAR* mMessage_Title_CustomDetail = { _T("カスタム画面") };
 
 /// メッセージ
 static const TCHAR* mMessage_ManagerDelete = { _T("選択された設備詳細情報を削除します。\nよろしいですか？") };
-static const TCHAR* mMessage_DetailSaveDifferentData = { _T("設備詳細の変更内容を保存しますか？") };
+static const TCHAR* mMessage_DetailSaveDifferentData = { _T("設備詳細の内容が変更されています。\n保存してから再度実行してください。") };
 static const TCHAR* mMessage_DetailDelete = { _T("%sを削除します。\nよろしいですか？") };
 static const TCHAR* mMessage_LoadLayout = { _T("表示されている全ての設備詳細画面の変更内容を破棄します。\nよろしいですか？") };
 static const TCHAR* mMessage_SaveLayout = { _T("編集中の情報は破棄されます。\nよろしいですか？") };

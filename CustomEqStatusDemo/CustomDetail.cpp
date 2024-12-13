@@ -523,10 +523,12 @@ void CCustomDetail::OnMenudetailEdit()
 void CCustomDetail::OnMenudetailMonitor()
 {
 	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchWndNode(this);
-	int retmsg = CustomSaveDifferentMessageBoxHooked(m_hWnd, mMessage_DetailSaveDifferentData, pnode->GetEquipment().title, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1, CString(pnode->GetXmlFileName()).IsEmpty() ? false : true);
-	if (retmsg == IDCANCEL) {
-		return;
-}
+
+	//int retmsg = CustomSaveDifferentMessageBoxHooked(m_hWnd, mMessage_DetailSaveDifferentData, pnode->GetEquipment().title, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1, CString(pnode->GetXmlFileName()).IsEmpty() ? false : true);
+	//if (retmsg == IDCANCEL) {
+	//	return;
+	//}
+
 	bool ret = theApp.GetCustomControl().GetDataManager().CompareEditNode(this);
 	if (ret != true) {
 	}

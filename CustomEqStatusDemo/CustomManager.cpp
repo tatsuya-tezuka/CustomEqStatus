@@ -1043,6 +1043,7 @@ void CCustomManager::OnLButtonDown(UINT nFlags, CPoint point)
 LRESULT CCustomManager::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	CTreeNode* pnode;
+	int item;
 
 	switch (message) {
 	case	eUserMessage_Manager_Update:
@@ -1056,8 +1057,9 @@ LRESULT CCustomManager::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 		if (lParam == 0 && mSelectType != eSelectUser) {
 			break;
 		}
-
+		item = mManagerList.GetTopIndex();
 		if (lParam == 0) {
+			
 			createItem((int)eSelectUser, true);
 			UpdateGroup();
 		}
@@ -1077,6 +1079,19 @@ LRESULT CCustomManager::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 				UpdateGroup(nGroupId, &point);
 			}
 		}
+		{
+			CRect rc;
+			mManagerList.GetItemRect(0, &rc, LVIR_BOUNDS);
+			int index = item;
+			int offset = rc.Height() * (10 - index);//10行へオフセット計算
+			CSize cs;
+			cs.cx = 0;
+			cs.cy = offset;
+			if (offset) {
+				mManagerList.Scroll(cs);
+			}
+		}
+		//mManagerList.EnsureVisible(item, FALSE);
 
 		break;
 	case	eUserMessage_Manager_Delete:

@@ -1446,6 +1446,11 @@ CEdit* CCustomTreeListCtrl::editSubLabel(HTREEITEM hItem, int col)
 	mpEdit->Create(dwStyle, rect, this, IDC_EDITCTRL);
 	SelectItem(NULL); // これをしないとKillFocusで編集が終了する
 
+	// ノードにあったフォントを設定する
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hItem);
+	CFont& font = GetFontEx(pnode->GetEquipment().type);
+	mpEdit->SetFont(&font);
+
 	return mpEdit;
 }
 
@@ -1870,6 +1875,7 @@ DROPEFFECT CALLBACK CCustomTreeListCtrl::Callback_Detail_DragOver(CWnd* pWnd, vo
 /*============================================================================*/
 void CCustomTreeListCtrl::EnsureVisibleEx(HTREEITEM hItem)
 {
+	return;
 	// アイテムの前後を確認する
 	HTREEITEM hPrev = GetPrevVisibleItem(hItem);
 	HTREEITEM hNext = GetNextVisibleItem(hItem);
@@ -2263,8 +2269,12 @@ CImageList* CCustomTreeListCtrl::CreateDragImageMulti(HTREEITEM hItem, LPPOINT l
 	if (!bitmap.CreateCompatibleBitmap(&dc, rectComplete.Width(), rectComplete.Height()))
 		return NULL;
 
+	CTreeNode* pnode = theApp.GetCustomControl().GetDataManager().SearchItemNode(mTreeParent, hItem);
+	CFont& font = GetFontEx(pnode->GetEquipment().type);
+
 	CBitmap* pOldMemDCBitmap = memDC.SelectObject(&bitmap);
-	CFont* pOldFont = memDC.SelectObject(GetFont());
+	//CFont* pOldFont = memDC.SelectObject(GetFont());
+	CFont* pOldFont = memDC.SelectObject(&font);
 
 	memDC.FillSolidRect(0, 0, rectComplete.Width(), rectComplete.Height(), mDragImageMaskColor);
 
